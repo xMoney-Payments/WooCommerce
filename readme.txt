@@ -21,7 +21,7 @@ For more details concerning our pricing in your region, please check out our [pr
 
 == Installation ==
 
-The easiest way of installing our module is by visiting the [official module page](https://wordpress.org/plugins/xmoney/).
+The easiest way of installing our module is by visiting the [official module page](https://wordpress.org/plugins/xmoney-payments/).
 1. Log into your WordPress site.
 2. Go to: Plugins > Add New.
 3. Search for "xMoney Payments".
