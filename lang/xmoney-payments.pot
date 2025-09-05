@@ -1,0 +1,562 @@
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: xMoney Payments Credit Card Payments\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-08-07 12:26+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: \n"
+"Language: \n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Loco https://localise.biz/\n"
+"X-Loco-Version: 2.8.0; wp-6.8.2; php-7.4.33\n"
+"X-Domain: xmoney-payments"
+
+#: Configuration panel from Administrator
+#: includes/admin/configuration/configuration.php:30
+#: includes/admin/transaction-log/transaction-log.php:30
+#: includes/admin/transaction/transaction.php:33
+#: twispay.php:170
+#: views/payment-confirmation.php:37
+msgid "xMoney Payments requires WooCommerce plugin to work normally. Please activate it or install it from"
+msgstr ""
+
+#: Configuration panel from Administrator
+#: includes/admin/configuration/configuration.php
+#: includes/admin/transaction-log/transaction-log.php:30
+#: includes/admin/transaction/transaction.php:33
+#: twispay.php:170
+#: views/payment-confirmation.php:42
+msgid "here"
+msgstr ""
+
+#: Configuration panel from Administrator
+#: includes/admin/configuration/configuration.php:37
+#: includes/admin/ma-class-menu.php:56
+msgid "Configuration"
+msgstr ""
+
+#: Configuration panel from Administrator
+#: includes/admin/configuration/configuration.php:46
+msgid "Configuration has been edited successfully."
+msgstr ""
+
+#: Configuration panel from Administrator
+#: includes/admin/configuration/configuration.php:54
+msgid "xMoney Payments general settings."
+msgstr ""
+
+#: Configuration panel from Administrator
+#: includes/admin/configuration/configuration.php:58
+msgid "Live mode"
+msgstr ""
+
+#: Configuration panel from Administrator
+#: includes/admin/configuration/configuration.php:61
+msgid "Select \"Yes\" if you want to use the payment gateway in Production Mode or \"No\" if you want to use it in Staging Mode."
+msgstr ""
+
+#: Configuration panel from Administrator
+#: includes/admin/configuration/configuration.php:65
+msgid "Staging Site ID"
+msgstr ""
+
+#: Configuration panel from Administrator
+#: includes/admin/configuration/configuration.php:68
+msgid "Enter the Site ID for Staging Mode. You can get one from"
+msgstr ""
+
+#: Configuration panel from Administrator
+#: includes/admin/configuration/configuration.php:72
+msgid "Staging Private Key"
+msgstr ""
+
+#: Configuration panel from Administrator
+#: includes/admin/configuration/configuration.php:75
+msgid "Enter the Private Key for Staging Mode. You can get one from"
+msgstr ""
+
+#: Configuration panel from Administrator
+#: includes/admin/configuration/configuration.php:79
+msgid "Live Site ID"
+msgstr ""
+
+#: Configuration panel from Administrator
+#: includes/admin/configuration/configuration.php:82
+msgid "Enter the Site ID for Live Mode. You can get one from"
+msgstr ""
+
+#: Configuration panel from Administrator
+#: includes/admin/configuration/configuration.php:86
+msgid "Live Private Key"
+msgstr ""
+
+#: Configuration panel from Administrator
+#: includes/admin/configuration/configuration.php:89
+msgid "Enter the Private Key for Live Mode. You can get one from"
+msgstr ""
+
+#: Configuration panel from Administrator
+#: includes/admin/configuration/configuration.php:93
+msgid "Server-to-server notification URL"
+msgstr ""
+
+#: Configuration panel from Administrator
+#: includes/admin/configuration/configuration.php:96
+msgid "Put this URL in your xMoney Payments account."
+msgstr ""
+
+#: Configuration panel from Administrator
+#: includes/admin/configuration/configuration.php:100
+msgid "Redirect to custom Thank you page"
+msgstr ""
+
+#: Configuration panel from Administrator
+#: includes/admin/configuration/configuration.php:100
+msgid "If you want to display custom Thank you page, set it up here. You can create new custom page from"
+msgstr ""
+
+#: Configuration panel from Administrator
+#: includes/admin/configuration/configuration.php:107
+msgid "Suppress default WooCommerce payment receipt emails"
+msgstr ""
+
+#: Configuration panel from Administrator
+#: includes/admin/configuration/configuration.php:110
+msgid "Option to suppress the communication sent by the ecommerce system, in order to configure it from xMoney Payments’s Merchant interface."
+msgstr ""
+
+#: Configuration panel from Administrator
+#: includes/admin/configuration/configuration.php:123
+msgid "Save changes"
+msgstr ""
+
+#: Configuration panel from Administrator
+#: includes/a-functions.php
+msgid "Yes"
+msgstr ""
+
+#: Configuration panel from Administrator
+#: includes/a-functions.php
+msgid "No"
+msgstr ""
+
+#: Configuration panel from Administrator
+#: includes/a-functions.php:174
+msgid "Default"
+msgstr ""
+
+#: Configuration panel from Administrator
+#: includes/admin/configuration/configuration.php:114
+msgid "Contact email(Optional)"
+msgstr ""
+
+#: Configuration panel from Administrator
+#: includes/admin/configuration/configuration.php:117
+msgid "This email will be used on the payment error page."
+msgstr ""
+
+#: Transaction list from Administrator
+#: includes/admin/ma-class-menu.php:57
+#: includes/admin/transaction/transaction.php:55
+msgid "Transaction list"
+msgstr ""
+
+#: Transaction list from Administrator
+#: includes/admin/transaction/transaction.php:130
+msgid "Search Order"
+msgstr ""
+
+#: Transaction list from Administrator
+#: includes/admin/transaction/transaction-table.php:119
+msgid "All"
+msgstr ""
+
+#: Transaction list from Administrator
+#: includes/admin/transaction/transaction-table.php:182
+msgid "Order reference"
+msgstr ""
+
+#: Transaction list from Administrator
+#: includes/admin/transaction/transaction-table.php:183
+msgid "Customer name"
+msgstr ""
+
+#: Transaction list from Administrator
+#: includes/admin/transaction/transaction-table.php:184
+msgid "Transaction ID"
+msgstr ""
+
+#: Transaction list from Administrator
+#: includes/admin/transaction/transaction-table.php:185
+msgid "Status"
+msgstr ""
+
+#: Transaction list from Administrator
+#: includes/admin/transaction/transaction-table.php:186
+msgid "Checkout url"
+msgstr ""
+
+#: Transaction list from Administrator
+#: includes/admin/transaction/refund_t.php:23
+msgid "Refund Payment Transaction"
+msgstr ""
+
+#: Transaction list from Administrator
+#: includes/admin/transaction/refund_t.php:24
+msgid "Following payment transaction will be refunded:"
+msgstr ""
+
+#: Transaction list from Administrator
+#: includes/admin/transaction/refund_t.php:38
+#: includes/admin/transaction/recurring_t.php:38
+msgid "Confirm"
+msgstr ""
+
+#: Transaction list from Administrator
+#: includes/admin/transaction/transaction.php:81
+msgid "Refund could not been processed."
+msgstr ""
+
+#: Transaction list from Administrator
+#: includes/admin/transaction/transaction.php:88
+msgid "Recurring could not been processed."
+msgstr ""
+
+#: Transaction list from Administrator
+#: includes/admin/transaction/transaction.php:95
+msgid "Refund processed successfully. Refresh the page in seconds to see the update."
+msgstr ""
+
+#: Transaction list from Administrator
+#: includes/admin/transaction/transaction.php:102
+msgid "Recurring processed successfully."
+msgstr ""
+
+#: Transaction list from Administrator
+#: includes/admin/transaction/recurring_t.php:23
+msgid "Cancel a recurring order"
+msgstr ""
+
+#: Transaction list from Administrator
+#: includes/admin/transaction/recurring_t.php:24
+msgid "Following recurring order will be canceled:"
+msgstr ""
+
+#: Transaction list from Administrator
+#: includes/admin/transaction/transaction.php:109
+msgid "Subscriptions synchronization finished."
+msgstr ""
+
+#: Transaction log from Administrator
+#: includes/admin/ma-class-menu.php:58
+#: includes/admin/transaction-log/transaction-log.php:38
+msgid "Transaction log"
+msgstr ""
+
+#: Transaction log from Administrator
+#: includes/admin/transaction-log/transaction-log.php:39
+msgid "Transaction log in raw form."
+msgstr ""
+
+#: Transaction log from Administrator
+#: includes/admin/transaction-log/transaction-log.php:44
+msgid "No log recorded yet."
+msgstr ""
+
+#: Administrator Dashboard left-side menu
+#: includes/admin/ma-class-menu.php:53
+#: includes/scripts.php:130
+msgid "xMoney Payments"
+msgstr ""
+
+#: Administrator Dashboard left-side menu
+#: includes/admin/ma-class-menu.php:56
+#: includes/admin/configuration/configuration.php:130
+msgid "Configuration"
+msgstr ""
+
+#: Administrator Dashboard left-side menu
+#: includes/admin/ma-class-menu.php:57
+#: includes/admin/transaction/transaction.php:55
+msgid "Transaction list"
+msgstr ""
+
+#: Administrator Dashboard left-side menu
+#: includes/admin/ma-class-menu.php:58
+#: includes/admin/transaction-log/transaction-log.php:38
+msgid "Transaction log"
+msgstr ""
+
+#: Woocommerce settings xMoney Payments tab
+#: includes/scripts.php:131
+msgid "Have your customers pay with xMoney Payments payment gateway."
+msgstr ""
+
+#: Woocommerce settings xMoney Payments tab
+#: includes/scripts.php:166
+msgid "Enable/Disable"
+msgstr ""
+
+#: Woocommerce settings xMoney Payments tab
+#: includes/scripts.php:168
+msgid "Enable xMoney Payments Payments"
+msgstr ""
+
+#: Woocommerce settings xMoney Payments tab
+#: includes/scripts.php:172
+msgid "Title"
+msgstr ""
+
+#: Woocommerce settings xMoney Payments tab
+#: includes/scripts.php:174
+msgid "This controls the title which the customer sees during checkout."
+msgstr ""
+
+#: Woocommerce settings xMoney Payments tab
+#: includes/scripts.php:179
+msgid "Description"
+msgstr ""
+
+#: Woocommerce settings xMoney Payments tab
+#: includes/scripts.php:181
+msgid "This controls the description which the customer sees during checkout."
+msgstr ""
+
+#: Woocommerce settings xMoney Payments tab
+#: includes/scripts.php:182
+msgid "One integration, multiple payment methods. xMoney Payments enables you to accept payments from virtually anywhere in the world through a myriad of payment methods."
+msgstr ""
+
+#: Woocommerce settings xMoney Payments tab
+#: includes/scripts.php:186
+msgid "Enable for shipping methods"
+msgstr ""
+
+#: Woocommerce settings xMoney Payments tab
+#: includes/scripts.php:191
+msgid "If xMoney Payments is only available for certain shipping methods, set it up here. Leave blank to enable for all methods."
+msgstr ""
+
+#: Woocommerce settings xMoney Payments tab
+#: includes/scripts.php:195
+msgid "Select shipping methods"
+msgstr ""
+
+#: Woocommerce settings xMoney Payments tab
+#: includes/scripts.php:199
+msgid "Accept for virtual orders"
+msgstr ""
+
+#: Woocommerce settings xMoney Payments tab
+#: includes/scripts.php:200
+msgid "Accept xMoney Payments if the order is virtual"
+msgstr ""
+
+#: Order Recieved Confirmation title
+#: includes/scripts.php:479
+msgid "Thank you. Your transaction is approved."
+msgstr ""
+
+#: Twispay Processor( Redirect page to xMoney Payments )
+#: includes/processors/class-main-processor.php:93
+#: includes/processors/class-subscription-processor.php
+msgid "You are not allowed to access this file."
+msgstr ""
+
+#: Twispay Processor( Redirect page to xMoney Payments )
+#: includes/processors/class-subscription-processor.php:99
+msgid "The order has no items."
+msgstr ""
+
+#: Twispay Processor( Redirect page to xMoney Payments )
+#: includes/processors/class-subscription-processor.php:103
+msgid "Orders with subscriptions cannot have other products too."
+msgstr ""
+
+#: Twispay Processor( Redirect page to xMoney Payments )
+#: includes/processors/class-main-processor.php:99
+#: includes/processors/class-subscription-processor.php:109
+#: views/payment-confirmation.php:66
+msgid "Missing includes/admin/configuration/configuration for plugin."
+msgstr ""
+
+#: Validation LOG insertor
+#: includes/class-tw-server-to-server.php:57
+#: views/payment-confirmation.php:195
+msgid "[RESPONSE]: Decryption successfully performed."
+msgstr ""
+
+#: Validation LOG insertor
+#: helpers/Twispay_TW_Helper_Response.php:178
+msgid "[RESPONSE]: Data: "
+msgstr ""
+
+#: Validation LOG insertor
+#: helpers/Twispay_TW_Status_Updater.php
+msgid "[RESPONSE]: Status complete-ok for order ID: "
+msgstr ""
+
+#: Validation LOG insertor
+#: helpers/Twispay_TW_Status_Updater.php:240
+msgid "[RESPONSE]: Status refund-ok for order ID: "
+msgstr ""
+
+#: Validation LOG insertor
+#: helpers/Twispay_TW_Status_Updater.php
+msgid "[RESPONSE]: Status failed for order ID: "
+msgstr ""
+
+#: Validation LOG insertor
+#: helpers/Twispay_TW_Status_Updater.php
+msgid "[RESPONSE]: Status on-hold for order ID: "
+msgstr ""
+
+#: Validation LOG insertor
+#: helpers/Twispay_TW_Helper_Response.php:188
+msgid "[RESPONSE]: Validating completed for order ID: "
+msgstr ""
+
+#: Validation LOG insertor
+#: includes/class-tw-server-to-server.php
+#: views/payment-confirmation.php:203
+msgid "[RESPONSE-ERROR]: Validation failed."
+msgstr ""
+
+#: Validation LOG insertor
+#: includes/class-tw-server-to-server.php
+#: views/payment-confirmation.php:159
+msgid "[RESPONSE-ERROR]: Decryption failed."
+msgstr ""
+
+#: Validation LOG insertor
+#: includes/class-tw-server-to-server.php
+#: views/payment-confirmation.php:247
+msgid "[RESPONSE-ERROR]: Order does not exist."
+msgstr ""
+
+#: Validation LOG insertor
+#: helpers/Twispay_TW_Helper_Response.php:181
+#: helpers/Twispay_TW_Status_Updater.php
+msgid "[RESPONSE-ERROR]: Wrong status: "
+msgstr ""
+
+#: Validation LOG insertor
+#: helpers/Twispay_TW_Helper_Response.php:148
+msgid "[RESPONSE-ERROR]: Empty status"
+msgstr ""
+
+#: Validation LOG insertor
+#: helpers/Twispay_TW_Helper_Response.php:152
+msgid "[RESPONSE-ERROR]: Empty identifier"
+msgstr ""
+
+#: Validation LOG insertor
+#: helpers/Twispay_TW_Helper_Response.php:156
+msgid "[RESPONSE-ERROR]: Empty externalOrderId"
+msgstr ""
+
+#: Validation LOG insertor
+#: helpers/Twispay_TW_Helper_Response.php:160
+msgid "[RESPONSE-ERROR]: Empty transactionId"
+msgstr ""
+
+#: Validation LOG insertor
+#: includes/class-tw-server-to-server.php
+#: views/payment-confirmation.php:75
+msgid "[RESPONSE-ERROR]: Received empty response."
+msgstr ""
+
+#: Validation LOG insertor
+#: includes/class-tw-server-to-server.php
+#: views/payment-confirmation.php:114
+msgid "[RESPONSE-ERROR]: Private key is not valid."
+msgstr ""
+
+#: Validation LOG insertor
+#: views/payment-confirmation.php:288
+msgid "[RESPONSE-ERROR]: Invalid order identification key."
+msgstr ""
+
+#: Validation LOG insertor
+#: includes/class-tw-server-to-server.php:52
+msgid "[RESPONSE-ERROR]: opensslResult: "
+msgstr ""
+
+#: Subscriptions section
+#: includes/admin/transaction/transaction.php:61
+msgid "Synchronize subscriptions"
+msgstr ""
+
+#: Subscriptions section
+#: includes/admin/transaction/transaction.php
+msgid "Synchronize the local status of all subscriptions with the server status."
+msgstr ""
+
+#: Subscriptions section
+#: includes/scripts.php:550
+msgid "[RESPONSE]: Server status set for order ID: "
+msgstr ""
+
+#: Subscriptions section
+#: includes/scripts.php:552
+#: includes/admin/transaction/requests.php:191
+msgid "[RESPONSE-ERROR]: Failed to set server status for order ID: "
+msgstr ""
+
+#: Subscriptions section
+#: includes/admin/transaction/requests.php:139
+msgid "[RESPONSE-ERROR]: Failed to call server: "
+msgstr ""
+
+#: Subscriptions section
+#: includes/admin/transaction/requests.php:170
+msgid "[RESPONSE-ERROR]: Unexpected HTTP response code: "
+msgstr ""
+
+#: Wordpress Administrator Order Notice
+#: helpers/Twispay_TW_Status_Updater.php
+msgid "xMoney Payments payment finalised successfully"
+msgstr ""
+
+#: Wordpress Administrator Order Notice
+#: helpers/Twispay_TW_Status_Updater.php:234
+msgid "Website manager pressed on refund button successfully"
+msgstr ""
+
+#: Wordpress Administrator Order Notice
+#: helpers/Twispay_TW_Status_Updater.php
+msgid "xMoney Payments payment failed"
+msgstr ""
+
+#: Wordpress Administrator Order Notice
+#: helpers/Twispay_TW_Status_Updater.php
+msgid "xMoney Payments payment is on hold"
+msgstr ""
+
+#: Others
+#: helpers/Twispay_TW_Status_Updater.php
+#: views/payment-confirmation.php
+msgid "An error occurred:"
+msgstr ""
+
+#: Others
+#: helpers/Twispay_TW_Status_Updater.php
+#: views/payment-confirmation.php
+msgid "The payment could not be processed. Please"
+msgstr ""
+
+#: Others
+#: helpers/Twispay_TW_Status_Updater.php
+#: views/payment-confirmation.php
+msgid " try again"
+msgstr ""
+
+#: Others
+#: includes/class-ma-list-table.php:346
+msgid "No items found."
+msgstr ""
