@@ -35,6 +35,7 @@ The easiest way of installing our module is by visiting the [official module pag
 11. Enter your technical **Contact Email**. _(This will be displayed to customers in case of a payment error)_
 12. Save your changes.
 
+
 == Screenshots ==
 
 1. Secure credit card processing for Visa and Mastercard
