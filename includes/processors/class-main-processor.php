@@ -122,7 +122,7 @@ class Twispay_Main_Processor {
             ];
         }
 
-        $back_url = get_permalink(get_page_by_path('twispay-confirmation'));
+        $back_url = get_permalink(get_page_by_path('xmoney-payments-confirmation'));
         $back_url = add_query_arg([ 'secure_key' => $data['cart_hash'] ], $back_url);
 
         $orderId = NULL;
