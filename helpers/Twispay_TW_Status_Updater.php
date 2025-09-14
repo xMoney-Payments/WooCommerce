@@ -131,6 +131,15 @@ if ( ! class_exists( 'Twispay_TW_Status_Updater' ) ) :
                 break;
 
                 case Twispay_TW_Status_Updater::$RESULT_STATUSES['IN_PROGRESS']:
+                    /* Payment still pending at provider – do NOT treat as success. */
+                    $order->update_status(
+                        'on-hold',
+                        esc_html__('xMoney Payments transaction is still in progress', 'xmoney-payments')
+                    );
+
+                    Twispay_TW_Logger::twispay_tw_log(
+                        esc_html__('[RESPONSE]: Status in-progress for order ID: ', 'xmoney-payments') . $orderId
+                    );
                 case Twispay_TW_Status_Updater::$RESULT_STATUSES['COMPLETE_OK']:
                     /* Mark order as completed. */
                     $order->update_status('processing', esc_html__( 'xMoney Payments payment finalised successfully', 'xmoney-payments' ));
@@ -248,6 +257,15 @@ if ( ! class_exists( 'Twispay_TW_Status_Updater' ) ) :
                 break;
 
                 case Twispay_TW_Status_Updater::$RESULT_STATUSES['IN_PROGRESS']:
+                    /* Payment still pending at provider – do NOT treat as success. */
+                    $order->update_status(
+                        'on-hold',
+                        esc_html__('xMoney Payments transaction is still in progress', 'xmoney-payments')
+                    );
+
+                    Twispay_TW_Logger::twispay_tw_log(
+                        esc_html__('[RESPONSE]: Status in-progress for order ID: ', 'xmoney-payments') . $orderId
+                    );
                 case Twispay_TW_Status_Updater::$RESULT_STATUSES['COMPLETE_OK']:
                     /* Mark order as completed. */
                     $order->update_status('processing', esc_html__( 'xMoney Payments payment finalised successfully', 'xmoney-payments' ));
