@@ -34,6 +34,20 @@ if (!class_exists('Twispay')) {
         private static $__instance;
 
         /**
+         *
+         * @public
+         * @var    Twispay_TW_Payment_Confirmation Instance of class Twispay_TW_Payment_Confirmation
+         */
+        public $payment_confirmation;
+
+        /**
+         *
+         * @public
+         * @var    Twispay_TW_Views Instance of class Twispay_TW_Views
+         */
+        public $views;
+
+        /**
          * Main Twispay Instance
          *
          * Only one instance of Twispay is loaded

@@ -108,6 +108,8 @@ add_action( 'wp_enqueue_scripts', 'twispay_tw_add_front_css' );
 function init_twispay_gateway_class() {
     if ( class_exists( 'WooCommerce' ) ) {
         class WC_Gateway_Twispay_Gateway extends WC_Payment_Gateway {
+            private $enable_for_methods;
+            private $enable_for_virtual;
             /**
              * Twispay Gateway Constructor
              *

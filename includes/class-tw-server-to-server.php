@@ -2,6 +2,7 @@
 
 class Twispay_Server_To_Server {
     private $language;
+    private $order_id;
 
     public function __construct() {
         require_once TWISPAY_PLUGIN_DIR . 'helpers/Twispay_TW_Logger.php';

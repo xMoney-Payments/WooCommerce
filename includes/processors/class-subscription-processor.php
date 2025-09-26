@@ -129,7 +129,7 @@ class Twispay_Subscription_Processor {
         $item = $subscription->get_items();
         $item = reset($item);
 
-        $back_url = get_permalink(get_page_by_path('twispay-confirmation'));
+        $back_url = get_permalink(get_page_by_path('xmoney-payments-confirmation'));
         $back_url = add_query_arg([ 'secure_key' => $order->get_data()['cart_hash'] ], $back_url);
 
         /* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! */
