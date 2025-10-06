@@ -36,7 +36,9 @@ function twispay_tw_configuration() {
             <div class="wrap">
                 <h2><?php echo esc_html__( 'Configuration', 'xmoney-payments' ); ?></h2>
                 <?php
+                    // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_GET
                     if ( isset( $_GET['notice'] ) && sanitize_text_field( wp_unslash($_GET['notice']) ) ) {
+                        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_GET
                         $notice = sanitize_text_field( wp_unslash($_GET['notice']) );
 
                         switch ( $notice ) {

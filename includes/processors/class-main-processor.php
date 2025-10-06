@@ -5,8 +5,9 @@ class Twispay_Main_Processor {
     private $language;
 
     public function __construct() {
-
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Checkout page GET parameter, used to identify order; read-only and sanitized.
         $this->order_id = !empty($_GET['order_id']) ? (int)sanitize_key($_GET['order_id']) : null;
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Checkout page GET parameter, used to conditionally hook process; safe for display-only usage.
         if ($this->order_id && strpos(sanitize_text_field(wp_unslash($_GET['order_id'])), '_sub') === false) {
             add_action('woocommerce_after_checkout_form', [$this, 'process']);
         }
@@ -127,7 +128,9 @@ class Twispay_Main_Processor {
 
         $orderId = NULL;
 
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- GET parameter identifies order; sanitized and verified against WooCommerce order, safe for request data.
         if(isset($_GET['order_id'])){
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Same GET parameter used to build request; safe because validated against WooCommerce order.
             $orderId = sanitize_key($_GET['order_id']);
         }
 

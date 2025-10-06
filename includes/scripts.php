@@ -27,6 +27,7 @@ function twispay_tw_check_if_is_admin() {
     }
 
     // Check if the page parameters is present
+    // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page GET parameter; not sensitive, only used to detect page context.
     if ( ! isset( $_GET['page'] ) ) {
         return false;
     }
@@ -38,6 +39,7 @@ function twispay_tw_check_if_is_admin() {
     );
 
     // Check if current page is one of the xMoney Payments Pages
+    // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Safe GET parameter; not modifying anything, just used to determine admin page context
     return in_array( sanitize_text_field( $_GET['page'] ), $tw_pages );
 }
 
@@ -379,6 +381,7 @@ function init_twispay_gateway_class() {
             function process_refund($order_id, $amount = NULL, $reason = '') {
                 global $wpdb;
                 $apiKey = '';
+                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
                 $transaction_id = $wpdb->get_var(
                     $wpdb->prepare(
                         "SELECT transactionId FROM " . $wpdb->prefix . "twispay_tw_transactions WHERE id_cart = %d",
@@ -390,6 +393,7 @@ function init_twispay_gateway_class() {
                 }
 
                 /* Get configuration from database. */
+                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
                 $configuration = $wpdb->get_row( "SELECT * FROM " . $wpdb->prefix . "twispay_tw_configuration" );
                 if (!$configuration) {
 	                return new WP_Error( 'error', "Missing configuration");
@@ -504,6 +508,7 @@ function twispay_tw_unhook_woo_order_emails( $email_class ) {
 
 // Get configuration from database
 global $wpdb;
+// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 $suppress_email = $wpdb->get_row( "SELECT suppress_email FROM " . $wpdb->prefix . "twispay_tw_configuration" );
 
 if ( $suppress_email ) {
@@ -518,7 +523,9 @@ function subscription_terminated( $subscription ){
     /* Get configuration from database. */
     global $wpdb;
     $apiKey = '';
+    // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
     $configuration = $wpdb->get_row( "SELECT * FROM " . $wpdb->prefix . "twispay_tw_configuration" );
+    // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
     $serverOrderId = $wpdb->get_var(
         $wpdb->prepare(
             "SELECT orderId FROM " . $wpdb->prefix . "twispay_tw_transactions WHERE id_cart = %d",

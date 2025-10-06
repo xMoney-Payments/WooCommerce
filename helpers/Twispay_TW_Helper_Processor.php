@@ -48,8 +48,9 @@ class Twispay_TW_Helper_Processor {
     private static function query_configuration() {
         global $wpdb;
 
-        $table_name = $wpdb->prefix . "twispay_tw_configuration";
+        $table_name = esc_sql($wpdb->prefix . 'twispay_tw_configuration');
 
-        return $wpdb->get_row($wpdb->prepare("SELECT * FROM %5s", $table_name));
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table names are escaped manually and safe.
+        return $wpdb->get_row("SELECT * FROM {$table_name}");
     }
 }

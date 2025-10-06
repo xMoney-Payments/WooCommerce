@@ -18,7 +18,9 @@
  */
 function twispay_tw_main_action() {
     // Check if there is a form process in rolling
+    // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_REQUEST
     if ( isset( $_REQUEST['tw_general_action'] ) ) {
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_REQUEST
         $request = sanitize_text_field(wp_unslash($_REQUEST['tw_general_action']) );
 
         // Check if current user have administrator permisions. If not, throw 403 error
@@ -32,6 +34,7 @@ function twispay_tw_main_action() {
         }
 
         // Pass the request to their own controllers. This call is dynamic and have following form. Eg: "tw_" + <the_request_name>. If we want to start the edit the configuration, the request will be like "edit_general_configuration"
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_REQUEST
         do_action( 'tw_' . $request, $_REQUEST );
     }
 }

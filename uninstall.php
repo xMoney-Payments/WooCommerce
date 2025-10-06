@@ -19,11 +19,13 @@ delete_option( 'twispay_tw_installed' );
 // Delete All TW Twispay Pages
 $page = get_page_by_path('xmoney-payments-confirmation');
 if ($page) {
-	wp_delete_post( $page->ID );
+	wp_delete_post( $page->ID, true );
 }
 
 // Remove All Tables
 global $wpdb;
 
+// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
 $wpdb->query( "DROP TABLE IF EXISTS " . $wpdb->prefix . "twispay_tw_configuration" );
+// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
 $wpdb->query( "DROP TABLE IF EXISTS " . $wpdb->prefix . "twispay_tw_transactions" );

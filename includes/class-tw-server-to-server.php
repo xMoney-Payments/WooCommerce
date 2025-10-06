@@ -10,9 +10,11 @@ class Twispay_Server_To_Server {
         require_once TWISPAY_PLUGIN_DIR . 'helpers/Twispay_TW_Status_Updater.php';
         require_once TWISPAY_PLUGIN_DIR . 'helpers/Twispay_TW_Helper_Processor.php';
 
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Safe to read $_GET since we're checking for corrupt request when communicating with Twispay
         $this->order_id = isset($_GET['order_id']) ? (int) sanitize_key($_GET['order_id']) : null;
         $this->language = Twispay_TW_Helper_Processor::get_current_language();
 
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Safe to read $_GET since we're checking for corrupt request when communicating with Twispay
         if (isset($_GET['twispay-ipn'])) {
             add_action('init', [ $this, 'handle' ]);
         }
@@ -29,6 +31,7 @@ class Twispay_Server_To_Server {
 	    /** @var array $tw_lang */
 
         // Check if the POST is corrupted: doesn't contain the 'opensslResult' and the 'result' fields.
+        // phpcs:ignore WordPress.Security.NonceVerification.Missing -- This is a server-to-server IPN, verified via Twispay cryptographic signature.
         if (isset($_POST['opensslResult']) === false && isset($_POST['result']) === false) {
 	        Twispay_TW_Logger::twispay_tw_log(esc_html__('[RESPONSE-ERROR]: Received empty response.', 'xmoney-payments'));
             die(esc_html__('[RESPONSE-ERROR]: Received empty response.', 'xmoney-payments'));
@@ -41,6 +44,7 @@ class Twispay_Server_To_Server {
             die(esc_html__('[RESPONSE-ERROR]: Private key is not valid.', 'xmoney-payments'));
         }
 
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing -- This is a server-to-server IPN, verified via Twispay cryptographic signature.
         $result = isset($_POST['opensslResult']) ? sanitize_text_field(wp_unslash($_POST['opensslResult'])) : sanitize_text_field(wp_unslash($_POST['result']));
         $decrypted = Twispay_TW_Helper_Response::twispay_tw_decrypt_message(
             $result,

@@ -43,13 +43,15 @@ function tw_twispay_p_edit_general_configuration( $request ) {
 
     // Wordpress database refference
     global $wpdb;
-    $table_name = $wpdb->prefix . 'twispay_tw_configuration';
+    $table_name = esc_sql($wpdb->prefix . 'twispay_tw_configuration');
 
     // Check if the Configuration row exist into Database
-    $configuration = $wpdb->get_results($wpdb->prepare("SELECT * FROM %5s", $table_name) );
+    // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table names are escaped manually and safe.
+    $configuration = $wpdb->get_results("SELECT * FROM {$table_name}", $table_name);
 
     if ( $configuration ) {
         // Edit the Configuration into Database ( twispay_tw_configuration table )
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
         $wpdb->update(
             $table_name,
             array(
@@ -69,6 +71,7 @@ function tw_twispay_p_edit_general_configuration( $request ) {
     }
     else {
         // If by any chance the configuration row does not exist, add default one immediately. ( twispay_tw_configuration table )
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
         $wpdb->insert(
             $table_name,
             array(
@@ -77,6 +80,7 @@ function tw_twispay_p_edit_general_configuration( $request ) {
         );
 
         // Edit the Configuration into Database ( twispay_tw_configuration table )
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
         $wpdb->update(
             $table_name,
             array(

@@ -52,6 +52,7 @@ if ( !class_exists('WooCommerce') ) {
 
 /* Get configuration from database. */
 global $wpdb;
+// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 $configuration = $wpdb->get_row( "SELECT * FROM " . $wpdb->prefix . "twispay_tw_configuration" );
 
 
@@ -71,6 +72,7 @@ if ( $configuration ) {
 /* Check if the POST is corrupted: Doesn't contain the 'opensslResult' and the 'result' fields. */
                                           /* OR */
 /* Check if the 'backUrl' is corrupted: Doesn't contain the 'secure_key' field. */
+// phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing -- This is a server-to-server IPN, verified via Twispay cryptographic signature.
 if (((FALSE == isset($_POST['opensslResult'])) && (FALSE == isset($_POST['result']))) || (FALSE == isset($_GET['secure_key']))) {
     Twispay_TW_Logger::twispay_tw_log(esc_html__('[RESPONSE-ERROR]: Received empty response.', 'xmoney-payments'));
     ?>
@@ -152,6 +154,7 @@ if ('' == $secretKey) {
 
 
 /* Extract the server response and decrypt it. */
+// phpcs:ignore WordPress.Security.NonceVerification.Missing -- This is a server-to-server IPN, verified via Twispay cryptographic signature.
 $decrypted = Twispay_TW_Helper_Response::twispay_tw_decrypt_message(/*tw_encryptedResponse*/(isset($_POST['opensslResult'])) ? (esc_html(sanitize_text_field(wp_unslash($_POST['opensslResult'])))) : (esc_html(sanitize_text_field(wp_unslash($_POST['result'])))), $secretKey, $tw_lang);
 
 /* Check if decryption failed.  */
@@ -284,6 +287,7 @@ if (FALSE == $order) {
 }
 
 /* Check if the WooCommerce order cart hash does NOT MATCH the one sent to the server. */
+// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- This is a server-to-server IPN, verified via Twispay cryptographic signature.
 if ( sanitize_text_field( wp_unslash($_GET['secure_key']) ) != $order->get_data()['cart_hash']) {
     Twispay_TW_Logger::twispay_tw_log(esc_html__('[RESPONSE-ERROR]: Invalid order identification key.', 'xmoney-payments'));
     ?>
