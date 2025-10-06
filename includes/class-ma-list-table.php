@@ -603,7 +603,7 @@
                 $extra_sql = " {$extra_checks} ";
             }
 
-            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- everything escaped above
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- everything escaped above or when concatenating
             $months = $wpdb->get_results("
                 SELECT DISTINCT YEAR( post_date ) AS year, MONTH( post_date ) AS month
                 FROM " . esc_sql($wpdb->posts) . "
