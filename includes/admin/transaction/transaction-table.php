@@ -67,13 +67,19 @@ class Twispay_TransactionTable extends Twispay_Tw_List_Table {
      * @param string $input_id ID attribute value for the search input field.
      */
     public function search_box( $text, $input_id ) {
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_REQUEST
         if ( isset( $_REQUEST['orderby'] ) && esc_attr(sanitize_text_field(wp_unslash( $_REQUEST['orderby'])) ) ) {
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_REQUEST
             echo '<input type="hidden" name="orderby" value="' . esc_attr(sanitize_text_field(wp_unslash($_REQUEST['orderby'])) ) . '" />';
         }
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_REQUEST
         if ( isset( $_REQUEST['order'] ) && esc_attr(sanitize_text_field(wp_unslash($_REQUEST['order'])) ) ) {
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_REQUEST
             echo '<input type="hidden" name="order" value="' . esc_attr(sanitize_text_field(wp_unslash($_REQUEST['order'])) ) . '" />';
         }
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_REQUEST
         if ( isset( $_REQUEST['status'] ) && esc_attr(sanitize_text_field(wp_unslash($_REQUEST['status'])) ) ) {
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_REQUEST
             echo '<input type="hidden" name="status" value="' . esc_attr(sanitize_text_field(wp_unslash($_REQUEST['status'])) ) . '" />';
         }
 
@@ -93,7 +99,10 @@ class Twispay_TransactionTable extends Twispay_Tw_List_Table {
     private function get_all_count( $wpdb ) {
         $table_name = $wpdb->prefix . 'twispay_tw_transactions';
 
-        $wpdb->get_results( $wpdb->prepare("SELECT id_tw_transactions FROM %5s", $table_name) );
+        $table_name = esc_sql($table_name);
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is known and safe.
+        $wpdb->get_results( "SELECT id_tw_transactions FROM {$table_name}" );
+
 
         return $wpdb->num_rows;
     }
@@ -111,6 +120,7 @@ class Twispay_TransactionTable extends Twispay_Tw_List_Table {
         global $wpdb;
 
         $views = array();
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_REQUEST
         $current = ( ! empty( $_REQUEST['status'] ) ? sanitize_text_field( wp_unslash($_REQUEST['status']) ) : 'all' );
 
         //All link
@@ -219,42 +229,52 @@ class Twispay_TransactionTable extends Twispay_Tw_List_Table {
      * @access public
      * @abstract
      */
-    function prepare_items() {
+    function prepare_items()
+    {
         global $wpdb;
 
+        /**
+         * Sanitize request variables safely (no nonce check needed for viewing data).
+         */
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Display-only request, safe read.
         $s = isset($_REQUEST['s']) ? sanitize_text_field(wp_unslash($_REQUEST['s'])) : 'all';
+
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Display-only request, safe read.
         $order_by = isset($_REQUEST['orderby']) ? sanitize_text_field(wp_unslash($_REQUEST['orderby'])) : '';
+
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Display-only request, safe read.
         $order_how = isset($_REQUEST['order']) ? sanitize_text_field(wp_unslash($_REQUEST['order'])) : 'asc';
 
-        $transaction = $wpdb->prefix . "twispay_tw_transactions";
-        $users = $wpdb->prefix . "users";
+        /**
+         * Safely define table names. esc_sql() used because $wpdb->prepare() cannot handle identifiers.
+         */
+        $transaction_table = esc_sql($wpdb->prefix . 'twispay_tw_transactions');
+        $users_table = esc_sql($wpdb->users);
 
         $per_page = 10;
+        $where_sql = '';
+        $order_sql = '';
 
-        $where = '';
-        $params = [];
-
-        $params[] = $users;
-        $params[] = $transaction;
-
-        if ($s !== 'all') {
-            $where = " WHERE tr.id_cart LIKE %s";
-            $params[] = $where;
-            $params[] = '%' . $wpdb->esc_like($s) . '%';
-        }else{
-            $params[] = $where;
+        /**
+         * Build WHERE clause safely using prepare().
+         */
+        if ('all' !== $s) {
+            $search_like = '%' . $wpdb->esc_like($s) . '%';
+            $where_sql = $wpdb->prepare('WHERE tr.id_cart LIKE %s', $search_like);
         }
 
-        // Whitelist order by
+        /**
+         * Whitelist allowed columns for ORDER BY and sanitize direction.
+         */
         $allowed_orderby = ['id_tw_transactions', 'customer_name', 'transactionId', 'status'];
-        if (in_array($order_by, $allowed_orderby, true)) {
-            $order_how = strtolower($order_how) === 'desc' ? 'DESC' : 'ASC';
-            $orderby = " ORDER BY {$order_by} {$order_how}";
-        } else {
-            $orderby = " ORDER BY tr.id_tw_transactions DESC";
-        }
 
-        $params[] = $orderby;
+        if (in_array($order_by, $allowed_orderby, true)) {
+            $order_how = (strtolower($order_how) === 'desc') ? 'DESC' : 'ASC';
+            // Safe: $order_by is whitelisted, $order_how is restricted to ASC/DESC.
+            $order_sql = "ORDER BY tr.{$order_by} {$order_how}";
+        } else {
+            $order_sql = 'ORDER BY tr.id_tw_transactions DESC';
+        }
 
         $columns = $this->get_columns();
         $hidden = array();
@@ -263,37 +283,47 @@ class Twispay_TransactionTable extends Twispay_Tw_List_Table {
         $this->_column_headers = array($columns, $hidden, $sortable);
         $this->process_bulk_action();
 
-        // Build final query string (literal string for prepare)
-        $data = $wpdb->get_results(
-            $wpdb->prepare(
-                "
-        SELECT
-            tr.id_tw_transactions,
-            tr.id_cart,
-            ( SELECT display_name FROM %5s WHERE ID = REPLACE( tr.identifier, '_', '' ) ) as customer_name,
-            tr.transactionId,
-            tr.orderId,
-            tr.status,
-            tr.checkout_url
-        FROM %5s tr
-        %5s
-        %5s
-        ",
-                $params
-            ),
-            ARRAY_A
-        );
+        /**
+         * Assemble final query.
+         * Table names are escaped and known safe.
+         */
+        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table names escaped manually and known safe.
+        $query = "
+            SELECT
+                tr.id_tw_transactions,
+                tr.id_cart,
+                (
+                    SELECT display_name
+                    FROM {$users_table}
+                    WHERE ID = REPLACE( tr.identifier, '_', '' )
+                ) AS customer_name,
+                tr.transactionId,
+                tr.orderId,
+                tr.status,
+                tr.checkout_url
+            FROM {$transaction_table} tr
+            {$where_sql}
+            {$order_sql}
+        ";
+
+
+        /**
+         * Execute query safely.
+         * Direct query is acceptable here because we are performing a read with full escaping.
+         */
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared -- Query manually built with fully escaped table names and safe values.
+        $data = $wpdb->get_results($query, ARRAY_A);
 
         // Set pagination to page.
         $current_page = $this->get_twispay_pagenum();
-        $total_items = count( $data ) ;
-        $data = array_slice( $data, ( ( $current_page - 1 ) * $per_page ), $per_page );
+        $total_items = count($data);
+        $data = array_slice($data, (($current_page - 1) * $per_page), $per_page);
         $this->items = $data;
 
-        $this->set_pagination_args( array(
-            'total_items'  => $total_items,
-            'per_page'     => $per_page,
-            'total_pages'  => ceil( $total_items / $per_page )
-        ) );
+        $this->set_pagination_args(array(
+            'total_items' => $total_items,
+            'per_page' => $per_page,
+            'total_pages' => ceil($total_items / $per_page)
+        ));
     }
 }

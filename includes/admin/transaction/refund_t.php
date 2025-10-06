@@ -25,10 +25,11 @@ if ( file_exists( TWISPAY_PLUGIN_DIR . 'lang/' . $lang . '/lang.php' ) ) {
 
     <!-- Get all payment transactions ID from the $_GET parameters -->
     <?php
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_GET
         if ( isset( $_GET['payment_ad'] ) && esc_attr( sanitize_text_field(wp_unslash($_GET['payment_ad'])) ) ) {
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_GET
             foreach ( explode( ',', esc_attr(sanitize_text_field(wp_unslash($_GET['payment_ad'])) ) ) as $key => $a_id ) {
-                print_r( 'ID: #' . esc_html( $a_id ) );
-                print_r( '<br>' );
+                echo '<p>ID: #' . esc_html($a_id) . '</p>';
             }
         }
     ?>

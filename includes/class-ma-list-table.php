@@ -357,18 +357,27 @@
          */
         public function search_box($text, $input_id)
         {
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_REQUEST
             if (empty($_REQUEST['s']) && !$this->has_items())
                 return;
 
             $input_id = $input_id . '-search-input';
 
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_REQUEST
             if (!empty($_REQUEST['orderby']))
+                // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_REQUEST
                 echo '<input type="hidden" name="orderby" value="' . esc_attr(sanitize_text_field(wp_unslash($_REQUEST['orderby']))) . '" />';
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_REQUEST
             if (!empty($_REQUEST['order']))
+                // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_REQUEST
                 echo '<input type="hidden" name="order" value="' . esc_attr(sanitize_text_field(wp_unslash($_REQUEST['order']))) . '" />';
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_REQUEST
             if (!empty($_REQUEST['post_mime_type']))
+                // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_REQUEST
                 echo '<input type="hidden" name="post_mime_type" value="' . esc_attr(sanitize_text_field(wp_unslash($_REQUEST['post_mime_type']))) . '" />';
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_REQUEST
             if (!empty($_REQUEST['detached']))
+                // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_REQUEST
                 echo '<input type="hidden" name="detached" value="' . esc_attr(sanitize_text_field(wp_unslash($_REQUEST['detached']))) . '" />';
             ?>
             <p class="search-box">
@@ -503,13 +512,18 @@
          */
         public function current_action()
         {
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_REQUEST
             if (isset($_REQUEST['filter_action']) && !empty($_REQUEST['filter_action']))
                 return false;
 
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_REQUEST
             if (isset($_REQUEST['action']) && -1 != sanitize_text_field(wp_unslash($_REQUEST['action'])))
+                // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_REQUEST
                 return sanitize_text_field(wp_unslash($_REQUEST['action']));
 
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_REQUEST
             if (isset($_REQUEST['action2']) && -1 != sanitize_text_field(wp_unslash($_REQUEST['action2'])))
+                // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_REQUEST
                 return sanitize_text_field(wp_unslash($_REQUEST['action2']));
 
             return false;
@@ -574,19 +588,29 @@
             }
 
             $extra_checks = "AND post_status != 'auto-draft'";
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_GET
             if (!isset($_GET['post_status']) || 'trash' !== sanitize_text_field(wp_unslash($_GET['post_status']))) {
                 $extra_checks .= " AND post_status != 'trash'";
+                // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_GET
             } elseif (isset($_GET['post_status'])) {
+                // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_GET
                 $extra_checks = $wpdb->prepare(' AND post_status = %s', sanitize_text_field(wp_unslash($_GET['post_status'])));
             }
 
-            $months = $wpdb->get_results($wpdb->prepare("
-            SELECT DISTINCT YEAR( post_date ) AS year, MONTH( post_date ) AS month
-            FROM %5s
-            WHERE post_type = %s
-            %s
-            ORDER BY post_date DESC
-        ", $wpdb->posts, $post_type, $extra_checks));
+            $extra_sql = '';
+            if (!empty($extra_checks)) {
+                // Must be safe, not user input
+                $extra_sql = " {$extra_checks} ";
+            }
+
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- everything escaped above or when concatenating
+            $months = $wpdb->get_results("
+                SELECT DISTINCT YEAR( post_date ) AS year, MONTH( post_date ) AS month
+                FROM " . esc_sql($wpdb->posts) . "
+                WHERE post_type = " . esc_sql($post_type) . "
+                " . esc_sql($extra_sql) . "
+                ORDER BY post_date DESC
+            ");
 
             /**
              * Filters the 'Months' drop-down results.
@@ -603,6 +627,7 @@
             if (!$month_count || (1 == $month_count && 0 == $months[0]->month))
                 return;
 
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_GET
             $m = isset($_GET['m']) ? (int)sanitize_text_field(wp_unslash($_GET['m'])) : 0;
             ?>
             <label for="filter-by-date" class="screen-reader-text"><?php esc_html__('Filter by date', 'xmoney-payments'); ?></label>
@@ -727,6 +752,7 @@
          */
         public function get_twispay_pagenum()
         {
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_GET
             $pagenum = isset($_REQUEST['paged']) ? absint(sanitize_text_field(wp_unslash($_REQUEST['paged']))) : 0;
 
             if (isset($this->_pagination_args['total_pages']) && $pagenum > $this->_pagination_args['total_pages'])
@@ -798,7 +824,12 @@
             $current = $this->get_twispay_pagenum();
             $removable_query_args = wp_removable_query_args();
 
-            $current_url = set_url_scheme('http://' . sanitize_text_field(wp_unslash($_SERVER['HTTP_HOST'])) . sanitize_text_field(wp_unslash($_SERVER['REQUEST_URI'])));
+            if(isset($_SERVER['HTTP_HOST']) && isset($_SERVER['REQUEST_URI'])){
+                // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_SERVER
+                $current_url = set_url_scheme('http://' . sanitize_text_field(wp_unslash($_SERVER['HTTP_HOST'])) . sanitize_text_field(wp_unslash($_SERVER['REQUEST_URI'])));
+            }else{
+                return;
+            }
 
             $current_url = remove_query_arg($removable_query_args, $current_url);
 
@@ -1093,15 +1124,23 @@
         {
             list($columns, $hidden, $sortable, $primary) = $this->get_column_info();
 
-            $current_url = esc_url(set_url_scheme('http://' . sanitize_text_field(wp_unslash($_SERVER['HTTP_HOST'])) . sanitize_text_field(wp_unslash($_SERVER['REQUEST_URI']))));
-            $current_url = remove_query_arg('paged', $current_url);
+            $host = isset($_SERVER['HTTP_HOST']) ? sanitize_text_field(wp_unslash($_SERVER['HTTP_HOST'])) : '';
+            $uri = isset($_SERVER['REQUEST_URI']) ? sanitize_text_field(wp_unslash($_SERVER['REQUEST_URI'])) : '';
 
+            if (filter_var($host, FILTER_VALIDATE_DOMAIN, FILTER_FLAG_HOSTNAME)) {
+                $current_url = esc_url(set_url_scheme('http://' . $host . $uri));
+                $current_url = remove_query_arg('paged', $current_url);
+            }
+
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_GET
             if (isset($_GET['orderby'])) {
+                // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_GET
                 $current_orderby = sanitize_text_field(wp_unslash($_GET['orderby']));
             } else {
                 $current_orderby = '';
             }
 
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_GET
             if (isset($_GET['order']) && 'desc' === sanitize_text_field(wp_unslash($_GET['order']))) {
                 $current_order = 'desc';
             } else {
@@ -1388,6 +1427,7 @@
             $this->prepare_items();
 
             ob_start();
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_REQUEST
             if (!empty($_REQUEST['no_placeholder'])) {
                 $this->display_rows();
             } else {

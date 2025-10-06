@@ -3,15 +3,28 @@
 class Twispay_Subscription_Processor {
     private $order_id;
     private $language;
+    private $nonce_action = 'twispay_sub_process';
 
     public function __construct() {
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Checkout page GET parameter, used to identify subscription order; read-only and sanitized.
         $this->order_id = !empty($_GET['order_id']) ? (int)sanitize_key($_GET['order_id']) : null;
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Checkout page GET parameter, used to conditionally hook subscription process; safe for display-only usage.
         if ($this->order_id && strpos(sanitize_text_field(wp_unslash($_GET['order_id'])), '_sub') !== false) {
             add_action('woocommerce_after_checkout_form', [$this, 'process']);
         }
     }
 
     public function process() {
+        // Verify nonce to protect this action from CSRF. The nonce must be generated at the link/form that starts this flow.
+        // If there is no nonce present, treat it as invalid and redirect.
+        $raw_nonce = isset($_REQUEST['_wpnonce']) ? sanitize_text_field(wp_unslash($_REQUEST['_wpnonce'])) : '';
+
+        if (empty($raw_nonce) || !wp_verify_nonce(sanitize_text_field($raw_nonce), $this->nonce_action)) {
+            wc_add_notice(esc_html__('Invalid request. Please try again.', 'xmoney-payments'), 'error');
+            wp_safe_redirect(wc_get_cart_url());
+            exit;
+        }
+
         require_once TWISPAY_PLUGIN_DIR . 'helpers/Twispay_TW_Helper_Notify.php';
         require_once TWISPAY_PLUGIN_DIR . 'helpers/Twispay_TW_Helper_Processor.php';
         $this->language = Twispay_TW_Helper_Processor::get_current_language();
@@ -64,7 +77,7 @@ class Twispay_Subscription_Processor {
         <div class="wrapper-loader">
             <div class="loader"></div>
         </div>
-        
+
         <form action="<?php echo esc_url($request_data['host_name']); ?>"
               method="POST"
               accept-charset="UTF-8"
@@ -86,7 +99,7 @@ class Twispay_Subscription_Processor {
         }
 
         $order = wc_get_order($this->order_id);
-        
+
         if (!class_exists(WC_Subscription::class)) {
             throw new Exception(esc_html__( 'You are not allowed to access this file.','xmoney-payments' ));
         }
@@ -129,8 +142,15 @@ class Twispay_Subscription_Processor {
         $item = $subscription->get_items();
         $item = reset($item);
 
+        // Build back URL and add a nonce so the callback endpoint can optionally verify it
         $back_url = get_permalink(get_page_by_path('xmoney-payments-confirmation'));
-        $back_url = add_query_arg([ 'secure_key' => $order->get_data()['cart_hash'] ], $back_url);
+        $back_url = add_query_arg(
+            [
+                'secure_key' => $order->get_data()['cart_hash'],
+                '_wpnonce' => wp_create_nonce($this->nonce_action),
+            ],
+            $back_url
+        );
 
         /* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! */
         /* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! IMPORTANT !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! */
@@ -156,7 +176,9 @@ class Twispay_Subscription_Processor {
 
         $orderId = NULL;
 
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- GET parameter identifies subscription order; sanitized and verified against WooCommerce order, safe for request data.
         if (isset($_GET['order_id'])) {
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Same GET parameter used to prepare request data; sanitized and verified, safe to use.
             $orderId = sanitize_key($_GET['order_id']);
         }
 

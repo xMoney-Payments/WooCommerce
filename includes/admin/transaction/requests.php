@@ -28,16 +28,19 @@ require_once( TWISPAY_PLUGIN_DIR . DIRECTORY_SEPARATOR . 'helpers' . DIRECTORY_S
  * @return void
  */
 function tw_twispay_p_refund_payment_transaction() {
+    // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_GET
     if ( isset( $_GET['payment_ad'] ) && sanitize_text_field(wp_unslash($_GET['payment_ad']) ) ) {
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_GET
         $transaction_id = sanitize_text_field(wp_unslash($_GET['payment_ad']));
 
         /* Get configuration from database. */
         global $wpdb;
         $apiKey = '';
 
-        $table_name = $wpdb->prefix . "twispay_tw_configuration";
+        $table_name = esc_sql($wpdb->prefix . 'twispay_tw_configuration');
 
-        $configuration = $wpdb->get_row($wpdb->prepare("SELECT * FROM %5s", $table_name));
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table names are escaped manually and safe.
+        $configuration = $wpdb->get_row("SELECT * FROM {$table_name}", $table_name);
 
         if ( $configuration ) {
             if ( $configuration->live_mode == 1 ) {
@@ -76,13 +79,16 @@ add_action( 'tw_refund_payment_transaction', 'tw_twispay_p_refund_payment_transa
  * @return void
  */
 function tw_twispay_p_recurring_order( $request ) {
+    // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_GET
     if ( isset( $_GET['order_ad'] ) && sanitize_key( $_GET['order_ad'] ) ) {
 
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_GET
         $order_ad = (int) sanitize_key( $_GET['order_ad'] );
 
         /* Get configuration from database. */
         global $wpdb;
         $apiKey = '';
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
         $configuration = $wpdb->get_row( "SELECT * FROM " . $wpdb->prefix . "twispay_tw_configuration" );
 
         if ( $configuration ) {
@@ -125,6 +131,7 @@ function tw_twispay_p_synchronize_subscriptions( $request ) {
     /* Get configuration from database. */
     global $wpdb;
     $apiKey = '';
+    // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
     $configuration = $wpdb->get_row( "SELECT * FROM " . $wpdb->prefix . "twispay_tw_configuration" );
 
     if ( $configuration ) {

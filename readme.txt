@@ -40,3 +40,8 @@ The easiest way of installing our module is by visiting the [official module pag
 1. Secure credit card processing for Visa and Mastercard
 2. Quick and easy installation
 3. Fully customizable checkout experience
+
+== Changelog ==
+= v1.0.0 =
+
+* Initial release

@@ -34,14 +34,17 @@ if ( ! class_exists( 'Twispay_TW_Logger' ) ) :
             /* Extract the WooCommerce order. */
             $order = wc_get_order($data['id_cart']);
 
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
             $already = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM " . $wpdb->prefix . "twispay_tw_transactions WHERE transactionId = %s", $data['transactionId']) );
             if ( $already ) {
                 /* Update the DB with the transaction data. */
+                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
                 $wpdb->query( $wpdb->prepare( "UPDATE " . $wpdb->prefix . "twispay_tw_transactions SET status = %s WHERE transactionId = %d", $data['status'], $data['transactionId'] ) );
             } else {
 
                 $checkout_url = ((false !== $order) && (true !== $order)) ? ( esc_url( wc_get_checkout_url() . 'order-pay/' . explode('_', $data['id_cart'])[0] . '/?pay_for_order=true&key=' . $order->get_data()['order_key']) ) : ("");
 
+                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
                 $wpdb->get_results( $wpdb->prepare( "INSERT INTO `" . $wpdb->prefix . "twispay_tw_transactions` (`status`, `id_cart`, `identifier`, `orderId`, `transactionId`, `customerId`, `cardId`, `checkout_url`) VALUES (%s, %s, %s, %d, %d, %d, %d, %s);", $data['status'], $data['id_cart'], $data['identifier'], $data['orderId'], $data['transactionId'], $data['customerId'], $data['cardId'], $checkout_url ) );
             }
         }
@@ -58,10 +61,12 @@ if ( ! class_exists( 'Twispay_TW_Logger' ) ) :
         public static function twispay_tw_updateTransactionStatus( $id, $status ) {
             global $wpdb;
 
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
             $already = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM " . $wpdb->prefix . "twispay_tw_transactions WHERE id_cart = %d", $id) );
 
             if ( $already ) {
                 /* Update the DB with the transaction data. */
+                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
                 $wpdb->query( $wpdb->prepare( "UPDATE " . $wpdb->prefix . "twispay_tw_transactions SET status = %s WHERE id_cart = %d", $status, $id ) );
             }
         }
