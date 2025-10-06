@@ -597,8 +597,6 @@
                 $extra_checks = $wpdb->prepare(' AND post_status = %s', sanitize_text_field(wp_unslash($_GET['post_status'])));
             }
 
-            $posts_table = esc_sql($wpdb->posts);
-
             $extra_sql = '';
             if (!empty($extra_checks)) {
                 // Must be safe, not user input
