@@ -17,7 +17,7 @@ xMoney enables new and existing store owners to quickly and effortlessly accept 
 
 Our WooCommerce payment extension allows for fast and easy integration with the xMoney Payment Gateway. Quickly start accepting online credit card payments through a secure environment and a fully customizable checkout process. Give your customers the shopping experience they expect, and boost your online sales with our simple and elegant payment plugin.
 
-For more details concerning our pricing in your region, please check out our [pricing page](https://www.xmoney.com/pricing). To use our payment module and start processing you will need a xMoney Payments [merchant account](https://merchant-stage.xmoney.com/auth/signup). For any assistance during the on-boarding process, our [sales and compliance](https://www.xmoney.com/contact) team are happy to respond to any enquiries you may have.
+To use our payment module and start processing you will need a xMoney Payments [merchant account](https://merchants.xmoney.com/sign-up). For any assistance during the on-boarding process, our [sales team](https://www.xmoney.com/contact) is happy to respond to any enquiries you may have.
 
 == Installation ==
 
@@ -29,8 +29,8 @@ The easiest way of installing our module is by visiting the [official module pag
 5. Select "Activate Now" and you’re ready for customization.
 6. Go to: xMoney Payments
 7. Select **Yes** under **Live mode**. _(Unless you are testing)_
-8. Enter your **Site ID**. _(xMoney Payments Staging Account ID: You can get one from [here for live](https://merchant.xmoney.com/auth/signin) or from [here for stage](https://merchant-stage.xmoney.com/auth/signin))_
-9. Enter your **Private Key**. _(xMoney Payments Secret Key: You can get one from [here for live](https://merchant.xmoney.com/auth/signin) or from [here for stage](https://merchant-stage.xmoney.com/auth/signin))_
+8. Enter your **Site ID**. _(xMoney Payments Staging Account ID: You can get one from [here](https://merchants.xmoney.com/login))_
+9. Enter your **Private Key**. _(xMoney Payments Secret Key: You can get one from [here](https://merchants.xmoney.com/login))_
 10. Select the custom page you want to redirect the customer after the payment **Redirect to custom page Thank you page**. _(Leave 'Default' to redirect to order confirmation default page.)_
 11. Enter your technical **Contact Email**. _(This will be displayed to customers in case of a payment error)_
 12. Save your changes.
