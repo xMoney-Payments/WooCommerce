@@ -3,9 +3,9 @@ msgstr ""
 "Project-Id-Version: xMoney Payments Credit Card Payments\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-08-07 12:26+0000\n"
-"PO-Revision-Date: 2025-09-05 16:43+0000\n"
+"PO-Revision-Date: 2025-10-21 12:44+0000\n"
 "Last-Translator: \n"
-"Language-Team: Română\n"
+"Language-Team: Romanian\n"
 "Language: ro_RO\n"
 "Plural-Forms: nplurals=3; plural=(n==1 ? 0 :(((n%100>19)||(( n%100==0)&&(n!"
 "=0)))? 2 : 1));\n"
@@ -185,6 +185,11 @@ msgstr "Descriere"
 msgid "Enable for shipping methods"
 msgstr "Activează pentru căile de expediere"
 
+#: Configuration panel from Administrator
+#: includes/admin/configuration/configuration.php:125
+msgid "Enable xMoney Payments Inline Checkout"
+msgstr "Activează plățile xMoney Inline Payments"
+
 #: Woocommerce settings xMoney Payments tab includes/scripts.php:168
 msgid "Enable xMoney Payments Payments"
 msgstr "Activează plățile xMoney Payments"
@@ -234,6 +239,12 @@ msgstr "Invită-ți clienții să folosească gateway-ul de plată xMoney Paymen
 #: views/payment-confirmation.php:42
 msgid "here"
 msgstr "aici"
+
+#: Configuration panel from Administrator
+#: includes/admin/configuration/configuration.php:129
+msgid ""
+"If set to \"Yes\", the payment form is embedded inline on your checkout."
+msgstr ""
 
 #: Woocommerce settings xMoney Payments tab includes/scripts.php:191
 msgid ""
@@ -364,6 +375,12 @@ msgstr "Salvează modificările"
 msgid "Search Order"
 msgstr "Caută comandă"
 
+#: includes/admin/configuration/requests.php:33
+msgid "Security check failed. Please reload the page and try again."
+msgstr ""
+"Verificarea de securitate a eșuat. Te rog reîncarcă pagina și reîncearcă din "
+"nou."
+
 #: Configuration panel from Administrator
 #: includes/admin/configuration/configuration.php:61
 msgid ""
@@ -473,6 +490,22 @@ msgstr "Jurnal de tranzacții în formă brută"
 #: helpers/Twispay_TW_Status_Updater.php:234
 msgid "Website manager pressed on refund button successfully"
 msgstr "Managerul site-ului a apăsat cu succes butonul de restituire"
+
+#: Twispay_TW_Helper_Processor helpers/Twispay_TW_Helper_Processor.php:72
+msgid "xMoney API invalid JSON: "
+msgstr "JSON invalid xMoney API"
+
+#: Twispay_TW_Helper_Processor helpers/Twispay_TW_Helper_Processor.php:39
+msgid "xMoney API request error: "
+msgstr "Eroare request xMoney API"
+
+#: Twispay_TW_Helper_Processor helpers/Twispay_TW_Helper_Processor.php:91
+msgid "xMoney API response missing token field: "
+msgstr "Token lipsă răspuns xMoney API"
+
+#: Twispay_TW_Helper_Processor helpers/Twispay_TW_Helper_Processor.php:56
+msgid "xMoney API returned HTTP %1$d => %2$s"
+msgstr "xMoney API a returnat %1$d => %2$s"
 
 #: Administrator Dashboard left-side menu includes/admin/ma-class-menu.php:53
 #: includes/scripts.php:130

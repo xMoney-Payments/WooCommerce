@@ -55,6 +55,7 @@ function twispay_tw_configuration() {
 
                 <p><?php echo esc_html__( 'xMoney Payments general settings.', 'xmoney-payments' ); ?></p>
                 <form method="post" id="general_configuration">
+                    <?php wp_nonce_field('twispay_config_nonce'); ?>
                     <table class="form-table">
                         <tr class="form-field form-required">
                             <th scope="row"><label for="live_mode"><?php echo esc_html__( 'Live mode', 'xmoney-payments' ); ?></label></th>
@@ -117,6 +118,15 @@ function twispay_tw_configuration() {
                             <td>
                                 <input name="contact_email_o" type="text" value="<?php echo esc_url(sanitize_email( twispay_tw_get_contact_email_o() == '0' ? '' : twispay_tw_get_contact_email_o() )); ?>" style="max-width: 400px;" />
                                 <p class="description"><?php echo esc_html__( 'This email will be used on the payment error page.','xmoney-payments' ); ?></p>
+                            </td>
+                        </tr>
+                        <tr class="form-field">
+                            <th scope="row">
+                                <label for="inline_checkout"><?php echo esc_html__('Enable xMoney Payments Inline Checkout', 'xmoney-payments'); ?></label>
+                            </th>
+                            <td>
+                                <?php echo wp_kses(twispay_tw_get_inline_checkout(), array('select' => array('name' => true, 'id' => true, 'class' => true), 'option' => array('value' => true, 'selected' => true))); ?>
+                                <p class="description"><?php echo esc_html__('If set to "Yes", the payment form is embedded inline on your checkout.', 'xmoney-payments'); ?></p>
                             </td>
                         </tr>
                         <tr class="form-field" id="contact_email_o">

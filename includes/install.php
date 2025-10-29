@@ -11,8 +11,9 @@
 
 function twispay_wp_check_install() {
 	if( ! get_option( 'twispay_tw_installed' ) ) {
-		twispay_tw_install();
-	}
+        twispay_tw_install();
+    }
+    update_twispay_tw_configuration_columns();
 }
 add_action( 'admin_init', 'twispay_wp_check_install' );
 
@@ -73,8 +74,21 @@ function twispay_tw_install() {
 
     dbDelta($sql_transactions);
 
+    update_twispay_tw_configuration_columns();
+
     // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 	$wpdb->get_results( "INSERT INTO `" . $wpdb->prefix . "twispay_tw_configuration` (`live_mode`) VALUES (0);" );
+}
+
+function update_twispay_tw_configuration_columns(){
+    global $wpdb;
+    // Ensure inline_checkout column exists
+    // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+    $col = $wpdb->get_results("SHOW COLUMNS FROM `" . $wpdb->prefix . "twispay_tw_configuration` LIKE 'inline_checkout'");
+    if (empty($col)) {
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
+        $wpdb->query("ALTER TABLE `" . $wpdb->prefix . "twispay_tw_configuration` ADD COLUMN inline_checkout TINYINT(1) NOT NULL DEFAULT 0");
+    }
 }
 register_activation_hook( TWISPAY_PLUGIN_DIR, 'twispay_tw_install' );
 

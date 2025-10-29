@@ -29,6 +29,93 @@ class Twispay_Subscription_Processor {
         require_once TWISPAY_PLUGIN_DIR . 'helpers/Twispay_TW_Helper_Processor.php';
         $this->language = Twispay_TW_Helper_Processor::get_current_language();
 
+        $config = Twispay_TW_Helper_Processor::get_configuration();
+
+        // Use inline checkout if enabled.
+        if (function_exists('twispay_tw_is_inline_enabled') && twispay_tw_is_inline_enabled()) {
+            $order = wc_get_order($this->order_id);
+            if (!$order) {
+                return;
+            }
+
+            $is_live = !empty($config['is_live']);
+            $publicKey = $config['site_id'];
+            $secretKey = $config['secret_key'];
+
+            try {
+                $request = $this->prepare_request_data();
+                $session_token = Twispay_TW_Helper_Processor::get_session_token($is_live, $secretKey);
+            } catch (Exception $e) {
+                wc_add_notice($e->getMessage(), 'error');
+                wp_safe_redirect(wc_get_cart_url());
+                return;
+            }
+
+            $sdk_url = $is_live
+                ? (Twispay_TW_Helper_Processor::LIVE_URL_JS . '/sdk/0.0.9/xmoney.js')
+                : (Twispay_TW_Helper_Processor::STAGE_URL_JS . '/sdk/0.0.9/xmoney.js');
+
+            // Enqueue the xMoney SDK script properly.
+            wp_enqueue_script(
+                'xmoney-inline-sdk',
+                $sdk_url,
+                array(), // no dependencies
+                TWISPAY_VERSION,
+                true     // load in footer
+            );
+            ?>
+            <div id="tw-xmoney-inline-wrap" style="margin:16px 0;">
+                <div id="xmoney-checkout-container" style="min-height:280px;"></div>
+            </div>
+
+            <script>
+                document.addEventListener('DOMContentLoaded', function () {
+                    try {
+                        const form = new XMoneyPaymentForm({
+                            container: 'xmoney-checkout-container',
+                            payload: <?php echo wp_json_encode($request['data']); ?>,
+                            checksum: <?php echo wp_json_encode($request['checksum']); ?>,
+                            publicKey: <?php echo wp_json_encode($publicKey); ?>,
+                            sessionToken: <?php echo wp_json_encode($session_token); ?>,
+                            saveCard: true,
+                            onPaymentComplete: function (result) {
+                                fetch("<?php echo esc_url(rest_url('xmoney/v1/inline/confirm')); ?>", {
+                                    method: "POST",
+                                    headers: {
+                                        "Content-Type": "application/json",
+                                        "X-WP-Nonce": "<?php echo esc_js(wp_create_nonce('wp_rest')); ?>"
+                                    },
+                                    body: JSON.stringify({
+                                        order_id: "<?php echo esc_js($this->order_id); ?>",
+                                        result: result
+                                    })
+                                }).then(r => r.json()).then(resp => {
+                                    if (resp && resp.success) {
+                                        window.location.href = resp.redirect;
+                                    } else {
+                                        alert(resp && resp.message ? resp.message : "Payment failed.");
+                                    }
+                                }).catch(function () {
+                                    alert("Network error while confirming payment.");
+                                });
+                            },
+                            onError: function (err) {
+                                console.error('xMoney error', err);
+                            }
+                        });
+
+                        window.__xmoneyTrigger = function () {
+                            form.pay(); // This triggers the inline card form submission
+                        };
+                    } catch (e) {
+                        console.error(e);
+                    }
+                });
+            </script>
+            <?php
+            return;
+        }
+
         try {
             $request_data = $this->prepare_request_data();
         } catch (Exception $e) {
@@ -127,8 +214,17 @@ class Twispay_Subscription_Processor {
 
         $data = $subscription->get_data();
 
+        $site_hash = substr(md5(get_site_url()), 0, 8);
+        $current_user_id = get_current_user_id();
+
+        if ($current_user_id) {
+            $customer_identifier = sprintf('site%s_user_%d', $site_hash, $current_user_id);
+        } else {
+            $customer_identifier = sprintf('site%s_guest_%s', $site_hash, uniqid());
+        }
+
         $customer = [
-            'identifier' => $data['customer_id'] === 0 ? $this->order_id : $data['customer_id'],
+            'identifier' => $customer_identifier,
             'firstName' => $data['billing']['first_name'] ?: '',
             'lastName' => $data['billing']['last_name'] ?: '',
             'country' => $data['billing']['country'] ?: '',

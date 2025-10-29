@@ -28,6 +28,11 @@
  * @return void
  */
 function tw_twispay_p_edit_general_configuration( $request ) {
+    // Verify nonce for security.
+    if (!isset($_POST['_wpnonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['_wpnonce'])), 'twispay_config_nonce')) {
+        wp_die(esc_html__('Security check failed. Please reload the page and try again.', 'xmoney-payments'));
+    }
+
     $live_mode              = sanitize_text_field( $request['live_mode'] );
     $staging_site_id        = sanitize_text_field( $request['staging_site_id'] );
     $staging_private_key    = sanitize_text_field( $request['staging_private_key'] );
@@ -36,6 +41,7 @@ function tw_twispay_p_edit_general_configuration( $request ) {
     $thankyou_page          = sanitize_text_field( $request['wp_pages'] );
     $suppress_email         = sanitize_text_field( $request['suppress_email'] );
     $contact_email_o        = sanitize_email( $request['contact_email_o'] );
+    $inline_checkout        = sanitize_text_field( $request['inline_checkout'] );
 
     if ( $contact_email_o === '' ) {
         $contact_email_o = 0;
@@ -47,7 +53,7 @@ function tw_twispay_p_edit_general_configuration( $request ) {
 
     // Check if the Configuration row exist into Database
     // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table names are escaped manually and safe.
-    $configuration = $wpdb->get_results("SELECT * FROM {$table_name}", $table_name);
+    $configuration = $wpdb->get_results("SELECT * FROM {$table_name}");
 
     if ( $configuration ) {
         // Edit the Configuration into Database ( twispay_tw_configuration table )
@@ -62,7 +68,8 @@ function tw_twispay_p_edit_general_configuration( $request ) {
                 'live_key'        => $live_private_key,
                 'thankyou_page'   => $thankyou_page,
                 'suppress_email'  => $suppress_email,
-                'contact_email'   => $contact_email_o
+                'contact_email'   => $contact_email_o,
+                'inline_checkout' => $inline_checkout
             ),
             array(
                 'id_tw_configuration'  => $configuration[0]->id_tw_configuration
@@ -91,7 +98,8 @@ function tw_twispay_p_edit_general_configuration( $request ) {
                 'live_key'        => $live_private_key,
                 'thankyou_page'   => $thankyou_page,
                 'suppress_email'  => $suppress_email,
-                'contact_email'   => $contact_email_o
+                'contact_email'   => $contact_email_o,
+                'inline_checkout' => isset($_POST['inline_checkout']) ? (int) $_POST['inline_checkout'] : 0
             ),
             array(
                 'id_tw_configuration'  => $wpdb->insert_id

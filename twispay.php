@@ -115,6 +115,10 @@ if (!class_exists('Twispay')) {
             if (!defined('TWISPAY_PLUGIN_URL')) {
                 define('TWISPAY_PLUGIN_URL', plugin_dir_url(__FILE__));
             }
+
+            if (!defined('TWISPAY_VERSION')) {
+                define('TWISPAY_VERSION', 1.0);
+            }
         }
 
         /**
@@ -160,6 +164,7 @@ if (!class_exists('Twispay')) {
             require_once TWISPAY_PLUGIN_DIR . 'includes/processors/class-main-processor.php';
             require_once TWISPAY_PLUGIN_DIR . 'includes/processors/class-subscription-processor.php';
             require_once TWISPAY_PLUGIN_DIR . 'includes/class-tw-server-to-server.php';
+            require_once TWISPAY_PLUGIN_DIR . 'includes/class-tw-inline-rest.php';
         }
 
         public function twispay_query_vars_filter($vars) {

@@ -144,20 +144,32 @@ if ( !class_exists( 'Twispay_TW_Helper_Response' ) ) :
                 return FALSE;
             }
 
-            if ( empty( $tw_response['status'] ) && empty( $tw_response['transactionStatus'] ) ) {
-               $tw_errors[] = esc_html__('[RESPONSE-ERROR]: Empty status', 'xmoney-payments');
+            // Check if Inline Checkout is active and diferentiate API Responses validation
+            if (function_exists('twispay_tw_is_inline_enabled') && twispay_tw_is_inline_enabled()) {
+                if (empty($tw_response['orderStatus'])) {
+                    $tw_errors[] = esc_html__('[RESPONSE-ERROR]: Empty status', 'xmoney-payments');
+                }
+
+                if (empty($tw_response['customerData']['identifier'])) {
+                    $tw_errors[] = esc_html__('[RESPONSE-ERROR]: Empty identifier', 'xmoney-payments');
+                }
+            }else{
+                if (empty($tw_response['status']) && empty($tw_response['transactionStatus'])) {
+                    $tw_errors[] = esc_html__('[RESPONSE-ERROR]: Empty status', 'xmoney-payments');
+                }
+
+                if (empty($tw_response['identifier'])) {
+                    $tw_errors[] = esc_html__('[RESPONSE-ERROR]: Empty identifier', 'xmoney-payments');
+                }
+
+                if (empty($tw_response['transactionId'])) {
+                    $tw_errors[] = esc_html__('[RESPONSE-ERROR]: Empty transactionId', 'xmoney-payments');
+                }
             }
 
-            if ( empty( $tw_response['identifier'] ) ) {
-                $tw_errors[] = esc_html__('[RESPONSE-ERROR]: Empty identifier', 'xmoney-payments');
-            }
 
             if ( empty( $tw_response['externalOrderId'] ) ) {
                 $tw_errors[] = esc_html__('[RESPONSE-ERROR]: Empty externalOrderId', 'xmoney-payments');
-            }
-
-            if ( empty( $tw_response['transactionId'] ) ) {
-                $tw_errors[] = esc_html__('[RESPONSE-ERROR]: Empty transactionId', 'xmoney-payments');
             }
 
             if ( sizeof( $tw_errors ) > 0 ) {
@@ -167,13 +179,26 @@ if ( !class_exists( 'Twispay_TW_Helper_Response' ) ) :
 
                 return FALSE;
             } else {
-                $data = [ 'id_cart'          => sanitize_text_field( explode('_', $tw_response['externalOrderId'])[0] )
-                        , 'status'           => sanitize_text_field((empty($tw_response['status'])) ? ($tw_response['transactionStatus']) : ($tw_response['status']) )
-                        , 'identifier'       => sanitize_text_field( $tw_response['identifier'] )
-                        , 'orderId'          => (int) $tw_response['orderId']
-                        , 'transactionId'    => (int) $tw_response['transactionId']
-                        , 'customerId'       => (int) $tw_response['customerId']
-                        , 'cardId'           => (!empty($tw_response['cardId'])) ? ((int) $tw_response['cardId']) : (0)];
+                $data = [ 'id_cart'    => sanitize_text_field( explode('_', $tw_response['externalOrderId'])[0] ),
+                          'customerId' => (int)$tw_response['customerId'],
+                          'cardId'     => (!empty($tw_response['cardId'])) ? ((int) $tw_response['cardId']) : (0)];
+
+                // Check if Inline Checkout is active and diferentiate API Responses
+                if (function_exists('twispay_tw_is_inline_enabled') && twispay_tw_is_inline_enabled()) {
+                    $data['status'] = sanitize_text_field($tw_response['orderStatus']);
+                    $data['orderId'] = (int)$tw_response['id'];
+                    $data['transactionId'] = 0;
+                    $data['identifier'] = sanitize_text_field($tw_response['customerData']['identifier']);
+                    $data['customerId'] = (int)$tw_response['customerData']['id'];
+                    $data['cardId'] = (!empty($tw_response['transactionMethodId'])) ? ((int)$tw_response['transactionMethodId']) : (0);
+                }else{
+                    $data['status'] = sanitize_text_field((empty($tw_response['status'])) ? ($tw_response['transactionStatus']) : ($tw_response['status']));
+                    $data['orderId'] = (int)$tw_response['orderId'];
+                    $data['transactionId'] = (int)$tw_response['transactionId'];
+                    $data['identifier'] = sanitize_text_field($tw_response['identifier']);
+                    $data['customerId'] = (int)$tw_response['customerId'];
+                    $data['cardId'] = (!empty($tw_response['cardId'])) ? ((int)$tw_response['cardId']) : (0);
+                }
 
                 Twispay_TW_Logger::twispay_tw_log(esc_html__('[RESPONSE]: Data: ','xmoney-payments') . json_encode($data));
 
@@ -192,3 +217,25 @@ if ( !class_exists( 'Twispay_TW_Helper_Response' ) ) :
         }
     }
 endif; /* End if class_exists. */
+
+
+/**
+ * Decrypts the Inline Checkout result using existing decrypt routine.
+ * Expects $payload structure similar to hosted notify: ['result' => 'iv,encdata', 'checksum' => '...'].
+ * @param array $payload
+ */
+function twispay_tw_decrypt_inline_payload( $payload ) {
+    if ( empty( $payload['result'] ) ) {
+        return new WP_Error('tw_inline_decrypt', 'Empty inline result payload');
+    }
+    // Load keys
+    $conf = Twispay_TW_Helper_Processor::get_configuration();
+    $is_live   = !empty( $conf['is_live'] );
+    $secretKey = $is_live ? $conf['secret_key'] : $conf['secret_key'];
+    $lang = Twispay_TW_Helper_Processor::get_current_language();
+    $decrypted = twispay_tw_decrypt_message( $payload['result'], $secretKey, $lang );
+    if ( ! $decrypted ) {
+        return new WP_Error('tw_inline_decrypt', 'Unable to decrypt inline result');
+    }
+    return $decrypted;
+}

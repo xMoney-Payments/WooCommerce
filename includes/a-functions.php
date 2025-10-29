@@ -304,3 +304,29 @@ function twispay_tw_get_live_private_key() {
         return '';
     }
 }
+
+
+/** Get Inline Checkout setting (Yes/No) */
+function twispay_tw_get_inline_checkout() {
+    global $wpdb;
+    $table_name = esc_sql($wpdb->prefix . 'twispay_tw_configuration');
+    // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is escaped manually and safe.
+    $row = $wpdb->get_row( "SELECT inline_checkout FROM {$table_name} LIMIT 1", ARRAY_A );
+    $value = isset( $row['inline_checkout'] ) ? (int)$row['inline_checkout'] : 0;
+
+    $html  = '<select name="inline_checkout" id="inline_checkout" class="regular-text">';
+    $html .= '<option value="1"' . selected( $value, 1, false ) . '>' . esc_html__( 'Yes','xmoney-payments' ) . '</option>';
+    $html .= '<option value="0"' . selected( $value, 0, false ) . '>' . esc_html__( 'No','xmoney-payments' ) . '</option>';
+    $html .= '</select>';
+
+    return $html;
+}
+
+/** Convenience: check if inline is enabled */
+function twispay_tw_is_inline_enabled() {
+    global $wpdb;
+    $table_name = esc_sql($wpdb->prefix . 'twispay_tw_configuration');
+    // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is escaped manually and safe.
+    $val = $wpdb->get_var( "SELECT inline_checkout FROM {$table_name} LIMIT 1" );
+    return (int)$val === 1;
+}
