@@ -36,9 +36,7 @@ function twispay_tw_configuration() {
             <div class="wrap">
                 <h2><?php echo esc_html__( 'Configuration', 'xmoney-payments' ); ?></h2>
                 <?php
-                    // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_GET
-                    if ( isset( $_GET['notice'] ) && sanitize_text_field( wp_unslash($_GET['notice']) ) ) {
-                        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_GET
+                    if ( isset( $_GET['notice'], $_GET['twispay_notice_nonce'] ) && sanitize_text_field( wp_unslash($_GET['notice']) ) && wp_verify_nonce(sanitize_text_field(wp_unslash($_GET['twispay_notice_nonce'])), 'twispay_notice_action')) {
                         $notice = sanitize_text_field( wp_unslash($_GET['notice']) );
 
                         switch ( $notice ) {
@@ -54,6 +52,10 @@ function twispay_tw_configuration() {
                 ?>
 
                 <p><?php echo esc_html__( 'xMoney Payments general settings.', 'xmoney-payments' ); ?></p>
+                <p>
+                    <strong><?php echo esc_html__( 'Note on Privacy:', 'xmoney-payments' ); ?></strong><br/>
+                    <?php echo esc_html__( 'This plugin sends order information to xMoney only for secure payment processing. No tracking or analytics data is collected.', 'xmoney-payments' ); ?>
+                </p>
                 <form method="post" id="general_configuration">
                     <table class="form-table">
                         <tr class="form-field form-required">
@@ -122,6 +124,7 @@ function twispay_tw_configuration() {
                         <tr class="form-field" id="contact_email_o">
                             <th scope="row">
                                 <input type="hidden" name="tw_general_action" value="edit_general_configuration" />
+                                <?php wp_nonce_field('twispay_general_action', 'twispay_general_nonce'); ?>
                                 <?php submit_button( esc_attr__( 'Save changes', 'xmoney-payments' ), 'primary', 'edituser', true, array( 'id' => 'ceditusersub' ) ); ?>
                             </th>
                             <td></td>

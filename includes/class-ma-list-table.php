@@ -6,6 +6,10 @@
      * @subpackage List_Table
      * @since 3.1.0
      */
+    /* Exit if the file is accessed directly. */
+    if (!defined('ABSPATH')) {
+        exit;
+    }
 
     /**
      * Base class for displaying a list of items in an ajaxified HTML table.
@@ -121,9 +125,7 @@
          * @type string $singular Singular label for an object being listed, e.g. 'post'.
          *                            Default empty
          * @type bool $ajax Whether the list table supports Ajax. This includes loading
-         *                            and sorting data, for example. If true, the class will call
-         *                            the _js_vars() method in the footer to provide variables
-         *                            to any scripts handling Ajax events. Default false.
+         *                            and sorting data, for example.
          * @type string $screen String containing the hook name used to determine the current
          *                            screen. If left null, the current screen will be automatically set.
          *                            Default null.
@@ -152,11 +154,6 @@
             $args['singular'] = sanitize_text_field($args['singular']);
 
             $this->_args = $args;
-
-            if ($args['ajax']) {
-                // wp_enqueue_script( 'list-table' );
-                add_action('admin_footer', array($this, '_js_vars'));
-            }
 
             if (empty($this->modes)) {
                 $this->modes = array(
@@ -357,27 +354,27 @@
          */
         public function search_box($text, $input_id)
         {
-            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_REQUEST
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Safe: Used only for display filtering.
             if (empty($_REQUEST['s']) && !$this->has_items())
                 return;
 
             $input_id = $input_id . '-search-input';
 
-            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_REQUEST
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Safe: Used only for display filtering.
             if (!empty($_REQUEST['orderby']))
-                // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_REQUEST
+                // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Safe: Used only for display filtering.
                 echo '<input type="hidden" name="orderby" value="' . esc_attr(sanitize_text_field(wp_unslash($_REQUEST['orderby']))) . '" />';
-            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_REQUEST
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Safe: Used only for display filtering.
             if (!empty($_REQUEST['order']))
-                // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_REQUEST
+                // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Safe: Used only for display filtering.
                 echo '<input type="hidden" name="order" value="' . esc_attr(sanitize_text_field(wp_unslash($_REQUEST['order']))) . '" />';
-            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_REQUEST
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Safe: Used only for display filtering.
             if (!empty($_REQUEST['post_mime_type']))
-                // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_REQUEST
+                // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Safe: Used only for display filtering.
                 echo '<input type="hidden" name="post_mime_type" value="' . esc_attr(sanitize_text_field(wp_unslash($_REQUEST['post_mime_type']))) . '" />';
-            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_REQUEST
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Safe: Used only for display filtering.
             if (!empty($_REQUEST['detached']))
-                // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_REQUEST
+                // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Safe: Used only for display filtering.
                 echo '<input type="hidden" name="detached" value="' . esc_attr(sanitize_text_field(wp_unslash($_REQUEST['detached']))) . '" />';
             ?>
             <p class="search-box">
@@ -502,32 +499,6 @@
             echo "\n";
         }
 
-        /**
-         * Get the current action selected from the bulk actions dropdown.
-         *
-         * @return string|false The action name or False if no action was selected
-         * @since 3.1.0
-         * @access public
-         *
-         */
-        public function current_action()
-        {
-            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_REQUEST
-            if (isset($_REQUEST['filter_action']) && !empty($_REQUEST['filter_action']))
-                return false;
-
-            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_REQUEST
-            if (isset($_REQUEST['action']) && -1 != sanitize_text_field(wp_unslash($_REQUEST['action'])))
-                // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_REQUEST
-                return sanitize_text_field(wp_unslash($_REQUEST['action']));
-
-            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_REQUEST
-            if (isset($_REQUEST['action2']) && -1 != sanitize_text_field(wp_unslash($_REQUEST['action2'])))
-                // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_REQUEST
-                return sanitize_text_field(wp_unslash($_REQUEST['action2']));
-
-            return false;
-        }
 
         /**
          * Generate row actions div
@@ -588,12 +559,12 @@
             }
 
             $extra_checks = "AND post_status != 'auto-draft'";
-            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_GET
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Safe: Used only for display filtering.
             if (!isset($_GET['post_status']) || 'trash' !== sanitize_text_field(wp_unslash($_GET['post_status']))) {
                 $extra_checks .= " AND post_status != 'trash'";
-                // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_GET
+                // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Safe: Used only for display filtering.
             } elseif (isset($_GET['post_status'])) {
-                // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_GET
+                // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Safe: Used only for display filtering.
                 $extra_checks = $wpdb->prepare(' AND post_status = %s', sanitize_text_field(wp_unslash($_GET['post_status'])));
             }
 
@@ -627,7 +598,7 @@
             if (!$month_count || (1 == $month_count && 0 == $months[0]->month))
                 return;
 
-            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_GET
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Safe: Used only for display filtering.
             $m = isset($_GET['m']) ? (int)sanitize_text_field(wp_unslash($_GET['m'])) : 0;
             ?>
             <label for="filter-by-date" class="screen-reader-text"><?php esc_html__('Filter by date', 'xmoney-payments'); ?></label>
@@ -752,7 +723,7 @@
          */
         public function get_twispay_pagenum()
         {
-            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_GET
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Safe: Used only for display filtering.
             $pagenum = isset($_REQUEST['paged']) ? absint(sanitize_text_field(wp_unslash($_REQUEST['paged']))) : 0;
 
             if (isset($this->_pagination_args['total_pages']) && $pagenum > $this->_pagination_args['total_pages'])
@@ -825,7 +796,6 @@
             $removable_query_args = wp_removable_query_args();
 
             if(isset($_SERVER['HTTP_HOST']) && isset($_SERVER['REQUEST_URI'])){
-                // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_SERVER
                 $current_url = set_url_scheme('http://' . sanitize_text_field(wp_unslash($_SERVER['HTTP_HOST'])) . sanitize_text_field(wp_unslash($_SERVER['REQUEST_URI'])));
             }else{
                 return;
@@ -887,7 +857,7 @@
             }
             $html_total_pages = sprintf("<span class='total-pages'>%s</span>", number_format_i18n($total_pages));
             /* translators: 1: Current page, 2: Max pages. */
-            $page_links[] = esc_html($total_pages_before) . sprintf(_x('%1$s of %2$s', 'paging', 'xmoney-payments'), esc_attr($html_current_page), esc_attr($html_total_pages)) . esc_html($total_pages_after);
+            $page_links[] = wp_kses($total_pages_before,twispay_allowed_tags()) . sprintf(_x('%1$s of %2$s', 'paging', 'xmoney-payments'), wp_kses($html_current_page, twispay_allowed_tags()), wp_kses($html_total_pages, twispay_allowed_tags())) . wp_kses($total_pages_after, twispay_allowed_tags());
 
             if ($disable_next) {
                 $page_links[] = '<span class="tablenav-pages-navspan" aria-hidden="true">&rsaquo;</span>';
@@ -920,7 +890,7 @@
             } else {
                 $page_class = ' no-pages';
             }
-            $this->_pagination = '<div class="tablenav-pages' . sanitize_html_class($page_class) . '">' . esc_html($output) . '</div>';
+            $this->_pagination = '<div class="tablenav-pages' . sanitize_html_class($page_class) . '">' . wp_kses($output,twispay_allowed_tags()) . '</div>';
 
             echo wp_kses($this->_pagination,twispay_allowed_tags());
         }
@@ -1132,15 +1102,15 @@
                 $current_url = remove_query_arg('paged', $current_url);
             }
 
-            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_GET
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Safe: Used only for display filtering.
             if (isset($_GET['orderby'])) {
-                // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_GET
+                // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Safe: Used only for display filtering.
                 $current_orderby = sanitize_text_field(wp_unslash($_GET['orderby']));
             } else {
                 $current_orderby = '';
             }
 
-            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_GET
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Safe: Used only for display filtering.
             if (isset($_GET['order']) && 'desc' === sanitize_text_field(wp_unslash($_GET['order']))) {
                 $current_order = 'desc';
             } else {
@@ -1427,7 +1397,7 @@
             $this->prepare_items();
 
             ob_start();
-            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_REQUEST
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Safe: Used only for display.
             if (!empty($_REQUEST['no_placeholder'])) {
                 $this->display_rows();
             } else {
@@ -1453,21 +1423,4 @@
             die(wp_json_encode($response));
         }
 
-        /**
-         * Send required variables to JavaScript land
-         *
-         * @access public
-         */
-        public function _js_vars()
-        {
-            $args = array(
-                'class' => get_class($this),
-                'screen' => array(
-                    'id' => $this->screen->id,
-                    'base' => $this->screen->base,
-                )
-            );
-
-            printf("<script type='text/javascript'>list_args = %s;</script>\n", wp_json_encode($args));
-        }
     }

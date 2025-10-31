@@ -9,6 +9,11 @@
  * @author   Twispay
  */
 
+/* Exit if the file is accessed directly. */
+if (!defined('ABSPATH')) {
+    exit;
+}
+
 // Add the copy of the WP_List_Table class. We made a copy because the class is private.
 require_once TWISPAY_PLUGIN_DIR . 'includes/class-ma-list-table.php';
 
@@ -67,19 +72,19 @@ class Twispay_TransactionTable extends Twispay_Tw_List_Table {
      * @param string $input_id ID attribute value for the search input field.
      */
     public function search_box( $text, $input_id ) {
-        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_REQUEST
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Viewing data only, no action performed.
         if ( isset( $_REQUEST['orderby'] ) && esc_attr(sanitize_text_field(wp_unslash( $_REQUEST['orderby'])) ) ) {
-            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_REQUEST
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Viewing data only, no action performed.
             echo '<input type="hidden" name="orderby" value="' . esc_attr(sanitize_text_field(wp_unslash($_REQUEST['orderby'])) ) . '" />';
         }
-        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_REQUEST
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Safe read for table sorting
         if ( isset( $_REQUEST['order'] ) && esc_attr(sanitize_text_field(wp_unslash($_REQUEST['order'])) ) ) {
-            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_REQUEST
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Safe read for table sorting
             echo '<input type="hidden" name="order" value="' . esc_attr(sanitize_text_field(wp_unslash($_REQUEST['order'])) ) . '" />';
         }
-        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_REQUEST
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Safe read for status
         if ( isset( $_REQUEST['status'] ) && esc_attr(sanitize_text_field(wp_unslash($_REQUEST['status'])) ) ) {
-            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_REQUEST
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Safe read for status
             echo '<input type="hidden" name="status" value="' . esc_attr(sanitize_text_field(wp_unslash($_REQUEST['status'])) ) . '" />';
         }
 
@@ -120,7 +125,7 @@ class Twispay_TransactionTable extends Twispay_Tw_List_Table {
         global $wpdb;
 
         $views = array();
-        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_REQUEST
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Viewing data only, no action performed.
         $current = ( ! empty( $_REQUEST['status'] ) ? sanitize_text_field( wp_unslash($_REQUEST['status']) ) : 'all' );
 
         //All link
@@ -236,13 +241,13 @@ class Twispay_TransactionTable extends Twispay_Tw_List_Table {
         /**
          * Sanitize request variables safely (no nonce check needed for viewing data).
          */
-        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Display-only request, safe read.
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Safe read for search
         $s = isset($_REQUEST['s']) ? sanitize_text_field(wp_unslash($_REQUEST['s'])) : 'all';
 
-        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Display-only request, safe read.
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Safe read for sorting
         $order_by = isset($_REQUEST['orderby']) ? sanitize_text_field(wp_unslash($_REQUEST['orderby'])) : '';
 
-        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Display-only request, safe read.
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Safe read for sorting
         $order_how = isset($_REQUEST['order']) ? sanitize_text_field(wp_unslash($_REQUEST['order'])) : 'asc';
 
         /**

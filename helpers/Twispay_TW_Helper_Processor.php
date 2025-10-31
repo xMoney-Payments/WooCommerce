@@ -1,4 +1,8 @@
 <?php
+/* Exit if the file is accessed directly. */
+if (!defined('ABSPATH')) {
+    exit;
+}
 
 class Twispay_TW_Helper_Processor {
     const LIVE_URL = 'https://secure.xmoney.com';

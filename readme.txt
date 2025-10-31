@@ -35,13 +35,42 @@ The easiest way of installing our module is by visiting the [official module pag
 11. Enter your technical **Contact Email**. _(This will be displayed to customers in case of a payment error)_
 12. Save your changes.
 
+You can also get the latest release from [GitHub](https://github.com/xMoney-Payments/WooCommerce/releases).
+
 == Screenshots ==
 
 1. Secure credit card processing for Visa and Mastercard
 2. Quick and easy installation
 3. Fully customizable checkout experience
 
+== Frequently Asked Questions ==
+
+Find below a list of the most common questions about the xMoney for WooCommerce plugin.
+
+Don't find what you're looking for in this list? Feel free to reach us [by opening an issue on GitHub](https://github.com/xMoney-Payments/WooCommerc/issues/new).
+
+Q: Does this support both live mode and test mode for testing?
+A: Yes, it does - choosing between live and test mode is driven by the API keys you use. They are different in both environments. Live API keys won't work for the test environment, and vice-versa.
+
+Q: What happens if I cancel the Order manually?
+A:We are working on it. Our API is not ready yet for merchant manual changes. If you need to change the Order status, change it in WooCommerce and then go to our Merchant Dashboard to start a refund.
+
 == Changelog ==
+
 = v1.0.0 =
 
 * Initial release
+
+== Privacy ==
+
+This plugin processes payment information by sending order data to xMoney Payments solely for the purpose of payment authorization, settlement, and fraud prevention. No usage tracking, analytics, or telemetry data is collected.
+
+The plugin does not store personal data outside of WooCommerce. All customer data remains in your WordPress database and is only transmitted securely to xMoney Payments when required to process a payment.
+
+For more information, please review xMoney Payments' legal and privacy documents:
+
+• Terms & Conditions:
+https://www.xmoney.com/legal/special-terms-conditions
+
+• Privacy & Cookie Policy:
+https://www.xmoney.com/legal/card-privacy-and-cookie-policy

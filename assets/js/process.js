@@ -1,0 +1,1 @@
+document.getElementById("twispay_payment_form").submit();

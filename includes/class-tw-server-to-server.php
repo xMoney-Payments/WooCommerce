@@ -1,4 +1,8 @@
 <?php
+/* Exit if the file is accessed directly. */
+if (!defined('ABSPATH')) {
+    exit;
+}
 
 class Twispay_Server_To_Server {
     private $language;

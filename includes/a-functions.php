@@ -8,6 +8,10 @@
  * @category Admin
  * @author   Twispay
  */
+/* Exit if the file is accessed directly. */
+if (!defined('ABSPATH')) {
+    exit;
+}
 
 /**
  * Retrieves Live Mode options from Configuration Panel

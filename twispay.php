@@ -8,7 +8,8 @@
  * Author URI: https://www.xmoney.com
  * Text Domain: xmoney-payments
  * Domain Path: /lang/
- * License: GPLv2
+ * License: GPLv2 or later
+ * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  *
  *
  * @package  xMoney Payments
@@ -114,6 +115,10 @@ if (!class_exists('Twispay')) {
 
             if (!defined('TWISPAY_PLUGIN_URL')) {
                 define('TWISPAY_PLUGIN_URL', plugin_dir_url(__FILE__));
+            }
+
+            if (!defined('TWISPAY_VERSION')) {
+                define('TWISPAY_VERSION', 1.0);
             }
         }
 

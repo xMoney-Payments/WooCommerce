@@ -8,6 +8,10 @@
  * @category Admin
  * @author   Twispay
  */
+/* Exit if the file is accessed directly. */
+if (!defined('ABSPATH')) {
+    exit;
+}
 
 /* Require the "Twispay_TW_Logger" class. */
 require_once( TWISPAY_PLUGIN_DIR . DIRECTORY_SEPARATOR . 'helpers' . DIRECTORY_SEPARATOR . 'Twispay_TW_Logger.php' );
@@ -79,7 +83,7 @@ function twispay_tw_add_admin_css() {
     }
 
     // Load all admin css files for Administrator Pages
-    wp_enqueue_style( 'ma-admin', TWISPAY_PLUGIN_URL . 'assets/css/admin.css', [], 1 );
+    wp_enqueue_style( 'ma-admin', TWISPAY_PLUGIN_URL . 'assets/css/admin.css', [], TWISPAY_VERSION, true );
 }
 add_action( 'admin_enqueue_scripts', 'twispay_tw_add_admin_css' );
 
@@ -94,7 +98,7 @@ add_action( 'admin_enqueue_scripts', 'twispay_tw_add_admin_css' );
  */
 function twispay_tw_add_front_css() {
     // Load all front css files
-    wp_enqueue_style( 'ma-front', TWISPAY_PLUGIN_URL . 'assets/css/front.css', [], 1 );
+    wp_enqueue_style( 'ma-front', TWISPAY_PLUGIN_URL . 'assets/css/front.css', [], TWISPAY_VERSION, true );
 }
 add_action( 'wp_enqueue_scripts', 'twispay_tw_add_front_css' );
 
