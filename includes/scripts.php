@@ -24,7 +24,8 @@ require_once( TWISPAY_PLUGIN_DIR . DIRECTORY_SEPARATOR . 'helpers' . DIRECTORY_S
  * @public
  * @return bool True if is an admin page, false otherwise
  */
-function twispay_tw_check_if_is_admin() {
+function twispay_tw_check_if_is_admin(): bool
+{
     // Check if is admin page
     if ( ! is_admin() ) {
         return false;
@@ -218,7 +219,8 @@ function init_twispay_gateway_class() {
             *
             * @return bool
             */
-            public function is_available() {
+            public function is_available(): bool
+            {
                 $order          = null;
                 $needs_shipping = false;
 
@@ -449,11 +451,13 @@ add_action( 'plugins_loaded', 'init_twispay_gateway_class' );
  * @public
  * @return array $methods
  */
-function add_twispay_gateway_class( $methods ) {
+function add_twispay_gateway_class( $methods ): array
+{
     if ( class_exists( 'WooCommerce' ) ) {
         $methods[] = 'WC_Gateway_Twispay_Gateway';
         return $methods;
     }
+    return [];
 }
 add_filter( 'woocommerce_payment_gateways', 'add_twispay_gateway_class' );
 
@@ -475,7 +479,8 @@ add_action('init', 'twispay_tw_start_buffer_output');
 /**
  * Custom text on the receipt page.
  */
-function twispay_tw_isa_order_received_text( $text, $order ) {
+function twispay_tw_isa_order_received_text( $text, $order ): string
+{
     // Load languages
     $lang = explode( '-', get_bloginfo( 'language' ) );
     $lang = $lang[0];

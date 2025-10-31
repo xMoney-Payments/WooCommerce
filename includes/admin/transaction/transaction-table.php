@@ -22,8 +22,6 @@ require_once TWISPAY_PLUGIN_DIR . 'includes/class-ma-list-table.php';
  */
 class Twispay_TransactionTable extends Twispay_Tw_List_Table {
 
-    protected $tw_lang;
-
     /**
      * Constructor.
      *
@@ -50,10 +48,8 @@ class Twispay_TransactionTable extends Twispay_Tw_List_Table {
      *                            Default null.
      * }
      */
-    function __construct( $tw_lang ) {
+    function __construct() {
         global $status, $page;
-
-        $this->tw_lang = $tw_lang;
 
         parent::__construct( array(
             'singular'  => 'notification',
@@ -65,13 +61,13 @@ class Twispay_TransactionTable extends Twispay_Tw_List_Table {
     /**
      * Displays the search box.
      *
-     * @since  3.1.0
-     * @access public
-     *
      * @param string $text     The 'submit' button label.
      * @param string $input_id ID attribute value for the search input field.
+     *@since  3.1.0
+     * @access public
+     *
      */
-    public function search_box( $text, $input_id ) {
+    public function search_box(string $text, string $input_id ) {
         // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Viewing data only, no action performed.
         if ( isset( $_REQUEST['orderby'] ) && esc_attr(sanitize_text_field(wp_unslash( $_REQUEST['orderby'])) ) ) {
             // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Viewing data only, no action performed.
@@ -101,7 +97,7 @@ class Twispay_TransactionTable extends Twispay_Tw_List_Table {
      *
      * @param Object $wpdb         Wordpress refference to database.
      */
-    private function get_all_count( $wpdb ) {
+    private function get_all_count(object $wpdb ) {
         $table_name = $wpdb->prefix . 'twispay_tw_transactions';
 
         $table_name = esc_sql($table_name);
@@ -121,7 +117,8 @@ class Twispay_TransactionTable extends Twispay_Tw_List_Table {
      *
      * @return array
      */
-    function get_views() {
+    function get_views(): array
+    {
         global $wpdb;
 
         $views = array();
@@ -145,10 +142,10 @@ class Twispay_TransactionTable extends Twispay_Tw_List_Table {
 
     /**
      *
-     * @param object $item
+     * @param array $item
      * @param string $column_name
      */
-    function column_default( $item, $column_name ) {
+    function column_default(array $item, string $column_name ) {
         global $woocommerce;
 
         $column = '';
@@ -170,9 +167,9 @@ class Twispay_TransactionTable extends Twispay_Tw_List_Table {
 
     /**
      *
-     * @param object $item
+     * @param array $item
      */
-    function column_cb( $item ) {
+    function column_cb(array $item ) {
         return sprintf(
             '<input type="checkbox" name="%1$s[]" value="%2$s" />',
             esc_attr( $this->_args['singular'] ),
@@ -191,7 +188,7 @@ class Twispay_TransactionTable extends Twispay_Tw_List_Table {
      * @return array
      */
     function get_columns() {
-        $columns = array(
+        return array(
             'cb'                  => '<input type="checkbox" />',
             'id_tw_transactions'  => esc_html__( 'ID','xmoney-payments' ),
             'id_cart'             => esc_html__( 'Order reference','xmoney-payments' ),
@@ -200,7 +197,6 @@ class Twispay_TransactionTable extends Twispay_Tw_List_Table {
             'status'              => esc_html__( 'Status','xmoney-payments' ),
             'checkout_url'        => esc_html__( 'Checkout url','xmoney-payments' ),
         );
-        return $columns;
     }
 
     /**
@@ -216,7 +212,8 @@ class Twispay_TransactionTable extends Twispay_Tw_List_Table {
      *
      * @return array
      */
-    public function get_sortable_columns() {
+    public function get_sortable_columns(): array
+    {
         $sortable_columns = array(
             'id_tw_transactions'  => array( 'id_tw_transactions', false ),
             'customer_name'       => array( 'customer_name', false ),
@@ -258,7 +255,6 @@ class Twispay_TransactionTable extends Twispay_Tw_List_Table {
 
         $per_page = 10;
         $where_sql = '';
-        $order_sql = '';
 
         /**
          * Build WHERE clause safely using prepare().

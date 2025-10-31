@@ -218,10 +218,10 @@ function tw_twispay_p_synchronize_subscriptions( $request ) {
                 /* Check if any order was found on the server. */
                 if($response->pagination->currentItemCount){
                     /* Synchronize the statuses. */
-                    Twispay_TW_Status_Updater::updateSubscriptionStatus($subscription->get_parent_id(), $response->data[0]->orderStatus, $tw_lang);
+                    Twispay_TW_Status_Updater::updateSubscriptionStatus($subscription->get_parent_id(), $response->data[0]->orderStatus);
                 } else {
                     /* Cancel the local subscription as no order was found on the server. */
-                    Twispay_TW_Status_Updater::updateSubscriptionStatus($subscription->get_parent_id(), Twispay_TW_Status_Updater::$RESULT_STATUSES['CANCEL_OK'], $tw_lang);
+                    Twispay_TW_Status_Updater::updateSubscriptionStatus($subscription->get_parent_id(), Twispay_TW_Status_Updater::$RESULT_STATUSES['CANCEL_OK']);
                 }
 
                 /* Redirect to the Transaction list Page with success. */

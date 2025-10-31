@@ -61,7 +61,7 @@ function twispay_tw_configuration() {
                         <tr class="form-field form-required">
                             <th scope="row"><label for="live_mode"><?php echo esc_html__( 'Live mode', 'xmoney-payments' ); ?></label></th>
                             <td>
-                                <?php echo wp_kses(twispay_tw_get_live_mode( $tw_lang ),twispay_allowed_tags()); ?>
+                                <?php echo wp_kses(twispay_tw_get_live_mode(),twispay_allowed_tags()); ?>
                                 <p class="description"><?php echo esc_html_e( 'Select "Yes" if you want to use the payment gateway in Production Mode or "No" if you want to use it in Staging Mode.', 'xmoney-payments' ); ?></p>
                             </td>
                         </tr>
@@ -103,14 +103,14 @@ function twispay_tw_configuration() {
                         <tr class="form-field" id="r_custom_thankyou">
                             <th scope="row"><label for="r_custom_thankyou"><?php echo esc_html__( 'Redirect to custom Thank you page','xmoney-payments' ); ?></span></label></th>
                             <td>
-                                <?php echo wp_kses(twispay_tw_get_wp_pages( $tw_lang ), twispay_allowed_tags()); ?>
+                                <?php echo wp_kses(twispay_tw_get_wp_pages(), twispay_allowed_tags()); ?>
                                 <p class="description"><?php echo esc_html__( 'If you want to display custom Thank you page, set it up here. You can create new custom page from','xmoney-payments' ); ?> <a href="<?php echo esc_url_raw(get_admin_url() . 'post-new.php?post_type=page'); ?>"><?php echo esc_html__( 'here','xmoney-payments' ); ?></a>.</p>
                             </td>
                         </tr>
                         <tr class="form-field" id="suppress_email">
                             <th scope="row"><label for="suppress_email"><?php echo esc_html__( 'Suppress default WooCommerce payment receipt emails','xmoney-payments' ); ?></span></label></th>
                             <td>
-                                <?php echo wp_kses(twispay_tw_get_suppress_email( $tw_lang ), twispay_allowed_tags()); ?>
+                                <?php echo wp_kses(twispay_tw_get_suppress_email(), twispay_allowed_tags()); ?>
                                 <p class="description"><?php echo esc_html__( 'Option to suppress the communication sent by the ecommerce system, in order to configure it from xMoney Payments’s Merchant interface.','xmoney-payments' ); ?></p>
                             </td>
                         </tr>

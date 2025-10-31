@@ -8,11 +8,13 @@ class Twispay_TW_Helper_Processor {
     const LIVE_URL = 'https://secure.xmoney.com';
     const STAGE_URL = 'https://secure-stage.xmoney.com';
 
-    public static function get_current_language() {
+    public static function get_current_language(): string
+    {
         return explode('-', get_bloginfo('language'))[0];
     }
 
-    public static function format_phone($phone) {
+    public static function format_phone($phone): string
+    {
         $output = '';
 
         if (empty($phone)) {
@@ -24,7 +26,8 @@ class Twispay_TW_Helper_Processor {
         return $output . preg_replace('/([^0-9]*)+/', '', $phone);
     }
 
-    public static function get_configuration() {
+    public static function get_configuration(): array
+    {
         $configuration = self::query_configuration();
         $result = [];
 

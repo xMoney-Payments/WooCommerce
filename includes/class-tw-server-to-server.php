@@ -5,8 +5,7 @@ if (!defined('ABSPATH')) {
 }
 
 class Twispay_Server_To_Server {
-    private $language;
-    private $order_id;
+    private string $language;
 
     public function __construct() {
         require_once TWISPAY_PLUGIN_DIR . 'helpers/Twispay_TW_Logger.php';
@@ -14,8 +13,6 @@ class Twispay_Server_To_Server {
         require_once TWISPAY_PLUGIN_DIR . 'helpers/Twispay_TW_Status_Updater.php';
         require_once TWISPAY_PLUGIN_DIR . 'helpers/Twispay_TW_Helper_Processor.php';
 
-        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Safe to read $_GET since we're checking for corrupt request when communicating with Twispay
-        $this->order_id = isset($_GET['order_id']) ? (int) sanitize_key($_GET['order_id']) : null;
         $this->language = Twispay_TW_Helper_Processor::get_current_language();
 
         // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Safe to read $_GET since we're checking for corrupt request when communicating with Twispay
@@ -52,8 +49,7 @@ class Twispay_Server_To_Server {
         $result = isset($_POST['opensslResult']) ? sanitize_text_field(wp_unslash($_POST['opensslResult'])) : sanitize_text_field(wp_unslash($_POST['result']));
         $decrypted = Twispay_TW_Helper_Response::twispay_tw_decrypt_message(
             $result,
-            $configuration['secret_key'],
-            $tw_lang
+            $configuration['secret_key']
         );
 
         if ($decrypted === false) {
@@ -65,7 +61,7 @@ class Twispay_Server_To_Server {
 
         Twispay_TW_Logger::twispay_tw_log(esc_html__('[RESPONSE]: Decryption successfully performed.','xmoney-payments'));
 
-        $is_order_valid = Twispay_TW_Helper_Response::twispay_tw_checkValidation($decrypted, $tw_lang);
+        $is_order_valid = Twispay_TW_Helper_Response::twispay_tw_checkValidation($decrypted);
 
         if ($is_order_valid !== true) {
             Twispay_TW_Logger::twispay_tw_log(esc_html__('[RESPONSE-ERROR]: Validation failed.','xmoney-payments'));
@@ -84,7 +80,7 @@ class Twispay_Server_To_Server {
         $status = empty($decrypted['status']) ? $decrypted['transactionStatus'] : $decrypted['status'];
 
         // Set the status of the WooCommerce order according to the received status.
-        Twispay_TW_Status_Updater::updateStatus_IPN($order_id, $status, $tw_lang);
+        Twispay_TW_Status_Updater::updateStatus_IPN($order_id, $status);
 
         // Send the 200 OK response back to the xMoney Payments server.
         die('OK');

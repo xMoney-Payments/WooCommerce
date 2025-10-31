@@ -161,7 +161,7 @@ if ('' == $secretKey) {
 
 
 /* Extract the server response and decrypt it. */
-$decrypted = Twispay_TW_Helper_Response::twispay_tw_decrypt_message(/*tw_encryptedResponse*/(isset($_POST['opensslResult'])) ? (esc_html(sanitize_text_field(wp_unslash($_POST['opensslResult'])))) : (esc_html(sanitize_text_field(wp_unslash($_POST['result'])))), $secretKey, $tw_lang);
+$decrypted = Twispay_TW_Helper_Response::twispay_tw_decrypt_message(/*tw_encryptedResponse*/(isset($_POST['opensslResult'])) ? (esc_html(sanitize_text_field(wp_unslash($_POST['opensslResult'])))) : (esc_html(sanitize_text_field(wp_unslash($_POST['result'])))), $secretKey);
 
 /* Check if decryption failed.  */
 if (FALSE === $decrypted) {
@@ -205,7 +205,7 @@ if (FALSE === $decrypted) {
 }
 
 /* Validate the decrypted response. */
-$orderValidation = Twispay_TW_Helper_Response::twispay_tw_checkValidation($decrypted, $tw_lang);
+$orderValidation = Twispay_TW_Helper_Response::twispay_tw_checkValidation($decrypted);
 
 /* Check if server response validation failed.  */
 if (TRUE !== $orderValidation) {
@@ -336,4 +336,4 @@ if ( sanitize_text_field( wp_unslash($_GET['secure_key']) ) != $order->get_data(
 /* Reconstruct the checkout URL to use it to allow client to try again in case of error. */
 $checkout_url = esc_url( wc_get_checkout_url() . 'order-pay/' . $orderId . '/?pay_for_order=true&key=' . $order->get_data()['order_key'] );
 
-Twispay_TW_Status_Updater::updateStatus_backUrl($orderId, $decrypted['transactionStatus'], $checkout_url, $tw_lang, $configuration);
+Twispay_TW_Status_Updater::updateStatus_backUrl($orderId, $decrypted['transactionStatus'], $checkout_url, $configuration);

@@ -24,11 +24,11 @@ if ( ! class_exists( 'Twispay_TW_Logger' ) ) :
         /**
          * Function that logs a transaction to the DB.
          *
-         * @param data Array containing the transaction data.
+         * @param $data Array containing the transaction data.
          *
          * @return void
          */
-        public static function twispay_tw_logTransaction( $data ) {
+        public static function twispay_tw_logTransaction(array $data ) {
             global $wpdb;
 
             /* Extract the WooCommerce order. */
@@ -53,8 +53,8 @@ if ( ! class_exists( 'Twispay_TW_Logger' ) ) :
         /**
          * Function that updates a transaction's status in the DB.
          *
-         * @param id The ID of the parent order.
-         * @param status The new status of the transaction.
+         * @param $id - The ID of the parent order.
+         * @param $status - The new status of the transaction.
          *
          * @return void
          */

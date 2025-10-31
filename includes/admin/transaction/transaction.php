@@ -128,7 +128,7 @@ function twispay_tw_transaction_administrator() {
                         }
 
                         // Create the Payment Methods object and build the Table
-                        $transaction_table = new Twispay_TransactionTable( $tw_lang );
+                        $transaction_table = new Twispay_TransactionTable();
                         $transaction_table->views();
                     ?>
 

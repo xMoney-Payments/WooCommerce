@@ -29,7 +29,8 @@ if ( ! class_exists( 'Twispay_TW_Helper_Notify' ) ) :
          *
          * @return string
          */
-        public static function getBase64JsonRequest(array $orderData){
+        public static function getBase64JsonRequest(array $orderData): string
+        {
             return base64_encode(json_encode($orderData));
         }
 
@@ -42,7 +43,8 @@ if ( ! class_exists( 'Twispay_TW_Helper_Notify' ) ) :
          *
          * @return string
          */
-        public static function getBase64Checksum(array $orderData, $secretKey){
+        public static function getBase64Checksum(array $orderData, $secretKey): string
+        {
             $hmacSha512 = hash_hmac(/*algo*/'sha512', json_encode($orderData), $secretKey, /*raw_output*/true);
             return base64_encode($hmacSha512);
         }

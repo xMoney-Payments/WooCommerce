@@ -5,9 +5,9 @@ if (!defined('ABSPATH')) {
 }
 
 class Twispay_Subscription_Processor {
-    private $order_id;
-    private $language;
-    private $nonce_action = 'twispay_process';
+    private ?int $order_id;
+    private string $language;
+    private string $nonce_action = 'twispay_process';
 
     public function __construct() {
         // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Safe: only reading GET to display checkout flow.
@@ -40,7 +40,6 @@ class Twispay_Subscription_Processor {
         try {
             $request_data = $this->prepare_request_data();
         } catch (Exception $e) {
-            $message = $e->getMessage();
             wc_add_notice($e->getMessage(), 'error');
 	        wp_safe_redirect( wc_get_cart_url() );
             return;
