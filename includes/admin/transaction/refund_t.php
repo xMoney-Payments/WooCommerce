@@ -9,6 +9,11 @@
  * @author   Twispay
  */
 
+/* Exit if the file is accessed directly. */
+if (!defined('ABSPATH')) {
+    exit;
+}
+
 // Load languages
 $lang = explode( '-', get_bloginfo( 'language' ) );
 $lang = $lang[0];
@@ -25,9 +30,9 @@ if ( file_exists( TWISPAY_PLUGIN_DIR . 'lang/' . $lang . '/lang.php' ) ) {
 
     <!-- Get all payment transactions ID from the $_GET parameters -->
     <?php
-        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_GET
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, only for displaying a value, not processing an action
         if ( isset( $_GET['payment_ad'] ) && esc_attr( sanitize_text_field(wp_unslash($_GET['payment_ad'])) ) ) {
-            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_GET
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, only for displaying a value, not processing an action
             foreach ( explode( ',', esc_attr(sanitize_text_field(wp_unslash($_GET['payment_ad'])) ) ) as $key => $a_id ) {
                 echo '<p>ID: #' . esc_html($a_id) . '</p>';
             }
@@ -36,6 +41,7 @@ if ( file_exists( TWISPAY_PLUGIN_DIR . 'lang/' . $lang . '/lang.php' ) ) {
 
     <form method="post" id="refund_payment_transaction">
         <input type="hidden" name="tw_general_action" value="refund_payment_transaction" />
+        <?php wp_nonce_field('twispay_general_action', 'twispay_general_nonce'); ?>
         <?php submit_button( esc_attr__( 'Confirm', 'xmoney-payments' ), 'primary', 'createuser', true, array( 'id' => 'confirmdeletion' ) ); ?>
     </form>
 </div>

@@ -8,6 +8,10 @@
  * @category Admin
  * @author   Twispay
  */
+/* Exit if the file is accessed directly. */
+if (!defined('ABSPATH')) {
+    exit;
+}
 
 /**
  * Hooks every Twispay actions and process them in order to be
@@ -18,9 +22,13 @@
  */
 function twispay_tw_main_action() {
     // Check if there is a form process in rolling
-    // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_REQUEST
     if ( isset( $_REQUEST['tw_general_action'] ) ) {
-        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_REQUEST
+        if (!isset($_REQUEST['twispay_general_nonce']) ||
+            !wp_verify_nonce(sanitize_text_field(wp_unslash($_REQUEST['twispay_general_nonce'])), 'twispay_general_action')) {
+
+            wp_die(esc_attr_e('You do not have permission to access this file', 'xmoney-payments'), esc_attr_e('Error', 'xmoney-payments'), array('response' => 403));
+        }
+
         $request = sanitize_text_field(wp_unslash($_REQUEST['tw_general_action']) );
 
         // Check if current user have administrator permisions. If not, throw 403 error
@@ -34,7 +42,6 @@ function twispay_tw_main_action() {
         }
 
         // Pass the request to their own controllers. This call is dynamic and have following form. Eg: "tw_" + <the_request_name>. If we want to start the edit the configuration, the request will be like "edit_general_configuration"
-        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_REQUEST
         do_action( 'tw_' . $request, $_REQUEST );
     }
 }

@@ -8,6 +8,10 @@
  * @category Admin/Front
  * @author   xMoney Payments
  */
+/* Exit if the file is accessed directly. */
+if (!defined('ABSPATH')) {
+    exit;
+}
 
 /* Configuration panel from Administrator */
 $tw_lang['no_woocommerce_f'] = 'xMoney Payments requires WooCommerce plugin to work normally. Please activate it or install it from';

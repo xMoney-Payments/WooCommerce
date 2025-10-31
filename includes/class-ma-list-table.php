@@ -6,6 +6,10 @@
      * @subpackage List_Table
      * @since 3.1.0
      */
+    /* Exit if the file is accessed directly. */
+    if (!defined('ABSPATH')) {
+        exit;
+    }
 
     /**
      * Base class for displaying a list of items in an ajaxified HTML table.
@@ -22,7 +26,7 @@
          * @access public
          * @var array
          */
-        public $items;
+        public array $items;
 
         /**
          * Various information about the current table.
@@ -40,7 +44,7 @@
          * @access protected
          * @var array
          */
-        protected $_pagination_args = array();
+        protected array $_pagination_args = array();
 
         /**
          * The current screen.
@@ -49,7 +53,7 @@
          * @access protected
          * @var object
          */
-        protected $screen;
+        protected object $screen;
 
         /**
          * Cached bulk actions.
@@ -76,7 +80,7 @@
          * @access protected
          * @var array
          */
-        protected $modes = array();
+        protected array $modes = array();
 
         /**
          * Stores the value returned by ->get_column_info().
@@ -85,7 +89,7 @@
          * @access protected
          * @var array
          */
-        protected $_column_headers;
+        protected array $_column_headers;
 
         /**
          * {@internal Missing Summary}
@@ -93,7 +97,7 @@
          * @access protected
          * @var array
          */
-        protected $compat_fields = array('_args', '_pagination_args', 'screen', '_actions', '_pagination');
+        protected array $compat_fields = array('_args', '_pagination_args', 'screen', '_actions', '_pagination');
 
         /**
          * {@internal Missing Summary}
@@ -101,7 +105,7 @@
          * @access protected
          * @var array
          */
-        protected $compat_methods = array('set_pagination_args', 'get_views', 'get_bulk_actions', 'bulk_actions',
+        protected array $compat_methods = array('set_pagination_args', 'get_views', 'get_bulk_actions', 'bulk_actions',
             'row_actions', 'months_dropdown', 'view_switcher', 'comments_bubble', 'get_items_per_page', 'pagination',
             'get_sortable_columns', 'get_column_info', 'get_table_classes', 'display_tablenav', 'extra_tablenav',
             'single_row_columns');
@@ -121,9 +125,7 @@
          * @type string $singular Singular label for an object being listed, e.g. 'post'.
          *                            Default empty
          * @type bool $ajax Whether the list table supports Ajax. This includes loading
-         *                            and sorting data, for example. If true, the class will call
-         *                            the _js_vars() method in the footer to provide variables
-         *                            to any scripts handling Ajax events. Default false.
+         *                            and sorting data, for example.
          * @type string $screen String containing the hook name used to determine the current
          *                            screen. If left null, the current screen will be automatically set.
          *                            Default null.
@@ -153,11 +155,6 @@
 
             $this->_args = $args;
 
-            if ($args['ajax']) {
-                // wp_enqueue_script( 'list-table' );
-                add_action('admin_footer', array($this, '_js_vars'));
-            }
-
             if (empty($this->modes)) {
                 $this->modes = array(
                     'list' => esc_html__('List View', 'xmoney-payments'),
@@ -175,7 +172,7 @@
          * @access public
          *
          */
-        public function __get($name)
+        public function __get(string $name)
         {
             if (in_array($name, $this->compat_fields)) {
                 return $this->$name;
@@ -192,7 +189,7 @@
          * @access public
          *
          */
-        public function __set($name, $value)
+        public function __set(string $name, mixed $value)
         {
             if (in_array($name, $this->compat_fields)) {
                 return $this->$name = $value;
@@ -208,7 +205,7 @@
          * @access public
          *
          */
-        public function __isset($name)
+        public function __isset(string $name)
         {
             if (in_array($name, $this->compat_fields)) {
                 return isset($this->$name);
@@ -223,7 +220,7 @@
          * @access public
          *
          */
-        public function __unset($name)
+        public function __unset(string $name)
         {
             if (in_array($name, $this->compat_fields)) {
                 unset($this->$name);
@@ -240,7 +237,7 @@
          * @access public
          *
          */
-        public function __call($name, $arguments)
+        public function __call($name, array $arguments)
         {
             if (in_array($name, $this->compat_methods)) {
                 return call_user_func_array(array($this, $name), $arguments);
@@ -311,15 +308,16 @@
          * @access public
          *
          */
-        public function get_pagination_arg($key)
+        public function get_pagination_arg(string $key): int
         {
             if ('page' === $key) {
-                return $this->get_twispay_pagenum();
+                $number = $this->get_twispay_pagenum();
             }
 
             if (isset($this->_pagination_args[$key])) {
-                return $this->_pagination_args[$key];
+                $number = $this->_pagination_args[$key];
             }
+            return $number;
         }
 
         /**
@@ -330,7 +328,7 @@
          * @access public
          *
          */
-        public function has_items()
+        public function has_items(): bool
         {
             return !empty($this->items);
         }
@@ -355,29 +353,29 @@
          * @access public
          *
          */
-        public function search_box($text, $input_id)
+        public function search_box(string $text, string $input_id)
         {
-            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_REQUEST
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Safe: Used only for display filtering.
             if (empty($_REQUEST['s']) && !$this->has_items())
                 return;
 
             $input_id = $input_id . '-search-input';
 
-            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_REQUEST
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Safe: Used only for display filtering.
             if (!empty($_REQUEST['orderby']))
-                // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_REQUEST
+                // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Safe: Used only for display filtering.
                 echo '<input type="hidden" name="orderby" value="' . esc_attr(sanitize_text_field(wp_unslash($_REQUEST['orderby']))) . '" />';
-            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_REQUEST
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Safe: Used only for display filtering.
             if (!empty($_REQUEST['order']))
-                // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_REQUEST
+                // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Safe: Used only for display filtering.
                 echo '<input type="hidden" name="order" value="' . esc_attr(sanitize_text_field(wp_unslash($_REQUEST['order']))) . '" />';
-            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_REQUEST
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Safe: Used only for display filtering.
             if (!empty($_REQUEST['post_mime_type']))
-                // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_REQUEST
+                // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Safe: Used only for display filtering.
                 echo '<input type="hidden" name="post_mime_type" value="' . esc_attr(sanitize_text_field(wp_unslash($_REQUEST['post_mime_type']))) . '" />';
-            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_REQUEST
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Safe: Used only for display filtering.
             if (!empty($_REQUEST['detached']))
-                // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_REQUEST
+                // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Safe: Used only for display filtering.
                 echo '<input type="hidden" name="detached" value="' . esc_attr(sanitize_text_field(wp_unslash($_REQUEST['detached']))) . '" />';
             ?>
             <p class="search-box">
@@ -399,7 +397,7 @@
          * @access protected
          *
          */
-        protected function get_views()
+        protected function get_views(): array
         {
             return array();
         }
@@ -447,7 +445,7 @@
          * @access protected
          *
          */
-        protected function get_bulk_actions()
+        protected function get_bulk_actions(): array
         {
             return array();
         }
@@ -461,7 +459,7 @@
          * @access protected
          *
          */
-        protected function bulk_actions($which = '')
+        protected function bulk_actions(string $which = '')
         {
             if (is_null($this->_actions)) {
                 $this->_actions = $this->get_bulk_actions();
@@ -502,32 +500,6 @@
             echo "\n";
         }
 
-        /**
-         * Get the current action selected from the bulk actions dropdown.
-         *
-         * @return string|false The action name or False if no action was selected
-         * @since 3.1.0
-         * @access public
-         *
-         */
-        public function current_action()
-        {
-            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_REQUEST
-            if (isset($_REQUEST['filter_action']) && !empty($_REQUEST['filter_action']))
-                return false;
-
-            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_REQUEST
-            if (isset($_REQUEST['action']) && -1 != sanitize_text_field(wp_unslash($_REQUEST['action'])))
-                // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_REQUEST
-                return sanitize_text_field(wp_unslash($_REQUEST['action']));
-
-            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_REQUEST
-            if (isset($_REQUEST['action2']) && -1 != sanitize_text_field(wp_unslash($_REQUEST['action2'])))
-                // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_REQUEST
-                return sanitize_text_field(wp_unslash($_REQUEST['action2']));
-
-            return false;
-        }
 
         /**
          * Generate row actions div
@@ -539,7 +511,7 @@
          * @access protected
          *
          */
-        protected function row_actions($actions, $always_visible = false)
+        protected function row_actions(array $actions, bool $always_visible): string
         {
             $action_count = count($actions);
             $i = 0;
@@ -571,7 +543,7 @@
          * @access protected
          *
          */
-        protected function months_dropdown($post_type)
+        protected function months_dropdown(string $post_type)
         {
             global $wpdb, $wp_locale;
 
@@ -588,12 +560,12 @@
             }
 
             $extra_checks = "AND post_status != 'auto-draft'";
-            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_GET
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Safe: Used only for display filtering.
             if (!isset($_GET['post_status']) || 'trash' !== sanitize_text_field(wp_unslash($_GET['post_status']))) {
                 $extra_checks .= " AND post_status != 'trash'";
-                // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_GET
+                // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Safe: Used only for display filtering.
             } elseif (isset($_GET['post_status'])) {
-                // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_GET
+                // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Safe: Used only for display filtering.
                 $extra_checks = $wpdb->prepare(' AND post_status = %s', sanitize_text_field(wp_unslash($_GET['post_status'])));
             }
 
@@ -627,7 +599,7 @@
             if (!$month_count || (1 == $month_count && 0 == $months[0]->month))
                 return;
 
-            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_GET
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Safe: Used only for display filtering.
             $m = isset($_GET['m']) ? (int)sanitize_text_field(wp_unslash($_GET['m'])) : 0;
             ?>
             <label for="filter-by-date" class="screen-reader-text"><?php esc_html__('Filter by date', 'xmoney-payments'); ?></label>
@@ -664,7 +636,7 @@
          * @access protected
          *
          */
-        protected function view_switcher($current_mode)
+        protected function view_switcher(string $current_mode)
         {
             ?>
             <input type="hidden" name="mode" value="<?php echo esc_attr($current_mode); ?>"/>
@@ -695,7 +667,7 @@
          * @access protected
          *
          */
-        protected function comments_bubble($post_id, $pending_comments)
+        protected function comments_bubble(int $post_id, int $pending_comments)
         {
             $approved_comments = get_comments_number();
 
@@ -750,9 +722,9 @@
          * @access public
          *
          */
-        public function get_twispay_pagenum()
+        public function get_twispay_pagenum(): int
         {
-            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_GET
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Safe: Used only for display filtering.
             $pagenum = isset($_REQUEST['paged']) ? absint(sanitize_text_field(wp_unslash($_REQUEST['paged']))) : 0;
 
             if (isset($this->_pagination_args['total_pages']) && $pagenum > $this->_pagination_args['total_pages'])
@@ -771,7 +743,7 @@
          * @access protected
          *
          */
-        protected function get_items_per_page($option, $default = 20)
+        protected function get_items_per_page(string $option, int $default = 20): int
         {
             $per_page = (int)get_user_option($option);
             if (empty($per_page) || $per_page < 1)
@@ -801,7 +773,7 @@
          * @access protected
          *
          */
-        protected function pagination($which)
+        protected function pagination(string $which)
         {
             if (empty($this->_pagination_args)) {
                 return;
@@ -825,7 +797,6 @@
             $removable_query_args = wp_removable_query_args();
 
             if(isset($_SERVER['HTTP_HOST']) && isset($_SERVER['REQUEST_URI'])){
-                // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_SERVER
                 $current_url = set_url_scheme('http://' . sanitize_text_field(wp_unslash($_SERVER['HTTP_HOST'])) . sanitize_text_field(wp_unslash($_SERVER['REQUEST_URI'])));
             }else{
                 return;
@@ -887,7 +858,7 @@
             }
             $html_total_pages = sprintf("<span class='total-pages'>%s</span>", number_format_i18n($total_pages));
             /* translators: 1: Current page, 2: Max pages. */
-            $page_links[] = esc_html($total_pages_before) . sprintf(_x('%1$s of %2$s', 'paging', 'xmoney-payments'), esc_attr($html_current_page), esc_attr($html_total_pages)) . esc_html($total_pages_after);
+            $page_links[] = wp_kses($total_pages_before,twispay_allowed_tags()) . sprintf(_x('%1$s of %2$s', 'paging', 'xmoney-payments'), wp_kses($html_current_page, twispay_allowed_tags()), wp_kses($html_total_pages, twispay_allowed_tags())) . wp_kses($total_pages_after, twispay_allowed_tags());
 
             if ($disable_next) {
                 $page_links[] = '<span class="tablenav-pages-navspan" aria-hidden="true">&rsaquo;</span>';
@@ -920,7 +891,7 @@
             } else {
                 $page_class = ' no-pages';
             }
-            $this->_pagination = '<div class="tablenav-pages' . sanitize_html_class($page_class) . '">' . esc_html($output) . '</div>';
+            $this->_pagination = '<div class="tablenav-pages' . sanitize_html_class($page_class) . '">' . wp_kses($output,twispay_allowed_tags()) . '</div>';
 
             echo wp_kses($this->_pagination,twispay_allowed_tags());
         }
@@ -953,7 +924,7 @@
          * @access protected
          *
          */
-        protected function get_sortable_columns()
+        protected function get_sortable_columns(): array
         {
             return array();
         }
@@ -966,7 +937,7 @@
          * @access protected
          *
          */
-        protected function get_default_primary_column_name()
+        protected function get_default_primary_column_name(): string
         {
             $columns = $this->get_columns();
             $column = '';
@@ -997,7 +968,7 @@
          * @access public
          *
          */
-        public function get_primary_column()
+        public function get_primary_column(): string
         {
             return $this->get_primary_column_name();
         }
@@ -1010,7 +981,7 @@
          * @access protected
          *
          */
-        protected function get_primary_column_name()
+        protected function get_primary_column_name(): string
         {
             $columns = get_column_headers($this->screen);
             $default = $this->get_default_primary_column_name();
@@ -1046,7 +1017,7 @@
          * @access protected
          *
          */
-        protected function get_column_info()
+        protected function get_column_info(): array
         {
             // $_column_headers is already set / cached
             if (isset($this->_column_headers) && is_array($this->_column_headers)) {
@@ -1103,7 +1074,7 @@
          * @access public
          *
          */
-        public function get_column_count()
+        public function get_column_count(): int
         {
             list ($columns, $hidden) = $this->get_column_info();
             $hidden = array_intersect(array_keys($columns), array_filter($hidden));
@@ -1120,7 +1091,7 @@
          * @staticvar int $cb_counter
          *
          */
-        public function print_column_headers($with_id = true)
+        public function print_column_headers(bool $with_id = true)
         {
             list($columns, $hidden, $sortable, $primary) = $this->get_column_info();
 
@@ -1132,15 +1103,15 @@
                 $current_url = remove_query_arg('paged', $current_url);
             }
 
-            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_GET
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Safe: Used only for display filtering.
             if (isset($_GET['orderby'])) {
-                // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_GET
+                // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Safe: Used only for display filtering.
                 $current_orderby = sanitize_text_field(wp_unslash($_GET['orderby']));
             } else {
                 $current_orderby = '';
             }
 
-            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_GET
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Safe: Used only for display filtering.
             if (isset($_GET['order']) && 'desc' === sanitize_text_field(wp_unslash($_GET['order']))) {
                 $current_order = 'desc';
             } else {
@@ -1242,7 +1213,7 @@
          * @access protected
          *
          */
-        protected function get_table_classes()
+        protected function get_table_classes(): string
         {
             return 'widefat fixed striped ' . $this->_args['plural'];
         }
@@ -1254,7 +1225,7 @@
          * @since 3.1.0
          * @access protected
          */
-        protected function display_tablenav($which)
+        protected function display_tablenav(string $which)
         {
             if ('top' === $which) {
                 wp_nonce_field('bulk-' . $this->_args['plural']);
@@ -1282,7 +1253,7 @@
          * @access protected
          *
          */
-        protected function extra_tablenav($which)
+        protected function extra_tablenav(string $which)
         {
         }
 
@@ -1318,12 +1289,12 @@
         /**
          * Generates content for a single row of the table
          *
-         * @param object $item The current item
+         * @param array $item The current item
          * @since 3.1.0
          * @access public
          *
          */
-        public function single_row($item)
+        public function single_row(array $item)
         {
             echo '<tr>';
             $this->single_row_columns($item);
@@ -1332,30 +1303,30 @@
 
         /**
          *
-         * @param object $item
+         * @param array $item
          * @param string $column_name
          */
-        protected function column_default($item, $column_name)
+        protected function column_default(array $item, string $column_name)
         {
         }
 
         /**
          *
-         * @param object $item
+         * @param array $item
          */
-        protected function column_cb($item)
+        protected function column_cb(array $item)
         {
         }
 
         /**
          * Generates the columns for a single row of the table
          *
-         * @param object $item The current item
+         * @param array $item The current item
          * @since 3.1.0
          * @access protected
          *
          */
-        protected function single_row_columns($item)
+        protected function single_row_columns(array $item)
         {
             list($columns, $hidden, $sortable, $primary) = $this->get_column_info();
 
@@ -1403,7 +1374,7 @@
         /**
          * Generates and display row actions links for the list table.
          *
-         * @param object $item The item being acted upon.
+         * @param array $item The item being acted upon.
          * @param string $column_name Current column name.
          * @param string $primary Primary column name.
          * @return string The row actions HTML, or an empty string if the current column is the primary column.
@@ -1411,7 +1382,7 @@
          * @access protected
          *
          */
-        protected function handle_row_actions($item, $column_name, $primary)
+        protected function handle_row_actions(array $item, string $column_name, string $primary): string
         {
             return $column_name === $primary ? '<button type="button" class="toggle-row"><span class="screen-reader-text">' . esc_html__('Show more details', 'xmoney-payments') . '</span></button>' : '';
         }
@@ -1427,7 +1398,7 @@
             $this->prepare_items();
 
             ob_start();
-            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_REQUEST
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Safe: Used only for display.
             if (!empty($_REQUEST['no_placeholder'])) {
                 $this->display_rows();
             } else {
@@ -1453,21 +1424,4 @@
             die(wp_json_encode($response));
         }
 
-        /**
-         * Send required variables to JavaScript land
-         *
-         * @access public
-         */
-        public function _js_vars()
-        {
-            $args = array(
-                'class' => get_class($this),
-                'screen' => array(
-                    'id' => $this->screen->id,
-                    'base' => $this->screen->base,
-                )
-            );
-
-            printf("<script type='text/javascript'>list_args = %s;</script>\n", wp_json_encode($args));
-        }
     }

@@ -8,6 +8,10 @@
  * @category Core
  * @author   Twispay
  */
+/* Exit if the file is accessed directly. */
+if (!defined('ABSPATH')) {
+    exit;
+}
 
 function twispay_wp_check_install() {
 	if( ! get_option( 'twispay_tw_installed' ) ) {

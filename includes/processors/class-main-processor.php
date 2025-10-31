@@ -1,13 +1,18 @@
 <?php
+/* Exit if the file is accessed directly. */
+if (!defined('ABSPATH')) {
+    exit;
+}
 
 class Twispay_Main_Processor {
-    private $order_id;
-    private $language;
+    private ?int $order_id;
+    private string $language;
+    private string $nonce_action = 'twispay_process';
 
     public function __construct() {
-        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Checkout page GET parameter, used to identify order; read-only and sanitized.
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Safe: only reading GET to display checkout flow.
         $this->order_id = !empty($_GET['order_id']) ? (int)sanitize_key($_GET['order_id']) : null;
-        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Checkout page GET parameter, used to conditionally hook process; safe for display-only usage.
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Safe: no state change occurs here.
         if ($this->order_id && strpos(sanitize_text_field(wp_unslash($_GET['order_id'])), '_sub') === false) {
             add_action('woocommerce_after_checkout_form', [$this, 'process']);
         }
@@ -18,51 +23,19 @@ class Twispay_Main_Processor {
         require_once TWISPAY_PLUGIN_DIR . 'helpers/Twispay_TW_Helper_Processor.php';
         $this->language = Twispay_TW_Helper_Processor::get_current_language();
 
+        // Load process css & js files
+        wp_enqueue_style('ma-process-css', TWISPAY_PLUGIN_URL . 'assets/css/process.css', [], TWISPAY_VERSION, true);
+        wp_enqueue_script('ma-process-js', TWISPAY_PLUGIN_URL . 'assets/js/process.js', array(), TWISPAY_VERSION, true);
+
         try {
             $request_data = $this->prepare_request_data();
         } catch (Exception $e) {
-            $message = $e->getMessage();
             wc_add_notice($e->getMessage(), 'error');
 	        wp_safe_redirect( wc_get_cart_url() );
 	        return;
         }
 
         ?>
-        <style>
-          body {
-            height: 100%;
-            overflow: hidden !important;
-          }
-
-          .wrapper-loader {
-            background-color: #fff;
-            height: 100%;
-            left: 0;
-            position: absolute;
-            width: 100%;
-            top: 0;
-            z-index: 1000;
-          }
-
-          .loader {
-            margin: 15% auto 0;
-            border: 14px solid #f3f3f3;
-            border-top: 14px solid #3498db;
-            border-radius: 50%;
-            width: 110px;
-            height: 110px;
-            animation: spin 1.1s linear infinite;
-          }
-
-          @keyframes spin {
-            0% {
-              transform: rotate(0deg);
-            }
-            100% {
-              transform: rotate(360deg);
-            }
-          }
-        </style>
 
         <div class="wrapper-loader">
             <div class="loader"></div>
@@ -76,7 +49,6 @@ class Twispay_Main_Processor {
             <input type="hidden" name="checksum" value="<?php echo esc_attr($request_data['checksum']); ?>">
         </form>
 
-        <script>document.getElementById("twispay_payment_form").submit();</script>
         <?php
     }
 
@@ -124,13 +96,19 @@ class Twispay_Main_Processor {
         }
 
         $back_url = get_permalink(get_page_by_path('xmoney-payments-confirmation'));
-        $back_url = add_query_arg([ 'secure_key' => $data['cart_hash'] ], $back_url);
+        $back_url = wp_nonce_url(add_query_arg(
+            [
+                'secure_key' => $order->get_data()['cart_hash'],
+                '_wpnonce' => wp_create_nonce($this->nonce_action),
+            ],
+            $back_url
+        ), 'twispay_process');
 
         $orderId = NULL;
 
-        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- GET parameter identifies order; sanitized and verified against WooCommerce order, safe for request data.
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Safe: reading GET only to build payment request, no state change.
         if(isset($_GET['order_id'])){
-            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Same GET parameter used to build request; safe because validated against WooCommerce order.
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Safe: reading GET only to build payment request, no state change.
             $orderId = sanitize_key($_GET['order_id']);
         }
 

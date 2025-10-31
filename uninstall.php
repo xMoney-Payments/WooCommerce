@@ -8,6 +8,10 @@
  * @category Core
  * @author   Twispay
  */
+/* Exit if the file is accessed directly. */
+if (!defined('ABSPATH')) {
+    exit;
+}
 
 // Exit if the file is accessed directly
 if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {

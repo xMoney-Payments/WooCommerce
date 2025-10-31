@@ -8,6 +8,10 @@
  * @category Admin
  * @author   Twispay
  */
+/* Exit if the file is accessed directly. */
+if (!defined('ABSPATH')) {
+    exit;
+}
 
 /**
  * Retrieves Live Mode options from Configuration Panel
@@ -15,7 +19,8 @@
  * @public
  * @return string Html with all Live Mode options
  */
-function twispay_tw_get_live_mode( $tw_lang ) {
+function twispay_tw_get_live_mode(): string
+{
     // Wordpress database reference
     global $wpdb;
     $html = '';
@@ -40,7 +45,6 @@ function twispay_tw_get_live_mode( $tw_lang ) {
         }
         $html .= '</select>';
 
-        return $html;
     }
     else {
         // If by any chance the configuration row does not exist, add default one immediately. ( tw_configuration table )
@@ -55,8 +59,8 @@ function twispay_tw_get_live_mode( $tw_lang ) {
         $html .= '<option value="0" selected>' . esc_html__( 'No','xmoney-payments' ) . '</option>';
         $html .= '</select>';
 
-        return $html;
     }
+    return $html;
 }
 
 /**
@@ -65,9 +69,9 @@ function twispay_tw_get_live_mode( $tw_lang ) {
  * @public
  * @return array Array with all the allowed tags
  */
-function twispay_allowed_tags()
+function twispay_allowed_tags(): array
 {
-    $allowed_html = array(
+    return array(
         'div' => array(
             'class' => array(),
             'id' => array(),
@@ -117,8 +121,6 @@ function twispay_allowed_tags()
             'type' => array(),
         ),
     );
-
-    return $allowed_html;
 }
 
 /**
@@ -127,7 +129,8 @@ function twispay_allowed_tags()
  * @public
  * @return string Html with all Suppress Email options
  */
-function twispay_tw_get_suppress_email( $tw_lang ) {
+function twispay_tw_get_suppress_email(): string
+{
     // Wordpress database reference
     global $wpdb;
     $html = '';
@@ -152,8 +155,8 @@ function twispay_tw_get_suppress_email( $tw_lang ) {
         }
         $html .= '</select>';
 
-        return $html;
     }
+    return $html;
 }
 
 /**
@@ -162,7 +165,8 @@ function twispay_tw_get_suppress_email( $tw_lang ) {
  * @public
  * @return string Html with all Wordpress Pages options
  */
-function twispay_tw_get_wp_pages( $tw_lang ) {
+function twispay_tw_get_wp_pages(): string
+{
     // Wordpress database reference
     global $wpdb;
     $html = '';
@@ -191,8 +195,8 @@ function twispay_tw_get_wp_pages( $tw_lang ) {
         }
         $html .= '</select>';
 
-        return $html;
     }
+    return $html;
 }
 
 /**
@@ -201,7 +205,8 @@ function twispay_tw_get_wp_pages( $tw_lang ) {
  * @public
  * @return string contact_email
  */
-function twispay_tw_get_contact_email_o() {
+function twispay_tw_get_contact_email_o(): string
+{
     // Wordpress database reference
     global $wpdb;
     $table_name = esc_sql($wpdb->prefix . 'twispay_tw_configuration');
@@ -223,7 +228,8 @@ function twispay_tw_get_contact_email_o() {
  * @public
  * @return string staging_id
  */
-function twispay_tw_get_staging_site_id() {
+function twispay_tw_get_staging_site_id(): string
+{
     // Wordpress database reference
     global $wpdb;
     $table_name = esc_sql($wpdb->prefix . 'twispay_tw_configuration');
@@ -245,7 +251,8 @@ function twispay_tw_get_staging_site_id() {
  * @public
  * @return string staging_key
  */
-function twispay_tw_get_staging_private_key() {
+function twispay_tw_get_staging_private_key(): string
+{
     // Wordpress database refference
     global $wpdb;
     $table_name = esc_sql($wpdb->prefix . 'twispay_tw_configuration');
@@ -267,7 +274,8 @@ function twispay_tw_get_staging_private_key() {
  * @public
  * @return string live_id
  */
-function twispay_tw_get_live_site_id() {
+function twispay_tw_get_live_site_id(): string
+{
     // Wordpress database refference
     global $wpdb;
     $table_name = esc_sql($wpdb->prefix . 'twispay_tw_configuration');
@@ -289,7 +297,8 @@ function twispay_tw_get_live_site_id() {
  * @public
  * @return string live_key
  */
-function twispay_tw_get_live_private_key() {
+function twispay_tw_get_live_private_key(): string
+{
     // Wordpress database refference
     global $wpdb;
     $table_name = esc_sql($wpdb->prefix . 'twispay_tw_configuration');
