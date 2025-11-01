@@ -28,13 +28,11 @@ if ( !class_exists( 'Twispay_TW_Helper_Response' ) ) :
          * Decrypt the response from Twispay server.
          *
          * @param string $tw_encryptedMessage - The encrypted server message.
-         * @param string $tw_secretKey        - The secret key (from Twispay).
-         * @param array $tw_lang              - The language that the store uses
+         * @param string $tw_secretKey - The secret key (from Twispay).
          *
-         * @return Array([key => value,]) - If everything is ok array containing the decrypted data.
-         *         bool(FALSE)            - If decription fails.
+         * @return bool|array ([key => value,]) - If everything is ok array containing the decrypted data else bool(FALSE) if decription fails.
          */
-        public static function twispay_tw_decrypt_message($tw_encryptedMessage, $tw_secretKey, $tw_lang){
+        public static function twispay_tw_decrypt_message(string $tw_encryptedMessage, string $tw_secretKey){
             $encrypted = ( string )$tw_encryptedMessage;
 
             if ( !strlen($encrypted) || (FALSE == strpos($encrypted, ',')) ){
@@ -131,13 +129,13 @@ if ( !class_exists( 'Twispay_TW_Helper_Response' ) ) :
         /**
          * Function that validates a decripted response.
          *
-         * @param tw_response The server decripted and JSON decoded response
-         * @param tw_lang The language that the store uses
+         * @param $tw_response - The server decripted and JSON decoded response
          *
          * @return bool(FALSE)     - If any error occurs
          *         bool(TRUE)      - If the validation is successful
          */
-        public static function twispay_tw_checkValidation($tw_response, $tw_lang) {
+        public static function twispay_tw_checkValidation($tw_response): bool
+        {
             $tw_errors = array();
 
             if ( !$tw_response ) {

@@ -24,7 +24,7 @@ if ( ! class_exists( 'Twispay_TW_Status_Updater' ) ) :
      */
     class Twispay_TW_Status_Updater {
         /* Array containing the possible result statuses. */
-        public static $RESULT_STATUSES = [
+        public static array $RESULT_STATUSES = [
                 'UNCERTAIN' => 'uncertain' /* No response from provider */
             , 'IN_PROGRESS' => 'in-progress' /* Authorized */
             , 'COMPLETE_OK' => 'complete-ok' /* Captured */
@@ -40,15 +40,14 @@ if ( ! class_exists( 'Twispay_TW_Status_Updater' ) ) :
         /**
          * Update the status of an Woocommerce order according to the received server status.
          *
-         * @param orderId: The id of the order for which to update the status.
-         * @param serverStatus: The status received from server.
-         * @param checkout_url: The url to which to redirect the client in case of error.
-         * @param tw_lang: The array of available messages.
-         * @param configuration: The configuration of the plugin
+         * @param $orderId       - The id of the order for which to update the status.
+         * @param $serverStatus  - The status received from server.
+         * @param $checkout_url  - The url to which to redirect the client in case of error.
+         * @param $configuration - The configuration of the plugin
          *
          * @return void
          */
-        public static function updateStatus_backUrl($orderId, $serverStatus, $checkout_url, $tw_lang, $configuration) {
+        public static function updateStatus_backUrl($orderId, $serverStatus, $checkout_url, $configuration) {
             /* Extract the order. */
             $order = wc_get_order($orderId);
 
@@ -140,6 +139,7 @@ if ( ! class_exists( 'Twispay_TW_Status_Updater' ) ) :
                     Twispay_TW_Logger::twispay_tw_log(
                         esc_html__('[RESPONSE]: Status in-progress for order ID: ', 'xmoney-payments') . $orderId
                     );
+                    break;
                 case Twispay_TW_Status_Updater::$RESULT_STATUSES['COMPLETE_OK']:
                     /* Mark order as completed. */
                     $order->update_status('processing', esc_html__( 'xMoney Payments payment finalised successfully', 'xmoney-payments' ));
@@ -213,13 +213,12 @@ if ( ! class_exists( 'Twispay_TW_Status_Updater' ) ) :
         /**
          * Update the status of an Woocommerce subscription according to the received server status.
          *
-         * @param orderId: The ID of the order to be updated.
-         * @param serverStatus: The status received from server.
-         * @param tw_lang: The array of available messages.
+         * @param $orderId      - The ID of the order to be updated.
+         * @param $serverStatus - The status received from server.
          *
          * @return void
          */
-        public static function updateStatus_IPN($orderId, $serverStatus, $tw_lang) {
+        public static function updateStatus_IPN($orderId, $serverStatus) {
             /* Extract the order. */
             $order = wc_get_order($orderId);
 
@@ -301,13 +300,12 @@ if ( ! class_exists( 'Twispay_TW_Status_Updater' ) ) :
         /**
         * Update the status of an Woocommerce subscription according to the received server status.
         *
-        * @param orderId: The ID of the order that is the parent of the subscription.
-        * @param serverStatus: The status received from server.
-        * @param tw_lang: The array of available messages.
+        * @param $orderId: The ID of the order that is the parent of the subscription.
+        * @param $serverStatus: The status received from server.
         *
         * @return void
         */
-        public static function updateSubscriptionStatus($orderId, $serverStatus, $tw_lang){
+        public static function updateSubscriptionStatus($orderId, $serverStatus){
             /* Check that the subscriptions plugin is installed. */
             if(!class_exists('WC_Subscriptions') ){
               return;

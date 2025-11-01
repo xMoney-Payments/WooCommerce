@@ -8,7 +8,8 @@
  * Author URI: https://www.xmoney.com
  * Text Domain: xmoney-payments
  * Domain Path: /lang/
- * License: GPLv2
+ * License: GPLv2 or later
+ * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  *
  *
  * @package  xMoney Payments

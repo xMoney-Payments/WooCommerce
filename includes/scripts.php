@@ -8,6 +8,10 @@
  * @category Admin
  * @author   Twispay
  */
+/* Exit if the file is accessed directly. */
+if (!defined('ABSPATH')) {
+    exit;
+}
 
 /* Require the "Twispay_TW_Logger" class. */
 require_once( TWISPAY_PLUGIN_DIR . DIRECTORY_SEPARATOR . 'helpers' . DIRECTORY_SEPARATOR . 'Twispay_TW_Logger.php' );
@@ -20,7 +24,8 @@ require_once( TWISPAY_PLUGIN_DIR . DIRECTORY_SEPARATOR . 'helpers' . DIRECTORY_S
  * @public
  * @return bool True if is an admin page, false otherwise
  */
-function twispay_tw_check_if_is_admin() {
+function twispay_tw_check_if_is_admin(): bool
+{
     // Check if is admin page
     if ( ! is_admin() ) {
         return false;
@@ -79,7 +84,7 @@ function twispay_tw_add_admin_css() {
     }
 
     // Load all admin css files for Administrator Pages
-    wp_enqueue_style( 'ma-admin', TWISPAY_PLUGIN_URL . 'assets/css/admin.css', [], 1 );
+    wp_enqueue_style( 'ma-admin', TWISPAY_PLUGIN_URL . 'assets/css/admin.css', [], TWISPAY_VERSION, true );
 }
 add_action( 'admin_enqueue_scripts', 'twispay_tw_add_admin_css' );
 
@@ -94,7 +99,7 @@ add_action( 'admin_enqueue_scripts', 'twispay_tw_add_admin_css' );
  */
 function twispay_tw_add_front_css() {
     // Load all front css files
-    wp_enqueue_style( 'ma-front', TWISPAY_PLUGIN_URL . 'assets/css/front.css', [], 1 );
+    wp_enqueue_style( 'ma-front', TWISPAY_PLUGIN_URL . 'assets/css/front.css', [], TWISPAY_VERSION, true );
 }
 add_action( 'wp_enqueue_scripts', 'twispay_tw_add_front_css' );
 
@@ -214,7 +219,8 @@ function init_twispay_gateway_class() {
             *
             * @return bool
             */
-            public function is_available() {
+            public function is_available(): bool
+            {
                 $order          = null;
                 $needs_shipping = false;
 
@@ -445,11 +451,13 @@ add_action( 'plugins_loaded', 'init_twispay_gateway_class' );
  * @public
  * @return array $methods
  */
-function add_twispay_gateway_class( $methods ) {
+function add_twispay_gateway_class( $methods ): array
+{
     if ( class_exists( 'WooCommerce' ) ) {
         $methods[] = 'WC_Gateway_Twispay_Gateway';
         return $methods;
     }
+    return [];
 }
 add_filter( 'woocommerce_payment_gateways', 'add_twispay_gateway_class' );
 
@@ -471,7 +479,8 @@ add_action('init', 'twispay_tw_start_buffer_output');
 /**
  * Custom text on the receipt page.
  */
-function twispay_tw_isa_order_received_text( $text, $order ) {
+function twispay_tw_isa_order_received_text( $text, $order ): string
+{
     // Load languages
     $lang = explode( '-', get_bloginfo( 'language' ) );
     $lang = $lang[0];

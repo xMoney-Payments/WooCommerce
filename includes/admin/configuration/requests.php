@@ -9,6 +9,11 @@
  * @author   Twispay
  */
 
+/* Exit if the file is accessed directly. */
+if (!defined('ABSPATH')) {
+    exit;
+}
+
 /**
  * Twispay Edit Configuration
  *
@@ -108,6 +113,15 @@ function tw_twispay_p_edit_general_configuration( $request ) {
     }
 
     // Redirect to the Configuration Page
-    wp_safe_redirect( admin_url( 'admin.php?page=xmoney-payments&notice=edit_configuration' ) );
+    $redirect_url = add_query_arg(
+        array(
+            'notice' => 'edit_configuration',
+            'twispay_notice_nonce' => wp_create_nonce('twispay_notice_action')
+        ),
+        admin_url('admin.php?page=xmoney-payments')
+    );
+
+    wp_safe_redirect($redirect_url);
+    exit;
 }
 add_action( 'tw_edit_general_configuration', 'tw_twispay_p_edit_general_configuration' );

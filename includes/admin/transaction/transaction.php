@@ -37,9 +37,9 @@ function twispay_tw_transaction_administrator() {
     }
     else {
         // Check if the view / edit / delete action is detected, otherwise load the campaigns form
-        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_GET
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, value used only for display
         if ( isset( $_GET['action'] ) && sanitize_text_field( wp_unslash($_GET['action']) ) ) {
-            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_GET
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, value used only for display
             $action = sanitize_text_field( wp_unslash($_GET['action']) );
 
             switch ( $action ) {
@@ -63,6 +63,7 @@ function twispay_tw_transaction_administrator() {
                                     <th scope="row"><label><?php echo esc_html__('Synchronize subscriptions', 'xmoney-payments'); ?></span></label></th>
                                     <td>
                                         <input type="hidden" name="tw_general_action" value="synchronize_subscriptions" />
+                                        <?php wp_nonce_field('twispay_general_action', 'twispay_general_nonce'); ?>
                                         <?php submit_button( esc_attr__('Synchronize the local status of all subscriptions with the server status.', 'xmoney-payments' ), 'primary', 'createuser', true, array( 'id' => 'synchronizesubscriptions' ) ); ?>
                                         <p class="description"><?php echo esc_html__( 'Synchronize the local status of all subscriptions with the server status.', 'xmoney-payments' ); ?></p>
                                     </td>
@@ -73,9 +74,9 @@ function twispay_tw_transaction_administrator() {
 
 
                     <?php
-                        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_GET
+                        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, value used only to display proper message
                         if ( isset( $_GET['notice'] ) && sanitize_text_field( wp_unslash($_GET['notice']) ) ) {
-                            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_GET
+                            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, value used only to display proper message
                             $notice = sanitize_text_field( wp_unslash($_GET['notice']) );
 
                             switch ( $notice ) {
@@ -118,7 +119,7 @@ function twispay_tw_transaction_administrator() {
                                     ?>
                                         <div class="error notice">
                                             <p><?php
-                                                    // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_GET
+                                                    // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, value used only to display proper message
                                                     echo (isset($_GET['emessage']) ? esc_html(sanitize_text_field(wp_unslash( $_GET['emessage'] )) ) : ''); ?></p>
                                         </div>
                                     <?php
@@ -127,14 +128,15 @@ function twispay_tw_transaction_administrator() {
                         }
 
                         // Create the Payment Methods object and build the Table
-                        $transaction_table = new Twispay_TransactionTable( $tw_lang );
+                        $transaction_table = new Twispay_TransactionTable();
                         $transaction_table->views();
                     ?>
 
                     <form method="get">
                         <input type="hidden" name="page" value="<?php
-                            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, safe to read $_GET
+                            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, value used only to set current page sanitized and unslashed
                             echo (isset($_REQUEST['page']) ? esc_attr(sanitize_text_field(wp_unslash($_REQUEST['page'])) ) : '') ?>" />
+                        <?php wp_nonce_field('twispay_transactions_action', 'twispay_transactions_nonce'); ?>
                         <?php $transaction_table->search_box( esc_html__( 'Search Order','xmoney-payments' ), 'search-query' ); ?>
                     </form>
                     <form method="post">
@@ -142,6 +144,7 @@ function twispay_tw_transaction_administrator() {
                             $transaction_table->prepare_items();
                             $transaction_table->display();
                         ?>
+                        <?php wp_nonce_field('twispay_transactions_action', 'twispay_transactions_nonce'); ?>
                     </form>
                 </div>
             <?php
