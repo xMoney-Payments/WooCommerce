@@ -125,7 +125,7 @@ function twispay_tw_main_action()
         }
 
         /**
-         * ✅ Direct Routing (No dynamic hook execution)
+         * Direct Routing (No dynamic hook execution)
          */
         switch ($action) {
 
