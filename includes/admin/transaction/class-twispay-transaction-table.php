@@ -15,12 +15,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Add the copy of the WP_List_Table class. We made a copy because the class is private.
-require_once TWISPAY_PLUGIN_DIR . 'includes/class-ma-list-table.php';
+require_once TWISPAY_PLUGIN_DIR . 'includes/class-twispay-tw-list-table.php';
 
 /**
  * Base custom class for displaying a list of items in an ajaxified HTML table.
  */
-class Twispay_TransactionTable extends Twispay_Tw_List_Table {
+class Twispay_Transaction_Table extends Twispay_Tw_List_Table {
 
 	/**
 	 * Constructor.
@@ -31,7 +31,6 @@ class Twispay_TransactionTable extends Twispay_Tw_List_Table {
 	 * @since  3.1.0
 	 * @access public
 	 *
-	 * @param array|string $args {
 	 *     Array or string of arguments.
 	 *
 	 *     @type string $plural   Plural value used for labels and the objects being listed.
@@ -46,9 +45,8 @@ class Twispay_TransactionTable extends Twispay_Tw_List_Table {
 	 *     @type string $screen   String containing the hook name used to determine the current
 	 *                            screen. If left null, the current screen will be automatically set.
 	 *                            Default null.
-	 * }
 	 */
-	function __construct() {
+	public function __construct() {
 		global $status, $page;
 
 		parent::__construct(
@@ -74,7 +72,7 @@ class Twispay_TransactionTable extends Twispay_Tw_List_Table {
 		if ( isset( $_GET['orderby'] ) ) {
             // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Display-only preservation of sort/filter parameters.
 			$orderby = sanitize_text_field( wp_unslash( $_GET['orderby'] ) );
-			if ( $orderby !== '' ) {
+			if ( '' !== $orderby ) {
 				echo '<input type="hidden" name="orderby" value="' . esc_attr( $orderby ) . '" />';
 			}
 		}
@@ -82,7 +80,7 @@ class Twispay_TransactionTable extends Twispay_Tw_List_Table {
 		if ( isset( $_GET['order'] ) ) {
             // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Display-only.
 			$tw_order = sanitize_text_field( wp_unslash( $_GET['order'] ) );
-			if ( $tw_order !== '' ) {
+			if ( '' !== $tw_order ) {
 				echo '<input type="hidden" name="order" value="' . esc_attr( $tw_order ) . '" />';
 			}
 		}
@@ -90,7 +88,7 @@ class Twispay_TransactionTable extends Twispay_Tw_List_Table {
 		if ( isset( $_GET['status'] ) ) {
             // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Display-only.
 			$status = sanitize_text_field( wp_unslash( $_GET['status'] ) );
-			if ( $status !== '' ) {
+			if ( '' !== $status ) {
 				echo '<input type="hidden" name="status" value="' . esc_attr( $status ) . '" />';
 			}
 		}
@@ -127,7 +125,7 @@ class Twispay_TransactionTable extends Twispay_Tw_List_Table {
 	 *
 	 * @return array
 	 */
-	function get_views(): array {
+	public function get_views(): array {
 		global $wpdb;
 
 		$views = array();
@@ -135,7 +133,7 @@ class Twispay_TransactionTable extends Twispay_Tw_List_Table {
 		$current = ( ! empty( $_GET['status'] ) ? sanitize_text_field( wp_unslash( $_GET['status'] ) ) : 'all' );
 
 		// All link
-		$class        = ( $current === 'all' ? ' class="current"' : '' );
+		$class        = ( 'all' === $current ? ' class="current"' : '' );
 		$all_url      = remove_query_arg( 'status' );
 		$views['all'] = "<a href='{$all_url }' {$class} >" . esc_html__( 'All', 'xmoney-payments' ) . "<span class='view_count'> ( " . esc_attr( $this->get_all_count( $wpdb ) ) . ' )</span></a>';
 
@@ -143,18 +141,25 @@ class Twispay_TransactionTable extends Twispay_Tw_List_Table {
 	}
 
 	/**
-	 * Custom modification on name column
+	 * Render the transaction ID column.
+	 *
+	 * @param array $item Row data array.
+	 *
+	 * @return string
 	 */
-	function column_id_tw_transactions( $item ) {
+	public function column_id_tw_transactions( $item ) {
 		return esc_attr( $item['id_tw_transactions'] );
 	}
 
 	/**
+	 * Render the output for a given column key.
 	 *
-	 * @param array  $item
-	 * @param string $column_name
+	 * @param array  $item Row data array.
+	 * @param string $column_name Column being rendered.
+	 *
+	 * @return string
 	 */
-	function column_default( array $item, string $column_name ) {
+	public function column_default( array $item, string $column_name ) {
 		global $woocommerce;
 
 		$column = '';
@@ -175,10 +180,13 @@ class Twispay_TransactionTable extends Twispay_Tw_List_Table {
 	}
 
 	/**
+	 * Render row checkbox for bulk actions.
 	 *
-	 * @param array $item
+	 * @param array $item Row data array.
+	 *
+	 * @return string
 	 */
-	function column_cb( array $item ) {
+	public function column_cb( array $item ) {
 		return sprintf(
 			'<input type="checkbox" name="%1$s[]" value="%2$s" />',
 			esc_attr( $this->_args['singular'] ),
@@ -196,7 +204,7 @@ class Twispay_TransactionTable extends Twispay_Tw_List_Table {
 	 *
 	 * @return array
 	 */
-	function get_columns() {
+	public function get_columns() {
 		return array(
 			'cb'                 => '<input type="checkbox" />',
 			'id_tw_transactions' => esc_html__( 'ID', 'xmoney-payments' ),
@@ -232,15 +240,11 @@ class Twispay_TransactionTable extends Twispay_Tw_List_Table {
 	}
 
 	/**
-	 * Prepares the list of items for displaying.
+	 * Prepare the table items and pagination.
 	 *
-	 * @uses TW_List_Table::set_pagination_args()
-	 *
-	 * @since 3.1.0
-	 * @access public
-	 * @abstract
+	 * @return void
 	 */
-	function prepare_items() {
+	public function prepare_items() {
 		global $wpdb;
 
 		/**

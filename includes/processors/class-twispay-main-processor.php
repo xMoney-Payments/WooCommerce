@@ -1,14 +1,49 @@
 <?php
-/* Exit if the file is accessed directly. */
+/**
+ * Main processor for one-off (non-subscription) xMoney Payments orders.
+ *
+ * @package Twispay/Front
+ */
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+/**
+ * Main processor for one-off (non-subscription) xMoney Payments orders.
+ *
+ * Responsibilities:
+ * - Parse and validate the incoming order_id from the checkout redirect.
+ * - Verify the nonce (deferred to process()).
+ * - Assemble the request payload sent to the xMoney Payments gateway.
+ * - Render the auto-submitted payment form.
+ */
 class Twispay_Main_Processor {
+	/**
+	 * Order ID extracted from request, or null if not provided.
+	 *
+	 * @var int|null
+	 */
 	private ?int $order_id;
+	/**
+	 * Current language code used for localization.
+	 *
+	 * @var string
+	 */
 	private string $language;
+	/**
+	 * Nonce action name used for request integrity verification.
+	 *
+	 * @var string
+	 */
 	private string $nonce_action = 'twispay_process';
 
+	/**
+	 * Constructor.
+	 *
+	 * Extracts a numeric order id (if present) and hooks the processing callback.
+	 * Nonce verification is intentionally deferred until process() because pluggable
+	 * functions may not be loaded at this stage of plugin initialization.
+	 */
 	public function __construct() {
 		// Defer nonce verification until process() (pluggable may not be loaded yet here).
         // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only retrieval and sanitization.
@@ -19,6 +54,12 @@ class Twispay_Main_Processor {
 		}
 	}
 
+	/**
+	 * Execute the payment form rendering flow.
+	 *
+	 * Verifies nonce, loads helpers, builds request data and prints the payment
+	 * form that auto-submits to the gateway.
+	 */
 	public function process() {
 		// Verify request integrity.
 		$raw_nonce = '';
@@ -32,8 +73,8 @@ class Twispay_Main_Processor {
 			wp_safe_redirect( wc_get_cart_url() );
 			return;
 		}
-		require_once TWISPAY_PLUGIN_DIR . 'helpers/Twispay_TW_Helper_Notify.php';
-		require_once TWISPAY_PLUGIN_DIR . 'helpers/Twispay_TW_Helper_Processor.php';
+		require_once TWISPAY_PLUGIN_DIR . 'helpers/class-twispay-tw-helper-notify.php';
+		require_once TWISPAY_PLUGIN_DIR . 'helpers/class-twispay-tw-helper-processor.php';
 		$this->language = Twispay_TW_Helper_Processor::get_current_language();
 
 		// Load process css & js files
@@ -65,6 +106,12 @@ class Twispay_Main_Processor {
 		<?php
 	}
 
+	/**
+	 * Build the structured data array required by the gateway.
+	 *
+	 * @return array{host_name:string,data:string,checksum:string} Sanitized host URL and encoded request payload + checksum.
+	 * @throws Exception When order or configuration data is missing/invalid.
+	 */
 	private function prepare_request_data() {
 		// FIXME: Change this i18n logic with the idiomatic one.
 		if ( file_exists( TWISPAY_PLUGIN_DIR . 'lang/' . $this->language . '/lang.php' ) ) {
@@ -75,7 +122,7 @@ class Twispay_Main_Processor {
 
 		$tw_order = wc_get_order( $this->order_id );
 
-		if ( empty( $this->order_id ) || $tw_order === false ) {
+		if ( empty( $this->order_id ) || false === $tw_order ) {
 			throw new Exception( esc_html__( 'You are not allowed to access this file.', 'xmoney-payments' ) );
 		}
 
@@ -89,13 +136,13 @@ class Twispay_Main_Processor {
 		$items = array();
 
 		$customer = array(
-			'identifier' => $data['customer_id'] === 0 ? $this->order_id : $data['customer_id'],
-			'firstName'  => $data['billing']['first_name'] ?: '',
-			'lastName'   => $data['billing']['last_name'] ?: '',
-			'country'    => $data['billing']['country'] ?: '',
-			'city'       => $data['billing']['city'] ?: $data['shipping']['city'],
-			'address'    => $data['billing']['address_1'] ?: '',
-			'zipCode'    => $data['billing']['postcode'] ?: $data['shipping']['postcode'],
+			'identifier' => 0 === $data['customer_id'] ? $this->order_id : $data['customer_id'],
+			'firstName'  => ! empty( $data['billing']['first_name'] ) ? $data['billing']['first_name'] : '',
+			'lastName'   => ! empty( $data['billing']['last_name'] ) ? $data['billing']['last_name'] : '',
+			'country'    => ! empty( $data['billing']['country'] ) ? $data['billing']['country'] : '',
+			'city'       => ! empty( $data['billing']['city'] ) ? $data['billing']['city'] : $data['shipping']['city'],
+			'address'    => ! empty( $data['billing']['address_1'] ) ? $data['billing']['address_1'] : '',
+			'zipCode'    => ! empty( $data['billing']['postcode'] ) ? $data['billing']['postcode'] : $data['shipping']['postcode'],
 			'phone'      => Twispay_TW_Helper_Processor::format_phone( $data['billing']['phone'] ),
 			'email'      => $data['billing']['email'],
 		);
@@ -142,8 +189,8 @@ class Twispay_Main_Processor {
 			'backUrl'             => $back_url,
 		);
 
-		$request_data = Twispay_TW_Helper_Notify::getBase64JsonRequest( $order_data );
-		$checksum     = Twispay_TW_Helper_Notify::getBase64Checksum( $order_data, $configuration['secret_key'] );
+		$request_data = Twispay_TW_Helper_Notify::get_base64_json_request( $order_data );
+		$checksum     = Twispay_TW_Helper_Notify::get_base64_checksum( $order_data, $configuration['secret_key'] );
 		$host_name    = add_query_arg(
 			array( 'lang' => $this->language ),
 			$configuration['is_live'] ? Twispay_TW_Helper_Processor::LIVE_URL : Twispay_TW_Helper_Processor::STAGE_URL
@@ -156,6 +203,13 @@ class Twispay_Main_Processor {
 		);
 	}
 
+	/**
+	 * Derive unit price with 2-decimal precision from subtotal and quantity.
+	 *
+	 * @param float|int|string $subtotal Raw line subtotal.
+	 * @param float|int|string $quantity Item quantity.
+	 * @return string 2-decimal unit price.
+	 */
 	private function format_price( $subtotal, $quantity ) {
 		$subtotal = number_format( (float) $subtotal, 2 );
 		$quantity = number_format( (float) $quantity, 2 );

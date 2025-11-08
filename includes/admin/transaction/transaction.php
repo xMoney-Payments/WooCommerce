@@ -15,8 +15,16 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Import the table class
-require_once TWISPAY_PLUGIN_DIR . 'includes/admin/transaction/transaction-table.php';
+require_once TWISPAY_PLUGIN_DIR . 'includes/admin/transaction/class-twispay-transaction-table.php';
 
+/**
+ * Render the Twispay transaction admin page in the WordPress dashboard.
+ *
+ * Loads language strings, verifies WooCommerce is active, handles action routing,
+ * and displays the transaction list table.
+ *
+ * @return void
+ */
 function twispay_tw_transaction_administrator() {
 	/* Load languages */
 	$lang = explode( '-', get_bloginfo( 'language' ) );
@@ -34,127 +42,128 @@ function twispay_tw_transaction_administrator() {
 				<div class="clearfix"></div>
 			</div>
 		<?php
-	} else {
-		// Check if the view / edit / delete action is detected, otherwise load the campaigns form.
-		// Read-only routing: no state mutation; nonce not required. Parameters sanitized before use.
+		return;
+	}
+
+	// Check if the view / edit / delete action is detected, otherwise load the campaigns form.
+	// Read-only routing: no state mutation; nonce not required. Parameters sanitized before use.
+    // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Using sanitized GET purely for conditional include.
+	if ( isset( $_GET['action'] ) && sanitize_text_field( wp_unslash( $_GET['action'] ) ) ) {
         // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Using sanitized GET purely for conditional include.
-		if ( isset( $_GET['action'] ) && sanitize_text_field( wp_unslash( $_GET['action'] ) ) ) {
-            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Using sanitized GET purely for conditional include.
-			$action = sanitize_text_field( wp_unslash( $_GET['action'] ) );
+		$action = sanitize_text_field( wp_unslash( $_GET['action'] ) );
 
-			switch ( $action ) {
-				case 'refund_payment':
-					include TWISPAY_PLUGIN_DIR . 'includes/admin/transaction/refund_t.php';
-					break;
-				case 'recurring_payment':
-					include TWISPAY_PLUGIN_DIR . 'includes/admin/transaction/recurring_t.php';
-					break;
-			}
-		} else {
-			?>
-				<div class="wrap">
-					<h1><?php echo esc_html__( 'Transaction list', 'xmoney-payments' ); ?></h1>
-
-					<?php if ( class_exists( 'WC_Subscriptions' ) ) { ?>
-						<form method="post" id="synchronize_subscriptions">
-							<table class="form-table">
-								<tr class="form-field" id="contact_email_o">
-									<th scope="row"><label><?php echo esc_html__( 'Synchronize subscriptions', 'xmoney-payments' ); ?></span></label></th>
-									<td>
-										<input type="hidden" name="tw_general_action" value="synchronize_subscriptions" />
-										<?php wp_nonce_field( 'twispay_general_action', 'twispay_general_nonce' ); ?>
-										<?php submit_button( esc_attr__( 'Synchronize the local status of all subscriptions with the server status.', 'xmoney-payments' ), 'primary', 'createuser', true, array( 'id' => 'synchronizesubscriptions' ) ); ?>
-										<p class="description"><?php echo esc_html__( 'Synchronize the local status of all subscriptions with the server status.', 'xmoney-payments' ); ?></p>
-									</td>
-								</tr>
-							</table>
-						</form>
-					<?php } ?>
-
-
-					<?php
-						// Display-only notice handling; no state change performed.
-                        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Sanitized GET controls conditional messaging only.
-					if ( isset( $_GET['notice'] ) && sanitize_text_field( wp_unslash( $_GET['notice'] ) ) ) {
-						// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Sanitized GET controls conditional messaging only.
-						$notice = sanitize_text_field( wp_unslash( $_GET['notice'] ) );
-
-						switch ( $notice ) {
-							case 'error_refund':
-								?>
-										<div class="error notice">
-											<p><?php echo esc_html__( 'Refund could not been processed.', 'xmoney-payments' ); ?></p>
-										</div>
-									<?php
-								break;
-							case 'error_recurring':
-								?>
-										<div class="error notice">
-											<p><?php echo esc_html__( 'Recurring could not been processed.', 'xmoney-payments' ); ?></p>
-										</div>
-									<?php
-								break;
-							case 'success_refund':
-								?>
-										<div class="updated notice">
-											<p><?php echo esc_html__( 'Refund processed successfully. Refresh the page in seconds to see the update.', 'xmoney-payments' ); ?></p>
-										</div>
-									<?php
-								break;
-							case 'success_recurring':
-								?>
-										<div class="updated notice">
-											<p><?php echo esc_html__( 'Recurring processed successfully.', 'xmoney-payments' ); ?></p>
-										</div>
-									<?php
-								break;
-							case 'sync_finished':
-								?>
-										<div class="updated notice">
-											<p><?php echo esc_html__( 'Subscriptions synchronization finished.', 'xmoney-payments' ); ?></p>
-										</div>
-									<?php
-								break;
-							case 'errorp_refund':
-								?>
-										<div class="error notice">
-						<p>
-								<?php
-						// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Display-only sanitized error message.
-								echo ( isset( $_GET['emessage'] ) ? esc_html( sanitize_text_field( wp_unslash( $_GET['emessage'] ) ) ) : '' );
-								?>
-							</p>
-										</div>
-									<?php
-								break;
-						}
-					}
-
-						// Create the Payment Methods object and build the Table
-						$transaction_table = new Twispay_TransactionTable();
-						$transaction_table->views();
-					?>
-
-					<form method="get">
-						<input type="hidden" name="page" value="
-						<?php
-							// Preserve page slug for search/sort form submission.
-                            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only context.
-							echo ( isset( $_GET['page'] ) ? esc_attr( sanitize_text_field( wp_unslash( $_GET['page'] ) ) ) : '' )
-						?>
-							" />
-						<?php wp_nonce_field( 'twispay_transactions_action', 'twispay_transactions_nonce' ); ?>
-						<?php $transaction_table->search_box( esc_html__( 'Search Order', 'xmoney-payments' ), 'search-query' ); ?>
-					</form>
-					<form method="post">
-						<?php
-							$transaction_table->prepare_items();
-							$transaction_table->display();
-						?>
-						<?php wp_nonce_field( 'twispay_transactions_action', 'twispay_transactions_nonce' ); ?>
-					</form>
-				</div>
-			<?php
+		switch ( $action ) {
+			case 'refund_payment':
+				include TWISPAY_PLUGIN_DIR . 'includes/admin/transaction/refund-t.php';
+				break;
+			case 'recurring_payment':
+				include TWISPAY_PLUGIN_DIR . 'includes/admin/transaction/recurring-t.php';
+				break;
 		}
+	} else {
+		?>
+			<div class="wrap">
+				<h1><?php echo esc_html__( 'Transaction list', 'xmoney-payments' ); ?></h1>
+
+				<?php if ( class_exists( 'WC_Subscriptions' ) ) { ?>
+					<form method="post" id="synchronize_subscriptions">
+						<table class="form-table">
+							<tr class="form-field" id="contact_email_o">
+								<th scope="row"><label><?php echo esc_html__( 'Synchronize subscriptions', 'xmoney-payments' ); ?></span></label></th>
+								<td>
+									<input type="hidden" name="tw_general_action" value="synchronize_subscriptions" />
+									<?php wp_nonce_field( 'twispay_general_action', 'twispay_general_nonce' ); ?>
+									<?php submit_button( esc_attr__( 'Synchronize the local status of all subscriptions with the server status.', 'xmoney-payments' ), 'primary', 'createuser', true, array( 'id' => 'synchronizesubscriptions' ) ); ?>
+									<p class="description"><?php echo esc_html__( 'Synchronize the local status of all subscriptions with the server status.', 'xmoney-payments' ); ?></p>
+								</td>
+							</tr>
+						</table>
+					</form>
+				<?php } ?>
+
+
+				<?php
+					// Display-only notice handling; no state change performed.
+                    // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Sanitized GET controls conditional messaging only.
+				if ( isset( $_GET['notice'] ) && sanitize_text_field( wp_unslash( $_GET['notice'] ) ) ) {
+                    // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Sanitized GET controls conditional messaging only.
+					$notice = sanitize_text_field( wp_unslash( $_GET['notice'] ) );
+
+					switch ( $notice ) {
+						case 'error_refund':
+							?>
+									<div class="error notice">
+										<p><?php echo esc_html__( 'Refund could not been processed.', 'xmoney-payments' ); ?></p>
+									</div>
+								<?php
+							break;
+						case 'error_recurring':
+							?>
+									<div class="error notice">
+										<p><?php echo esc_html__( 'Recurring could not been processed.', 'xmoney-payments' ); ?></p>
+									</div>
+								<?php
+							break;
+						case 'success_refund':
+							?>
+									<div class="updated notice">
+										<p><?php echo esc_html__( 'Refund processed successfully. Refresh the page in seconds to see the update.', 'xmoney-payments' ); ?></p>
+									</div>
+								<?php
+							break;
+						case 'success_recurring':
+							?>
+									<div class="updated notice">
+										<p><?php echo esc_html__( 'Recurring processed successfully.', 'xmoney-payments' ); ?></p>
+									</div>
+								<?php
+							break;
+						case 'sync_finished':
+							?>
+									<div class="updated notice">
+										<p><?php echo esc_html__( 'Subscriptions synchronization finished.', 'xmoney-payments' ); ?></p>
+									</div>
+								<?php
+							break;
+						case 'errorp_refund':
+							?>
+									<div class="error notice">
+					<p>
+							<?php
+                    // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Display-only sanitized error message.
+							echo ( isset( $_GET['emessage'] ) ? esc_html( sanitize_text_field( wp_unslash( $_GET['emessage'] ) ) ) : '' );
+							?>
+						</p>
+									</div>
+								<?php
+							break;
+					}
+				}
+
+					// Create the Payment Methods object and build the Table
+					$transaction_table = new Twispay_Transaction_Table();
+					$transaction_table->views();
+				?>
+
+				<form method="get">
+					<input type="hidden" name="page" value="
+					<?php
+						// Preserve page slug for search/sort form submission.
+                        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only context.
+						echo ( isset( $_GET['page'] ) ? esc_attr( sanitize_text_field( wp_unslash( $_GET['page'] ) ) ) : '' )
+					?>
+						" />
+					<?php wp_nonce_field( 'twispay_transactions_action', 'twispay_transactions_nonce' ); ?>
+					<?php $transaction_table->search_box( esc_html__( 'Search Order', 'xmoney-payments' ), 'search-query' ); ?>
+				</form>
+				<form method="post">
+					<?php
+						$transaction_table->prepare_items();
+						$transaction_table->display();
+					?>
+					<?php wp_nonce_field( 'twispay_transactions_action', 'twispay_transactions_nonce' ); ?>
+				</form>
+			</div>
+		<?php
 	}
 }

@@ -50,12 +50,12 @@ if ( ! class_exists( 'Twispay_Tw_Admin_Menu' ) ) :
 			}
 
 			// Add main adminsitrator page
-			add_menu_page( __( 'xMoney Payments', 'xmoney-payments' ), esc_attr__( 'xMoney Payments', 'xmoney-payments' ), 'administrator', 'xmoney-payments', 'twispay_tw_configuration', 'dashicons-editor-paste-text', 1000 );
+			add_menu_page( __( 'xMoney Payments', 'xmoney-payments' ), esc_attr__( 'xMoney Payments', 'xmoney-payments' ), 'edit_posts', 'xmoney-payments', 'twispay_tw_configuration', 'dashicons-editor-paste-text', 1000 );
 
 			// Add submenus
-			add_submenu_page( 'xmoney-payments', esc_attr__( 'Configuration', 'xmoney-payments' ), esc_attr__( 'Configuration', 'xmoney-payments' ), 'administrator', 'xmoney-payments', 'twispay_tw_configuration' );
-			add_submenu_page( 'xmoney-payments', esc_attr__( 'Transaction list', 'xmoney-payments' ), esc_attr__( 'Transaction list', 'xmoney-payments' ), 'administrator', 'tw-transaction', 'twispay_tw_transaction_administrator' );
-			add_submenu_page( 'xmoney-payments', esc_attr__( 'Transaction log', 'xmoney-payments' ), esc_attr__( 'Transaction log', 'xmoney-payments' ), 'administrator', 'tw-transaction-log', 'twispay_tw_transaction_log_administrator' );
+			add_submenu_page( 'xmoney-payments', esc_attr__( 'Configuration', 'xmoney-payments' ), esc_attr__( 'Configuration', 'xmoney-payments' ), 'edit_posts', 'xmoney-payments', 'twispay_tw_configuration' );
+			add_submenu_page( 'xmoney-payments', esc_attr__( 'Transaction list', 'xmoney-payments' ), esc_attr__( 'Transaction list', 'xmoney-payments' ), 'edit_posts', 'tw-transaction', 'twispay_tw_transaction_administrator' );
+			add_submenu_page( 'xmoney-payments', esc_attr__( 'Transaction log', 'xmoney-payments' ), esc_attr__( 'Transaction log', 'xmoney-payments' ), 'edit_posts', 'tw-transaction-log', 'twispay_tw_transaction_log_administrator' );
 		}
 	}
 

@@ -13,6 +13,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+/**
+ * Check whether the Twispay plugin is installed and run installation if not.
+ *
+ * @return void
+ */
 function twispay_wp_check_install() {
 	if ( ! get_option( 'twispay_tw_installed' ) ) {
 		twispay_tw_install();
@@ -20,6 +25,14 @@ function twispay_wp_check_install() {
 }
 add_action( 'admin_init', 'twispay_wp_check_install' );
 
+/**
+ * Perform Twispay plugin installation:
+ * - Create plugin database tables.
+ * - Insert default configuration row.
+ * - Create confirmation page.
+ *
+ * @return void
+ */
 function twispay_tw_install() {
 	require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 	update_option( 'twispay_tw_installed', '1' );

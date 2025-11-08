@@ -14,6 +14,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+/**
+ * Display the Twispay transaction log administrator page.
+ *
+ * @return void
+ */
 function twispay_tw_transaction_log_administrator() {
 	// Load languages
 	$lang = explode( '-', get_bloginfo( 'language' ) );
@@ -41,7 +46,13 @@ function twispay_tw_transaction_log_administrator() {
 					$log_file = trailingslashit( $uploads['basedir'] ) . 'xmoney-payments/logs/twispay-log.txt';
 
 				if ( file_exists( $log_file ) ) {
-					$content = @file_get_contents( $log_file );
+					$content = '';
+					if ( is_readable( $log_file ) ) {
+						$file_contents = file_get_contents( $log_file );
+						if ( false !== $file_contents ) {
+							$content = $file_contents;
+						}
+					}
 					echo '<textarea readonly style="width: 900px; height: 386px; margin-top: 10px;">' . esc_textarea( $content ) . '</textarea>';
 				} else {
 					echo '<p>' . esc_html__( 'No log recorded yet.', 'xmoney-payments' ) . '</p>';

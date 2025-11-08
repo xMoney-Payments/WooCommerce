@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /* Require the "Twispay_TW_Logger" class. */
-require_once TWISPAY_PLUGIN_DIR . DIRECTORY_SEPARATOR . 'helpers' . DIRECTORY_SEPARATOR . 'Twispay_TW_Logger.php';
+require_once TWISPAY_PLUGIN_DIR . DIRECTORY_SEPARATOR . 'helpers' . DIRECTORY_SEPARATOR . 'class-twispay-tw-logger.php';
 
 /**
  * Twispay Admin Checker
@@ -110,12 +110,24 @@ add_action( 'wp_enqueue_scripts', 'twispay_tw_add_front_css' );
  * This function will load the payment gateway class
  *
  * @public
- * @return void
  */
 function init_twispay_gateway_class() {
 	if ( class_exists( 'WooCommerce' ) ) {
+		/**
+		 *  WooCommerce Gateway implementation for xMoney Payments.
+		 */
 		class WC_Gateway_Twispay_Gateway extends WC_Payment_Gateway {
+			/**
+			 * Enabled shipping methods.
+			 *
+			 * @var array
+			 */
 			private $enable_for_methods;
+			/**
+			 * Whether gateway is enabled for virtual orders.
+			 *
+			 * @var bool
+			 */
 			private $enable_for_virtual;
 			/**
 			 * Twispay Gateway Constructor
@@ -233,7 +245,7 @@ function init_twispay_gateway_class() {
 					$tw_order = wc_get_order( $order_id );
 
 					// Test if order needs shipping.
-					if ( 0 < sizeof( $tw_order->get_items() ) ) {
+					if ( 0 < count( $tw_order->get_items() ) ) {
 						foreach ( $tw_order->get_items() as $item ) {
 							$_product = $item->get_product();
 							if ( $_product && $_product->needs_shipping() ) {
@@ -268,9 +280,9 @@ function init_twispay_gateway_class() {
 						if ( $tw_order->shipping_method ) {
 							$check_method = $tw_order->shipping_method;
 						}
-					} elseif ( empty( $chosen_shipping_methods ) || sizeof( $chosen_shipping_methods ) > 1 ) {
+					} elseif ( empty( $chosen_shipping_methods ) || count( $chosen_shipping_methods ) > 1 ) {
 						$check_method = false;
-					} elseif ( sizeof( $chosen_shipping_methods ) === 1 ) {
+					} elseif ( count( $chosen_shipping_methods ) === 1 ) {
 						$check_method = $chosen_shipping_methods[0];
 					}
 
@@ -300,13 +312,12 @@ function init_twispay_gateway_class() {
 			}
 
 			/**
-			 * Twispay Process Payment function
+			 * Process payment and redirect to xMoney payment page.
 			 *
-			 * @public
-			 * @return array with Result and Redirect
+			 * @param int $order_id Order ID.
+			 * @return array Result and redirect URL.
 			 */
-			function process_payment( $order_id ) {
-
+			public function process_payment( $order_id ) {
 				/*
 				 * For several pages get order working this conditions $actual_link is not equal home page
 				 * and get page name, for example default - /checkout/
@@ -381,17 +392,16 @@ function init_twispay_gateway_class() {
 			}
 
 			/**
-			 * Twispay Process Payment function
+			 * Process a refund via xMoney Payments.
 			 *
-			 * @param  int        $order_id Order ID.
-			 * @param  float|null $amount Refund amount.
-			 * @param  string     $reason Refund reason.
-			 *
-			 * @return boolean|WP_Error True or false based on success, or a WP_Error object.
+			 * @param int        $order_id Order ID.
+			 * @param float|null $amount Refund amount.
+			 * @param string     $reason Refund reason.
+			 * @return bool|WP_Error True on success, false or WP_Error on failure.
 			 */
-			function process_refund( $order_id, $amount = null, $reason = '' ) {
+			public function process_refund( $order_id, $amount = null, $reason = '' ) {
 				global $wpdb;
-				$apiKey = '';
+				$api_key = '';
                 // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 				$transaction_id = $wpdb->get_var(
 					$wpdb->prepare(
@@ -412,18 +422,18 @@ function init_twispay_gateway_class() {
 				}
 
 				if ( '1' === $configuration->live_mode ) {
-					$apiKey = $configuration->live_key;
-					$url    = 'https://api.xmoney.com/transaction/' . sanitize_key( $transaction_id );
+					$api_key = $configuration->live_key;
+					$url     = 'https://api.xmoney.com/transaction/' . sanitize_key( $transaction_id );
 				} else {
-					$apiKey = $configuration->staging_key;
-					$url    = 'https://api-stage.xmoney.com/transaction/' . sanitize_key( $transaction_id );
+					$api_key = $configuration->staging_key;
+					$url     = 'https://api-stage.xmoney.com/transaction/' . sanitize_key( $transaction_id );
 				}
 
 				$args = array(
 					'method'  => 'DELETE',
 					'headers' => array(
 						'accept'        => 'application/json',
-						'Authorization' => $apiKey,
+						'Authorization' => $api_key,
 					),
 				);
 				if ( ! is_null( $amount ) ) {
@@ -444,11 +454,11 @@ function init_twispay_gateway_class() {
 				$code     = $response['response']['code'] ?? 0;
 				$msg      = $response['response']['message'] ?? 'Unknown reason';
 
-				if ( 'OK' != $msg ) {
+				if ( 'OK' !== $msg ) {
 					return new WP_Error( 'error', "TWISPAY API error: $code - $msg" );
 				}
 
-				Twispay_TW_Logger::twispay_tw_updateTransactionStatus( $order_id, Twispay_TW_Status_Updater::$RESULT_STATUSES['REFUND_OK'] );
+				Twispay_TW_Logger::twispay_tw_update_transaction_status( $order_id, Twispay_TW_Status_Updater::$result_statuses['REFUND_OK'] );
 				return true;
 			}
 		}
@@ -458,10 +468,10 @@ add_action( 'plugins_loaded', 'init_twispay_gateway_class' );
 
 
 /**
- * Add the Twispay gateway class
+ * Add the Twispay gateway class.
  *
- * @public
- * @return array $methods
+ * @param array $methods Existing payment methods.
+ * @return array
  */
 function add_twispay_gateway_class( $methods ): array {
 	if ( class_exists( 'WooCommerce' ) ) {
@@ -490,7 +500,7 @@ add_action( 'init', 'twispay_tw_start_buffer_output' );
 /**
  * Custom text on the receipt page.
  */
-function twispay_tw_isa_order_received_text( $text, $tw_order ): string {
+function twispay_tw_isa_order_received_text(): string {
 	// Load languages
 	$lang = explode( '-', get_bloginfo( 'language' ) );
 	$lang = $lang[0];
@@ -506,7 +516,10 @@ add_filter( 'woocommerce_thankyou_order_received_text', 'twispay_tw_isa_order_re
 
 
 /**
- * Suppress email functionality
+ * Suppress email functionality.
+ *
+ * @param WC_Emails $email_class Email class instance.
+ * @return void
  */
 function twispay_tw_unhook_woo_order_emails( $email_class ) {
 	// New order emails
@@ -531,33 +544,38 @@ global $wpdb;
 $suppress_email = $wpdb->get_row( 'SELECT suppress_email FROM ' . $wpdb->prefix . 'twispay_tw_configuration' );
 
 if ( $suppress_email ) {
-	if ( $suppress_email->suppress_email === '1' ) {
+	if ( '1' === $suppress_email->suppress_email ) {
 		add_action( 'woocommerce_email', 'twispay_tw_unhook_woo_order_emails' );
 	}
 }
 
 
-
+/**
+ * Sends cancellation request to xMoney API when WooCommerce subscription ends.
+ *
+ * @param WC_Subscription $subscription Subscription object.
+ * @return void
+ */
 function subscription_terminated( $subscription ) {
 	/* Get configuration from database. */
 	global $wpdb;
-	$apiKey = '';
+	$api_key = '';
     // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 	$configuration = $wpdb->get_row( 'SELECT * FROM ' . $wpdb->prefix . 'twispay_tw_configuration' );
     // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-	$serverOrderId = $wpdb->get_var(
+	$server_order_id = $wpdb->get_var(
 		$wpdb->prepare(
 			'SELECT orderId FROM ' . $wpdb->prefix . 'twispay_tw_transactions WHERE id_cart = %d',
 			$subscription->get_parent_id()
 		)
 	);
 	if ( $configuration ) {
-		if ( $configuration->live_mode === '1' ) {
-			$apiKey = $configuration->live_key;
-			$url    = 'https://api.xmoney.com/order/' . sanitize_key( $serverOrderId );
-		} elseif ( $configuration->live_mode === '0' ) {
-			$apiKey = $configuration->staging_key;
-			$url    = 'https://api-stage.xmoney.com/order/' . sanitize_key( $serverOrderId );
+		if ( '1' === $configuration->live_mode ) {
+			$api_key = $configuration->live_key;
+			$url     = 'https://api.xmoney.com/order/' . sanitize_key( $server_order_id );
+		} elseif ( '0' === $configuration->live_mode ) {
+			$api_key = $configuration->staging_key;
+			$url     = 'https://api-stage.xmoney.com/order/' . sanitize_key( $server_order_id );
 		}
 	}
 
@@ -573,12 +591,12 @@ function subscription_terminated( $subscription ) {
 		'method'  => 'DELETE',
 		'headers' => array(
 			'accept'        => 'application/json',
-			'Authorization' => $apiKey,
+			'Authorization' => $api_key,
 		),
 	);
 	$response = wp_remote_request( $url, $args );
 
-	if ( $response['response']['message'] === 'OK' ) {
+	if ( 'OK' === $response['response']['message'] ) {
 		Twispay_TW_Logger::twispay_tw_log( esc_html__( '[RESPONSE]: Server status set for order ID: ', 'xmoney-payments' ) . esc_html( $subscription->get_parent_id() ) );
 	} else {
 		Twispay_TW_Logger::twispay_tw_log( esc_html__( '[RESPONSE-ERROR]: Failed to set server status for order ID: ', 'xmoney-payments' ) . esc_html( $subscription->get_parent_id() ) );

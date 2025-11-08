@@ -24,8 +24,12 @@ if ( ! class_exists( 'Twispay_TW_Status_Updater' ) ) :
 	 * from the server.
 	 */
 	class Twispay_TW_Status_Updater {
-		/* Array containing the possible result statuses. */
-		public static array $RESULT_STATUSES = array(
+		/**
+		 * Possible result statuses returned by the gateway.
+		 *
+		 * @var array<string,string>
+		 */
+		public static array $result_statuses = array(
 			'UNCERTAIN'       => 'uncertain', /* No response from provider */
 
 			'IN_PROGRESS'     => 'in-progress', /* Authorized */
@@ -48,21 +52,20 @@ if ( ! class_exists( 'Twispay_TW_Status_Updater' ) ) :
 		);
 
 		/**
-		 * Update the status of an Woocommerce order according to the received server status.
+		 * Update the WooCommerce order according to the received server status.
 		 *
-		 * @param $order_id       - The id of the order for which to update the status.
-		 * @param $server_status  - The status received from server.
-		 * @param $checkout_url  - The url to which to redirect the client in case of error.
-		 * @param $configuration - The configuration of the plugin
-		 *
+		 * @param int    $order_id The ID of the order to update.
+		 * @param string $server_status The status received from the server.
+		 * @param string $checkout_url The URL to redirect the customer to in case of failure.
+		 * @param object $configuration The plugin configuration object.
 		 * @return void
 		 */
-		public static function updateStatus_backUrl( $order_id, $server_status, $checkout_url, $configuration ) {
+		public static function update_status_back_url( $order_id, $server_status, $checkout_url, $configuration ) {
 			/* Extract the order. */
 			$tw_order = wc_get_order( $order_id );
 
 			switch ( $server_status ) {
-				case self::$RESULT_STATUSES['COMPLETE_FAIL']:
+				case self::$result_statuses['COMPLETE_FAIL']:
 					/* Mark order as failed. */
 					$tw_order->update_status( 'failed', esc_html__( 'xMoney Payments payment failed', 'xmoney-payments' ) );
 
@@ -105,7 +108,7 @@ if ( ! class_exists( 'Twispay_TW_Status_Updater' ) ) :
 					<?php
 					break;
 
-				case self::$RESULT_STATUSES['THREE_D_PENDING']:
+				case self::$result_statuses['THREE_D_PENDING']:
 					/* Mark order as on-hold. */
 					$tw_order->update_status( 'on-hold', esc_html__( 'xMoney Payments payment is on hold', 'xmoney-payments' ) );
 
@@ -140,7 +143,7 @@ if ( ! class_exists( 'Twispay_TW_Status_Updater' ) ) :
 					<?php
 					break;
 
-				case self::$RESULT_STATUSES['IN_PROGRESS']:
+				case self::$result_statuses['IN_PROGRESS']:
 					/* Payment still pending at provider – do NOT treat as success. */
 					$tw_order->update_status(
 						'on-hold',
@@ -151,7 +154,7 @@ if ( ! class_exists( 'Twispay_TW_Status_Updater' ) ) :
 						esc_html__( '[RESPONSE]: Status in-progress for order ID: ', 'xmoney-payments' ) . $order_id
 					);
 					break;
-				case self::$RESULT_STATUSES['COMPLETE_OK']:
+				case self::$result_statuses['COMPLETE_OK']:
 					/* Mark order as completed. */
 					$tw_order->update_status( 'processing', esc_html__( 'xMoney Payments payment finalised successfully', 'xmoney-payments' ) );
 
@@ -220,19 +223,18 @@ if ( ! class_exists( 'Twispay_TW_Status_Updater' ) ) :
 		}
 
 		/**
-		 * Update the status of an Woocommerce subscription according to the received server status.
+		 * Update the WooCommerce order in IPN mode according to server status.
 		 *
-		 * @param $order_id      - The ID of the order to be updated.
-		 * @param $server_status - The status received from server.
-		 *
+		 * @param int    $order_id The ID of the order to update.
+		 * @param string $server_status The status received from the server.
 		 * @return void
 		 */
-		public static function updateStatus_IPN( $order_id, $server_status ) {
+		public static function update_status_i_p_n( $order_id, $server_status ) {
 			/* Extract the order. */
 			$tw_order = wc_get_order( $order_id );
 
 			switch ( $server_status ) {
-				case self::$RESULT_STATUSES['COMPLETE_FAIL']:
+				case self::$result_statuses['COMPLETE_FAIL']:
 					/* Mark order as failed. */
 					$tw_order->update_status( 'failed', esc_html__( 'xMoney Payments payment failed', 'xmoney-payments' ) );
 
@@ -243,10 +245,10 @@ if ( ! class_exists( 'Twispay_TW_Status_Updater' ) ) :
 					Twispay_TW_Logger::twispay_tw_log( esc_html__( '[RESPONSE]: Status failed for order ID: ', 'xmoney-payments' ) . $order_id );
 					break;
 
-				case self::$RESULT_STATUSES['CANCEL_OK']:
-				case self::$RESULT_STATUSES['REFUND_OK']:
-				case self::$RESULT_STATUSES['VOID_OK']:
-				case self::$RESULT_STATUSES['CHARGE_BACK']:
+				case self::$result_statuses['CANCEL_OK']:
+				case self::$result_statuses['REFUND_OK']:
+				case self::$result_statuses['VOID_OK']:
+				case self::$result_statuses['CHARGE_BACK']:
 					/* Mark order as refunded. */
 					$tw_order->update_status( 'refunded', esc_html__( 'Website manager pressed on refund button successfully', 'xmoney-payments' ) );
 
@@ -257,14 +259,14 @@ if ( ! class_exists( 'Twispay_TW_Status_Updater' ) ) :
 					Twispay_TW_Logger::twispay_tw_log( esc_html__( '[RESPONSE]: Status refund-ok for order ID: ', 'xmoney-payments' ) . $order_id );
 					break;
 
-				case self::$RESULT_STATUSES['THREE_D_PENDING']:
+				case self::$result_statuses['THREE_D_PENDING']:
 					/* Mark order as on-hold. */
 					$tw_order->update_status( 'on-hold', esc_html__( 'xMoney Payments payment is on hold', 'xmoney-payments' ) );
 
 					Twispay_TW_Logger::twispay_tw_log( esc_html__( '[RESPONSE]: Status on-hold for order ID: ', 'xmoney-payments' ) . $order_id );
 					break;
 
-				case self::$RESULT_STATUSES['IN_PROGRESS']:
+				case self::$result_statuses['IN_PROGRESS']:
 					/* Payment still pending at provider – do NOT treat as success. */
 					$tw_order->update_status(
 						'on-hold',
@@ -274,7 +276,8 @@ if ( ! class_exists( 'Twispay_TW_Status_Updater' ) ) :
 					Twispay_TW_Logger::twispay_tw_log(
 						esc_html__( '[RESPONSE]: Status in-progress for order ID: ', 'xmoney-payments' ) . $order_id
 					);
-				case self::$RESULT_STATUSES['COMPLETE_OK']:
+					/* falls through */
+				case self::$result_statuses['COMPLETE_OK']:
 					/* Mark order as completed. */
 					$tw_order->update_status( 'processing', esc_html__( 'xMoney Payments payment finalised successfully', 'xmoney-payments' ) );
 
@@ -305,14 +308,13 @@ if ( ! class_exists( 'Twispay_TW_Status_Updater' ) ) :
 
 
 		/**
-		 * Update the status of an Woocommerce subscription according to the received server status.
+		 * Update the WooCommerce subscription according to received server status.
 		 *
-		 * @param $order_id: The ID of the order that is the parent of the subscription.
-		 * @param $server_status: The status received from server.
-		 *
+		 * @param int    $order_id The parent WooCommerce order ID.
+		 * @param string $server_status The status received from the server.
 		 * @return void
 		 */
-		public static function updateSubscriptionStatus( $order_id, $server_status ) {
+		public static function update_subscription_status( $order_id, $server_status ) {
 			/* Check that the subscriptions plugin is installed. */
 			if ( ! class_exists( 'WC_Subscriptions' ) ) {
 				return;
@@ -325,33 +327,33 @@ if ( ! class_exists( 'Twispay_TW_Status_Updater' ) ) :
 			$subscription = reset( $subscription );
 
 			switch ( $server_status ) {
-				case self::$RESULT_STATUSES['COMPLETE_FAIL']: /* The subscription has payment failure. */
-				case self::$RESULT_STATUSES['THREE_D_PENDING']: /* The subscription has a 3D pending payment. */
+				case self::$result_statuses['COMPLETE_FAIL']: /* The subscription has payment failure. */
+				case self::$result_statuses['THREE_D_PENDING']: /* The subscription has a 3D pending payment. */
 					if ( $subscription->can_be_updated_to( 'on-hold' ) ) {
 						/* Mark subscription as 'ON-HOLD'. */
 						$subscription->update_status( 'on-hold' );
-						Twispay_TW_Logger::twispay_tw_updateTransactionStatus( $order_id, $server_status );
+						Twispay_TW_Logger::twispay_tw_update_transaction_status( $order_id, $server_status );
 					}
 					break;
 
-				case self::$RESULT_STATUSES['COMPLETE_OK']: /* The subscription has been completed. */
-				case self::$RESULT_STATUSES['CANCEL_OK']: /* The subscription has been canceled. */
-				case self::$RESULT_STATUSES['REFUND_OK']: /* The subscription has been refunded. */
-				case self::$RESULT_STATUSES['VOID_OK']:
-				case self::$RESULT_STATUSES['CHARGE_BACK']: /* The subscription has been forced back. */
+				case self::$result_statuses['COMPLETE_OK']: /* The subscription has been completed. */
+				case self::$result_statuses['CANCEL_OK']: /* The subscription has been canceled. */
+				case self::$result_statuses['REFUND_OK']: /* The subscription has been refunded. */
+				case self::$result_statuses['VOID_OK']:
+				case self::$result_statuses['CHARGE_BACK']: /* The subscription has been forced back. */
 					if ( $subscription->can_be_updated_to( 'canceled' ) ) {
 						/* Mark subscription as 'CANCELED'. */
 						$subscription->update_status( 'canceled' );
-						Twispay_TW_Logger::twispay_tw_updateTransactionStatus( $order_id, $server_status );
+						Twispay_TW_Logger::twispay_tw_update_transaction_status( $order_id, $server_status );
 					}
 					break;
 
-				case self::$RESULT_STATUSES['EXPIRING']: /* The subscription will expire soon. */
-				case self::$RESULT_STATUSES['IN_PROGRESS']: /* The subscription is in progress. */
+				case self::$result_statuses['EXPIRING']: /* The subscription will expire soon. */
+				case self::$result_statuses['IN_PROGRESS']: /* The subscription is in progress. */
 					if ( $subscription->can_be_updated_to( 'active' ) ) {
 						/* Mark subscription as 'ACTIVE'. */
 						$subscription->update_status( 'active' );
-						Twispay_TW_Logger::twispay_tw_updateTransactionStatus( $order_id, $server_status );
+						Twispay_TW_Logger::twispay_tw_update_transaction_status( $order_id, $server_status );
 					}
 					break;
 

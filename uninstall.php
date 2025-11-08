@@ -21,9 +21,9 @@ if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
 delete_option( 'twispay_tw_installed' );
 
 // Delete All TW Twispay Pages
-$page = get_page_by_path( 'xmoney-payments-confirmation' );
-if ( $page ) {
-	wp_delete_post( $page->ID, true );
+$tw_page = get_page_by_path( 'xmoney-payments-confirmation' );
+if ( $tw_page ) {
+	wp_delete_post( $tw_page->ID, true );
 }
 
 // Remove All Tables

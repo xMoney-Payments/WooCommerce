@@ -1,14 +1,45 @@
 <?php
-/* Exit if the file is accessed directly. */
+/**
+ * Main processor for subscription xMoney Payments orders.
+ *
+ * @package Twispay/Front
+ */
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+/**
+ * Handles subscription-based xMoney Payments checkout processing.
+ *
+ * Builds request payloads, validates order context, and renders the redirect form.
+ */
 class Twispay_Subscription_Processor {
+	/**
+	 * Order ID extracted from request, or null if not provided.
+	 *
+	 * @var int|null
+	 */
 	private ?int $order_id;
+	/**
+	 * Current language code used for localization.
+	 *
+	 * @var string
+	 */
 	private string $language;
+	/**
+	 * Nonce action name used for request integrity verification.
+	 *
+	 * @var string
+	 */
 	private string $nonce_action = 'twispay_process';
 
+	/**
+	 * Constructor.
+	 *
+	 * Extracts a numeric order id (if present) and hooks the processing callback.
+	 * Nonce verification is intentionally deferred until process() because pluggable
+	 * functions may not be loaded at this stage of plugin initialization.
+	 */
 	public function __construct() {
 		// Defer nonce verification until process() (pluggable may not be loaded yet here).
         // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only retrieval and sanitization.
@@ -19,6 +50,12 @@ class Twispay_Subscription_Processor {
 		}
 	}
 
+	/**
+	 * Execute the payment form rendering flow.
+	 *
+	 * Verifies nonce, loads helpers, builds request data and prints the payment
+	 * form that auto-submits to the gateway.
+	 */
 	public function process() {
 		// Verify nonce to protect this action from CSRF. The nonce must be generated at the link/form that starts this flow.
 		// If there is no nonce present, treat it as invalid and redirect.
@@ -30,7 +67,7 @@ class Twispay_Subscription_Processor {
 			exit;
 		}
 
-		require_once TWISPAY_PLUGIN_DIR . 'helpers/Twispay_TW_Helper_Notify.php';
+		require_once TWISPAY_PLUGIN_DIR . 'helpers/class-twispay-tw-helper-notify.php';
 		require_once TWISPAY_PLUGIN_DIR . 'helpers/Twispay_TW_Helper_Processor.php';
 		$this->language = Twispay_TW_Helper_Processor::get_current_language();
 
@@ -62,6 +99,12 @@ class Twispay_Subscription_Processor {
 		<?php
 	}
 
+	/**
+	 * Build the structured subscription payment request to send to the gateway.
+	 *
+	 * @return array{host_name:string,data:string,checksum:string} Encoded payload and endpoint URL.
+	 * @throws Exception If order, subscription, or configuration data is missing or invalid.
+	 */
 	private function prepare_request_data() {
 		// FIXME: Change this i18n logic with the idiomatic one.
 		if ( file_exists( TWISPAY_PLUGIN_DIR . 'lang/' . $this->language . '/lang.php' ) ) {
@@ -76,7 +119,7 @@ class Twispay_Subscription_Processor {
 			throw new Exception( esc_html__( 'You are not allowed to access this file.', 'xmoney-payments' ) );
 		}
 
-		if ( empty( $this->order_id ) || $tw_order === false ) {
+		if ( empty( $this->order_id ) || false === $tw_order ) {
 			throw new Exception( esc_html__( 'You are not allowed to access this file.', 'xmoney-payments' ) );
 		}
 
@@ -100,13 +143,13 @@ class Twispay_Subscription_Processor {
 		$data = $subscription->get_data();
 
 		$customer = array(
-			'identifier' => $data['customer_id'] === 0 ? $this->order_id : $data['customer_id'],
-			'firstName'  => $data['billing']['first_name'] ?: '',
-			'lastName'   => $data['billing']['last_name'] ?: '',
-			'country'    => $data['billing']['country'] ?: '',
-			'city'       => $data['billing']['city'] ?: $data['shipping']['city'],
-			'address'    => $data['billing']['address_1'] ?: '',
-			'zipCode'    => $data['billing']['postcode'] ?: $data['shipping']['postcode'],
+			'identifier' => 0 === $data['customer_id'] ? $this->order_id : $data['customer_id'],
+			'firstName'  => ! empty( $data['billing']['first_name'] ) ? $data['billing']['first_name'] : '',
+			'lastName'   => ! empty( $data['billing']['last_name'] ) ? $data['billing']['last_name'] : '',
+			'country'    => ! empty( $data['billing']['country'] ) ? $data['billing']['country'] : '',
+			'city'       => ! empty( $data['billing']['city'] ) ? $data['billing']['city'] : $data['shipping']['city'],
+			'address'    => ! empty( $data['billing']['address_1'] ) ? $data['billing']['address_1'] : '',
+			'zipCode'    => ! empty( $data['billing']['postcode'] ) ? $data['billing']['postcode'] : $data['shipping']['postcode'],
 			'phone'      => Twispay_TW_Helper_Processor::format_phone( $data['billing']['phone'] ),
 			'email'      => $data['billing']['email'],
 		);
@@ -127,15 +170,7 @@ class Twispay_Subscription_Processor {
 			'twispay_process'
 		);
 
-		/*
-		!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! */
-		/*
-		!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! IMPORTANT !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! */
-		/*
-		READ:  We presume that there will be ONLY ONE subscription product inside the order. */
-		/*
-		!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! */
-		/* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! */
+		// Assumption: A subscription order contains exactly one subscription product.
 
 		/* Extract the subscription details. */
 		$trial_amount       = WC_Subscriptions_Product::get_sign_up_fee( $item['product_id'] );
@@ -183,8 +218,8 @@ class Twispay_Subscription_Processor {
 			$order_data['order']['firstBillDate'] = $first_billing_date;
 		}
 
-		$request_data = Twispay_TW_Helper_Notify::getBase64JsonRequest( $order_data );
-		$checksum     = Twispay_TW_Helper_Notify::getBase64Checksum( $order_data, $configuration['secret_key'] );
+		$request_data = Twispay_TW_Helper_Notify::get_base64_json_request( $order_data );
+		$checksum     = Twispay_TW_Helper_Notify::get_base64_checksum( $order_data, $configuration['secret_key'] );
 		$host_name    = add_query_arg(
 			array( 'lang' => $this->language ),
 			$configuration['is_live'] ? Twispay_TW_Helper_Processor::LIVE_URL : Twispay_TW_Helper_Processor::STAGE_URL
@@ -197,13 +232,20 @@ class Twispay_Subscription_Processor {
 		);
 	}
 
+	/**
+	 * Normalize subscription interval units so the gateway only receives day/month cycles.
+	 *
+	 * @param string     $interval_type Original interval type (day|week|month|year).
+	 * @param int|string $interval_value Interval count.
+	 * @return array{interval_type:string,interval_value:int} Converted interval unit and value.
+	 */
 	private function maybe_convert_trial_interval( $interval_type, $interval_value ) {
-		if ( $interval_type === 'week' ) {
+		if ( 'week' === $interval_type ) {
 			$interval_type  = 'day';
 			$interval_value = 7 * $interval_value;
 		}
 
-		if ( $interval_type === 'year' ) {
+		if ( 'year' === $interval_type ) {
 			$interval_type  = 'month';
 			$interval_value = 12 * $interval_value;
 		}

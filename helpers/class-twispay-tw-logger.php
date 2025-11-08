@@ -23,13 +23,12 @@ if ( ! class_exists( 'Twispay_TW_Logger' ) ) :
 	 */
 	class Twispay_TW_Logger {
 		/**
-		 * Function that logs a transaction to the DB.
+		 * Log a transaction to the database.
 		 *
-		 * @param $data Array containing the transaction data.
-		 *
+		 * @param array $data Array containing the transaction data.
 		 * @return void
 		 */
-		public static function twispay_tw_logTransaction( array $data ) {
+		public static function twispay_tw_log_transaction( array $data ) {
 			global $wpdb;
 
 			/* Extract the WooCommerce order. */
@@ -53,14 +52,13 @@ if ( ! class_exists( 'Twispay_TW_Logger' ) ) :
 
 
 		/**
-		 * Function that updates a transaction's status in the DB.
+		 * Update a transaction's status in the database.
 		 *
-		 * @param $id - The ID of the parent order.
-		 * @param $status - The new status of the transaction.
-		 *
+		 * @param int    $id The parent WooCommerce order ID.
+		 * @param string $status The new transaction status.
 		 * @return void
 		 */
-		public static function twispay_tw_updateTransactionStatus( $id, $status ) {
+		public static function twispay_tw_update_transaction_status( $id, $status ) {
 			global $wpdb;
 
             // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
@@ -76,11 +74,10 @@ if ( ! class_exists( 'Twispay_TW_Logger' ) ) :
 
 
 		/**
-		 * Function that logs a message to the log file.
+		 * Log a message to the Twispay log file.
 		 *
-		 * @param string - Message to log to file.
-		 *
-		 * @return Void
+		 * @param string|array|bool $message The message to log. Arrays will be JSON encoded.
+		 * @return void
 		 */
 		public static function twispay_tw_log( $message = false ) {
 			// Resolve uploads directory and ensure plugin subfolder exists: /uploads/xmoney-payments/logs/

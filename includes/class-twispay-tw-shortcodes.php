@@ -37,7 +37,7 @@ if ( ! class_exists( 'Twispay_TW_Shortcodes' ) ) :
 		 * @public
 		 * @return string Payment Confirmation Form
 		 */
-		public function twispay_tw_payment_confirmation_handler( $atts ) {
+		public function twispay_tw_payment_confirmation_handler() {
 			return TW()->payment_confirmation->twispay_tw_payment_confirmation_form();
 		}
 	}

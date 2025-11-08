@@ -14,6 +14,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+/**
+ * Render the Twispay configuration page in the WordPress admin.
+ *
+ * @return void
+ */
 function twispay_tw_configuration() {
 	// Load languages
 	$lang = explode( '-', get_bloginfo( 'language' ) );
@@ -96,7 +101,9 @@ function twispay_tw_configuration() {
 						<tr class="form-field" id="s_t_s_notification">
 							<th scope="row"><label for="s_t_s_notification"><?php echo esc_html__( 'Server-to-server notification URL', 'xmoney-payments' ); ?></span></label></th>
 							<td>
-								<input name="s_t_s_notification" disabled="disabled" type="text" value="<?php echo esc_url( home_url( $path = '?twispay-ipn' ) ); ?>" style="max-width: 400px;" />
+								<?php $twispay_ipn_url = home_url( '?twispay-ipn' ); ?>
+								<input name="s_t_s_notification" disabled="disabled" type="text"
+										value="<?php echo esc_url( $twispay_ipn_url ); ?>" style="max-width: 400px;"/>
 								<p class="description"><?php echo esc_html__( 'Put this URL in your xMoney Payments account.', 'xmoney-payments' ); ?></p>
 							</td>
 						</tr>

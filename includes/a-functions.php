@@ -31,7 +31,7 @@ function twispay_tw_get_live_mode(): string {
 	if ( $live_mode ) {
 		$html .= '<select name="live_mode" id="live_mode">';
 		foreach ( $live_mode as $e_l ) {
-			if ( $e_l->live_mode === '1' ) {
+			if ( '1' === $e_l->live_mode ) {
 				$html .= '<option value="1" selected>' . esc_html__( 'Yes', 'xmoney-payments' ) . '</option>';
 				$html .= '<option value="0">' . esc_html__( 'No', 'xmoney-payments' ) . '</option>';
 			} else {
@@ -140,7 +140,7 @@ function twispay_tw_get_suppress_email(): string {
 	if ( $suppress_email ) {
 		$html .= '<select name="suppress_email" id="suppress_email">';
 		foreach ( $suppress_email as $e_s ) {
-			if ( $e_s->suppress_email === '1' ) {
+			if ( '1' === $e_s->suppress_email ) {
 				$html .= '<option value="1" selected>' . esc_html__( 'Yes', 'xmoney-payments' ) . '</option>';
 				$html .= '<option value="0">' . esc_html__( 'No', 'xmoney-payments' ) . '</option>';
 			} else {
@@ -179,7 +179,7 @@ function twispay_tw_get_wp_pages(): string {
 		$html .= '<option value="0">' . esc_html__( 'Default', 'xmoney-payments' ) . '</option>';
 
 		foreach ( $wp_pages as $e_p ) {
-			if ( $e_p->post_title != 'Twispay confirmation' ) {
+			if ( 'Twispay confirmation' !== $e_p->post_title ) {
 				if ( $configuration ) {
 					foreach ( $configuration as $e_c ) {
 						$html .= '<option value="' . esc_attr( $e_p->guid ) . '"' . selected( $e_c->thankyou_page, $e_p->guid, false ) . ' >' . esc_html( $e_p->post_title ) . '</option>';

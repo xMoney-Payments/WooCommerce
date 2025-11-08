@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; }
 
 /* Require the "Twispay_TW_Logger" class. */
-require_once TWISPAY_PLUGIN_DIR . DIRECTORY_SEPARATOR . 'helpers' . DIRECTORY_SEPARATOR . 'Twispay_TW_Logger.php';
+require_once TWISPAY_PLUGIN_DIR . DIRECTORY_SEPARATOR . 'helpers' . DIRECTORY_SEPARATOR . 'class-twispay-tw-logger.php';
 
 /* Security class check */
 if ( ! class_exists( 'Twispay_TW_Helper_Response' ) ) :
@@ -28,41 +28,41 @@ if ( ! class_exists( 'Twispay_TW_Helper_Response' ) ) :
 		/**
 		 * Decrypt the response from Twispay server.
 		 *
-		 * @param string $tw_encryptedMessage - The encrypted server message.
-		 * @param string $tw_secretKey - The secret key (from Twispay).
+		 * @param string $tw_encrypted_message - The encrypted server message.
+		 * @param string $tw_secret_key - The secret key (from Twispay).
 		 *
 		 * @return bool|array ([key => value,]) - If everything is ok array containing the decrypted data else bool(FALSE) if decription fails.
 		 */
-		public static function twispay_tw_decrypt_message( string $tw_encryptedMessage, string $tw_secretKey ) {
-			$encrypted = (string) $tw_encryptedMessage;
+		public static function twispay_tw_decrypt_message( string $tw_encrypted_message, string $tw_secret_key ) {
+			$encrypted = (string) $tw_encrypted_message;
 
 			if ( ! strlen( $encrypted ) || ( false === strpos( $encrypted, ',' ) ) ) {
 				return false;
 			}
 
 			/* Get the IV and the encrypted data */
-			$encryptedParts = explode( /*delimiter*/',', $encrypted, /*limit*/2 );
-			$iv             = base64_decode( $encryptedParts[0] );
+			$encrypted_parts = explode( /*delimiter*/',', $encrypted, /*limit*/2 );
+			$iv              = base64_decode( $encrypted_parts[0] );
 			if ( false === $iv ) {
 				return false;
 			}
 
-			$encryptedData = base64_decode( $encryptedParts[1] );
-			if ( false === $encryptedData ) {
+			$encrypted_data = base64_decode( $encrypted_parts[1] );
+			if ( false === $encrypted_data ) {
 				return false;
 			}
 
 			/* Decrypt the encrypted data */
-			$decryptedResponse = openssl_decrypt( $encryptedData, /*method*/'aes-256-cbc', $tw_secretKey, /*options*/OPENSSL_RAW_DATA, $iv );
-			if ( false === $decryptedResponse ) {
+			$decrypted_response = openssl_decrypt( $encrypted_data, /*method*/'aes-256-cbc', $tw_secret_key, /*options*/OPENSSL_RAW_DATA, $iv );
+			if ( false === $decrypted_response ) {
 				return false;
 			}
 
 			/** JSON decode the decrypted data. */
-			$decodedResponse = json_decode( $decryptedResponse, /*assoc*/true, /*depth*/4 );
+			$decoded_response = json_decode( $decrypted_response, /*assoc*/true, /*depth*/4 );
 
 			/** Check if the decryption was successful. */
-			if ( null === $decodedResponse ) {
+			if ( null === $decoded_response ) {
 				/** Log the last error occurred during the last JSON encoding/decoding. */
 				switch ( json_last_error() ) {
 					case JSON_ERROR_DEPTH:
@@ -114,28 +114,27 @@ if ( ! class_exists( 'Twispay_TW_Helper_Response' ) ) :
 			}
 
 			/** Check if externalOrderId uses '_' separator */
-			if ( false !== strpos( $decodedResponse['externalOrderId'], '_' ) ) {
-				$explodedVal = explode( '_', $decodedResponse['externalOrderId'] )[0];
+			if ( false !== strpos( $decoded_response['externalOrderId'], '_' ) ) {
+				$exploded_val = explode( '_', $decoded_response['externalOrderId'] )[0];
 
 				/** Check if externalOrderId contains only digits and is not empty. */
-				if ( ! empty( $explodedVal ) && ctype_digit( $explodedVal ) ) {
-					$decodedResponse['externalOrderId'] = $explodedVal;
+				if ( ! empty( $exploded_val ) && ctype_digit( $exploded_val ) ) {
+					$decoded_response['externalOrderId'] = $exploded_val;
 				}
 			}
 
-			return $decodedResponse;
+			return $decoded_response;
 		}
 
 
 		/**
-		 * Function that validates a decripted response.
+		 * Validate a decrypted response from the xMoney Payments server.
 		 *
-		 * @param $tw_response - The server decripted and JSON decoded response
+		 * @param array $tw_response The decrypted and JSON-decoded gateway response.
 		 *
-		 * @return bool(FALSE)     - If any error occurs
-		 *         bool(TRUE)      - If the validation is successful
+		 * @return bool True if validation passes, false otherwise.
 		 */
-		public static function twispay_tw_checkValidation( $tw_response ): bool {
+		public static function twispay_tw_check_validation( $tw_response ): bool {
 			$tw_errors = array();
 
 			if ( ! $tw_response ) {
@@ -158,7 +157,7 @@ if ( ! class_exists( 'Twispay_TW_Helper_Response' ) ) :
 				$tw_errors[] = esc_html__( '[RESPONSE-ERROR]: Empty transactionId', 'xmoney-payments' );
 			}
 
-			if ( sizeof( $tw_errors ) > 0 ) {
+			if ( count( $tw_errors ) > 0 ) {
 				foreach ( $tw_errors as $err ) {
 					Twispay_TW_Logger::twispay_tw_log( $err );
 				}
@@ -177,14 +176,14 @@ if ( ! class_exists( 'Twispay_TW_Helper_Response' ) ) :
 
 				Twispay_TW_Logger::twispay_tw_log( esc_html__( '[RESPONSE]: Data: ', 'xmoney-payments' ) . json_encode( $data ) );
 
-				if ( ! in_array( $data['status'], Twispay_TW_Status_Updater::$RESULT_STATUSES ) ) {
+				if ( ! in_array( $data['status'], Twispay_TW_Status_Updater::$result_statuses, true ) ) {
 					Twispay_TW_Logger::twispay_tw_log( esc_html__( '[RESPONSE-ERROR]: Wrong status: ', 'xmoney-payments' ) . $data['status'] );
-					Twispay_TW_Logger::twispay_tw_logTransaction( $data );
+					Twispay_TW_Logger::twispay_tw_log_transaction( $data );
 
 					return false;
 				}
 
-				Twispay_TW_Logger::twispay_tw_logTransaction( $data );
+				Twispay_TW_Logger::twispay_tw_log_transaction( $data );
 				Twispay_TW_Logger::twispay_tw_log( esc_html__( '[RESPONSE]: Validating completed for order ID: ', 'xmoney-payments' ) . $data['id_cart'] );
 
 				return true;

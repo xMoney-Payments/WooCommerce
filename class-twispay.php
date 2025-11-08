@@ -80,7 +80,7 @@ if ( ! class_exists( 'Twispay' ) ) {
 
 			if ( is_admin() ) {
 				require_once TWISPAY_PLUGIN_DIR . 'includes/install.php';
-				require_once TWISPAY_PLUGIN_DIR . 'includes/admin/ma-class-menu.php';
+				require_once TWISPAY_PLUGIN_DIR . 'includes/admin/class-twispay-tw-admin-menu.php';
 			}
 
 			add_filter( 'query_vars', array( $this, 'twispay_query_vars_filter' ) );
@@ -156,14 +156,14 @@ if ( ! class_exists( 'Twispay' ) ) {
 			}
 
 			// Includes all non-admin classes
-			require_once TWISPAY_PLUGIN_DIR . 'includes/scripts.php';
+			require_once TWISPAY_PLUGIN_DIR . 'includes/class-wc-gateway-twispay-gateway.php';
 			require_once TWISPAY_PLUGIN_DIR . 'includes/a-functions.php';
-			require_once TWISPAY_PLUGIN_DIR . 'includes/class-tw-shortcodes.php';
-			require_once TWISPAY_PLUGIN_DIR . 'includes/class-tw-payment-confirmation.php';
-			require_once TWISPAY_PLUGIN_DIR . 'includes/class-tw-views.php';
-			require_once TWISPAY_PLUGIN_DIR . 'includes/processors/class-main-processor.php';
-			require_once TWISPAY_PLUGIN_DIR . 'includes/processors/class-subscription-processor.php';
-			require_once TWISPAY_PLUGIN_DIR . 'includes/class-tw-server-to-server.php';
+			require_once TWISPAY_PLUGIN_DIR . 'includes/class-twispay-tw-shortcodes.php';
+			require_once TWISPAY_PLUGIN_DIR . 'includes/class-twispay-tw-payment-confirmation.php';
+			require_once TWISPAY_PLUGIN_DIR . 'includes/class-twispay-tw-views.php';
+			require_once TWISPAY_PLUGIN_DIR . 'includes/processors/class-twispay-main-processor.php';
+			require_once TWISPAY_PLUGIN_DIR . 'includes/processors/class-twispay-subscription-processor.php';
+			require_once TWISPAY_PLUGIN_DIR . 'includes/class-twispay-server-to-server.php';
 		}
 
 		public function twispay_query_vars_filter( $vars ) {

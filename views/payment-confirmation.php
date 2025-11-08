@@ -22,13 +22,13 @@ if ( file_exists( TWISPAY_PLUGIN_DIR . 'lang/' . $lang . '/lang.php' ) ) {
 }
 
 /* Require the "Twispay_TW_Logger" class. */
-require_once TWISPAY_PLUGIN_DIR . DIRECTORY_SEPARATOR . 'helpers' . DIRECTORY_SEPARATOR . 'Twispay_TW_Logger.php';
+require_once TWISPAY_PLUGIN_DIR . DIRECTORY_SEPARATOR . 'helpers' . DIRECTORY_SEPARATOR . 'class-twispay-tw-logger.php';
 /* Require the "Twispay_TW_Helper_Response" class. */
-require_once TWISPAY_PLUGIN_DIR . DIRECTORY_SEPARATOR . 'helpers' . DIRECTORY_SEPARATOR . 'Twispay_TW_Helper_Response.php';
+require_once TWISPAY_PLUGIN_DIR . DIRECTORY_SEPARATOR . 'helpers' . DIRECTORY_SEPARATOR . 'class-twispay-tw-helper-response.php';
 /* Require the "Twispay_TW_Status_Updater" class. */
-require_once TWISPAY_PLUGIN_DIR . DIRECTORY_SEPARATOR . 'helpers' . DIRECTORY_SEPARATOR . 'Twispay_TW_Status_Updater.php';
+require_once TWISPAY_PLUGIN_DIR . DIRECTORY_SEPARATOR . 'helpers' . DIRECTORY_SEPARATOR . 'class-twispay-tw-status-updater.php';
 /* Require the "Twispay_TW_Default_Thankyou" class. */
-require_once TWISPAY_PLUGIN_DIR . DIRECTORY_SEPARATOR . 'helpers' . DIRECTORY_SEPARATOR . 'Twispay_TW_Default_Thankyou.php';
+require_once TWISPAY_PLUGIN_DIR . DIRECTORY_SEPARATOR . 'helpers' . DIRECTORY_SEPARATOR . 'class-twispay-tw-default-thankyou.php';
 
 
 /* Validate if 'WooCommerce' is NOT installed. */
@@ -214,7 +214,7 @@ if ( false === $decrypted ) {
 }
 
 /* Validate the decrypted response. */
-$order_validation = Twispay_TW_Helper_Response::twispay_tw_checkValidation( $decrypted );
+$order_validation = Twispay_TW_Helper_Response::twispay_tw_check_validation( $decrypted );
 
 /* Check if server response validation failed.  */
 if ( true !== $order_validation ) {
@@ -347,4 +347,4 @@ if ( empty( $secure_key_raw ) || ! preg_match( '/^[A-Fa-f0-9]{16,64}$/', $secure
 /* Reconstruct the checkout URL to use it to allow client to try again in case of error. */
 $checkout_url = esc_url( wc_get_checkout_url() . 'order-pay/' . $order_id . '/?pay_for_order=true&key=' . $tw_order->get_data()['order_key'] );
 
-Twispay_TW_Status_Updater::updateStatus_backUrl( $order_id, $decrypted['transactionStatus'], $checkout_url, $configuration );
+Twispay_TW_Status_Updater::update_status_back_url( $order_id, $decrypted['transactionStatus'], $checkout_url, $configuration );

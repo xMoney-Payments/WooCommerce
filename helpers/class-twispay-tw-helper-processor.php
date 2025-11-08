@@ -1,17 +1,37 @@
 <?php
-/* Exit if the file is accessed directly. */
+/**
+ * Twispay Helper Processor
+ *
+ * Provides shared helper utilities used throughout the Twispay integration.
+ *
+ * @package Twispay/Helpers
+ */
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+/**
+ * Helper class for retrieving configuration and formatting request data.
+ */
 class Twispay_TW_Helper_Processor {
 	const LIVE_URL  = 'https://secure.xmoney.com';
 	const STAGE_URL = 'https://secure-stage.xmoney.com';
 
+	/**
+	 * Get the current site language short code (e.g. "en", "fr").
+	 *
+	 * @return string Language code.
+	 */
 	public static function get_current_language(): string {
 		return explode( '-', get_bloginfo( 'language' ) )[0];
 	}
 
+	/**
+	 * Format a phone number by removing non-digit characters and prefixing "+" if needed.
+	 *
+	 * @param string $phone Input phone number.
+	 * @return string Normalized phone number.
+	 */
 	public static function format_phone( $phone ): string {
 		$output = '';
 
@@ -24,15 +44,20 @@ class Twispay_TW_Helper_Processor {
 		return $output . preg_replace( '/([^0-9]*)+/', '', $phone );
 	}
 
+	/**
+	 * Retrieve processed plugin configuration values (site ID, key, mode).
+	 *
+	 * @return array Configuration data structured for gateway interaction.
+	 */
 	public static function get_configuration(): array {
 		$configuration = self::query_configuration();
 		$result        = array();
 
-		if ( $configuration->live_mode === null ) {
+		if ( null === $configuration->live_mode ) {
 			return $result;
 		}
 
-		$is_live = $configuration->live_mode === '1';
+		$is_live = '1' === $configuration->live_mode;
 
 		if ( $is_live ) {
 			$result['is_live']    = true;
@@ -49,6 +74,11 @@ class Twispay_TW_Helper_Processor {
 		return $result;
 	}
 
+	/**
+	 * Query raw configuration row from database.
+	 *
+	 * @return object|null Database row or null if not found.
+	 */
 	private static function query_configuration() {
 		global $wpdb;
 

@@ -15,21 +15,23 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Twispay Edit Configuration
+ * Twispay Edit Configuration.
  *
- * Process the Edit Configuration to database
+ * Process the edit configuration request and store values into the database.
  *
  * @param array $request {
- *     Array with all arguments required for editing Configuration in database
+ *     Array with all arguments required for editing configuration in the database.
  *
- *     @type String $live_mode                               Value '1' if the payment gateway is in Production Mode or value '0' if it is in Staging Mode
- *     @type String $staging_site_id                         The Site ID for Staging Mode
- *     @type String $staging_private_key                     The Private Key for Staging Mode
- *     @type String $live_site_id                            The Site ID for Live Mode
- *     @type String $live_private_key                        The Private Key for Live Mode
- *     @type String $thankyou_page                           The Path for Thank you page. If 0, then it is the default page
+ * @type string $live_mode Value '1' for Production Mode, or '0' for Staging Mode.
+ * @type string $staging_site_id The Site ID for Staging Mode.
+ * @type string $staging_private_key The Private Key for Staging Mode.
+ * @type string $live_site_id The Site ID for Live Mode.
+ * @type string $live_private_key The Private Key for Live Mode.
+ * @type string $thankyou_page The path for the custom Thank You page, or '0' to use the default page.
+ * @type string $suppress_email Whether to suppress WooCommerce payment emails ('1' or '0').
+ * @type string $contact_email_o Optional contact email shown on failed payment pages.
  * }
- * @public
+ *
  * @return void
  */
 function tw_twispay_p_edit_general_configuration( $request ) {
@@ -42,7 +44,7 @@ function tw_twispay_p_edit_general_configuration( $request ) {
 	$suppress_email      = sanitize_text_field( wp_unslash( $request['suppress_email'] ) );
 	$contact_email_o     = sanitize_email( wp_unslash( $request['contact_email_o'] ) );
 
-	if ( $contact_email_o === '' ) {
+	if ( '' === $contact_email_o ) {
 		$contact_email_o = 0;
 	}
 

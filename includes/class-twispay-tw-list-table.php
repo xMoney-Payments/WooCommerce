@@ -18,7 +18,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 	 * @access private
 	 */
 class Twispay_Tw_List_Table {
-
 	/**
 	 * The current list of items.
 	 *
@@ -188,22 +187,17 @@ class Twispay_Tw_List_Table {
 	 * @access public
 	 */
 	public function __get( string $name ) {
-		if ( in_array( $name, $this->compat_fields ) ) {
+		if ( in_array( $name, $this->compat_fields, true ) ) {
 			return $this->$name;
 		}
 	}
 
 	/**
-	 * Make private properties settable for backward compatibility.
-	 *
-	 * @param string $name Property to check if set.
+	 * @param string $name Property name.
 	 * @param mixed  $value Property value.
-	 * @return mixed Newly-set property.
-	 * @since 4.0.0
-	 * @access public
 	 */
-	public function __set( string $name, mixed $value ) {
-		if ( in_array( $name, $this->compat_fields ) ) {
+	public function __set( string $name, $value ) {
+		if ( in_array( $name, $this->compat_fields, true ) ) {
 			return $this->$name = $value;
 		}
 	}
@@ -217,7 +211,7 @@ class Twispay_Tw_List_Table {
 	 * @access public
 	 */
 	public function __isset( string $name ) {
-		if ( in_array( $name, $this->compat_fields ) ) {
+		if ( in_array( $name, $this->compat_fields, true ) ) {
 			return isset( $this->$name );
 		}
 	}
@@ -230,7 +224,7 @@ class Twispay_Tw_List_Table {
 	 * @access public
 	 */
 	public function __unset( string $name ) {
-		if ( in_array( $name, $this->compat_fields ) ) {
+		if ( in_array( $name, $this->compat_fields, true ) ) {
 			unset( $this->$name );
 		}
 	}
@@ -245,7 +239,7 @@ class Twispay_Tw_List_Table {
 	 * @access public
 	 */
 	public function __call( $name, array $arguments ) {
-		if ( in_array( $name, $this->compat_methods ) ) {
+		if ( in_array( $name, $this->compat_methods, true ) ) {
 			return call_user_func_array( array( $this, $name ), $arguments );
 		}
 		return false;
@@ -298,7 +292,7 @@ class Twispay_Tw_List_Table {
 
 		// Redirect if page number is invalid and headers are not already sent.
 		if ( ! headers_sent() && ! wp_doing_ajax() && $args['total_pages'] > 0 && $this->get_twispay_pagenum() > $args['total_pages'] ) {
-			wp_redirect( esc_url( add_query_arg( 'paged', $args['total_pages'] ) ) );
+			wp_safe_redirect( esc_url( add_query_arg( 'paged', $args['total_pages'] ) ) );
 			exit;
 		}
 
@@ -472,7 +466,7 @@ class Twispay_Tw_List_Table {
 			 * @param array $actions An array of the available bulk actions.
 			 * @since 3.5.0
 			 */
-			$this->_actions = apply_filters( "bulk_actions-{$this->screen->id}", $this->_actions );
+			$this->_actions = apply_filters( "bulk_actions_{$this->screen->id}", $this->_actions );
 			$two            = '';
 		} else {
 			$two = '2';
@@ -520,7 +514,7 @@ class Twispay_Tw_List_Table {
 		foreach ( $actions as $action => $link ) {
 			++$i;
 			( $i === $action_count ) ? $sep = '' : $sep = ' | ';
-			$out                          .= '<span class="' . $action . '">' . $link . $sep . '</span>';
+			$out                           .= '<span class="' . $action . '">' . $link . $sep . '</span>';
 		}
 		$out .= '</div>';
 
@@ -614,9 +608,8 @@ class Twispay_Tw_List_Table {
 					"<option %s value='%s'>%s</option>\n",
 					selected( $m, $year . $month, false ),
 					esc_attr( $arc_row->year . $month ),
-
 					sprintf(
-                        /* translators: 1: month name, 2: 4-digit year */
+						/* translators: 1: month name, 2: 4-digit year */
 						esc_html__( '%1$s %2$d', 'xmoney-payments' ),
 						esc_attr( $wp_locale->get_month( $month ) ),
 						esc_attr( $year )
@@ -824,11 +817,11 @@ class Twispay_Tw_List_Table {
 
 		$disable_first = $disable_last = $disable_prev = $disable_next = false;
 
-		if ( $current === 1 ) {
+		if ( 1 === $current ) {
 			$disable_first = true;
 			$disable_prev  = true;
 		}
-		if ( $current === 2 ) {
+		if ( 2 === $current ) {
 			$disable_first = true;
 		}
 		if ( $current === $total_pages ) {
@@ -1129,13 +1122,13 @@ class Twispay_Tw_List_Table {
 		foreach ( $columns as $column_key => $column_display_name ) {
 			$class = array( 'manage-column', "column-$column_key" );
 
-			if ( in_array( $column_key, $hidden ) ) {
+			if ( in_array( $column_key, $hidden, true ) ) {
 				$class[] = 'hidden';
 			}
 
 			if ( 'cb' === $column_key ) {
 				$class[] = 'check-column';
-			} elseif ( in_array( $column_key, array( 'posts', 'comments', 'links' ) ) ) {
+			} elseif ( in_array( $column_key, array( 'posts', 'comments', 'links' ), true ) ) {
 				$class[] = 'num';
 			}
 
@@ -1299,9 +1292,10 @@ class Twispay_Tw_List_Table {
 	}
 
 	/**
+	 * Generates the default column output.
 	 *
-	 * @param array  $item
-	 * @param string $column_name
+	 * @param array  $item The current item data.
+	 * @param string $column_name Column name being rendered.
 	 */
 	protected function column_default( array $item, string $column_name ) {
 	}
@@ -1329,7 +1323,7 @@ class Twispay_Tw_List_Table {
 				$classes .= ' has-row-actions column-primary';
 			}
 
-			if ( in_array( $column_name, $hidden ) ) {
+			if ( in_array( $column_name, $hidden, true ) ) {
 				$classes .= ' hidden';
 			}
 

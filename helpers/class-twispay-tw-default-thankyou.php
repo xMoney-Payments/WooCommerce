@@ -22,9 +22,11 @@ if ( ! class_exists( 'Twispay_TW_Default_Thankyou' ) ) :
 	 */
 	class Twispay_TW_Default_Thankyou extends WC_Payment_Gateway {
 		/**
-		 * Twispay Gateway Constructor
+		 * Constructor.
 		 *
-		 * @public
+		 * Redirects user to their order thank you page.
+		 *
+		 * @param WC_Order $tw_order The WooCommerce order object.
 		 * @return void
 		 */
 		public function __construct( $tw_order ) {

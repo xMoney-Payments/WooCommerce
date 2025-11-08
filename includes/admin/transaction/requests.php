@@ -15,9 +15,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; }
 
 /* Require the "Twispay_TW_Logger" class. */
-require_once TWISPAY_PLUGIN_DIR . DIRECTORY_SEPARATOR . 'helpers' . DIRECTORY_SEPARATOR . 'Twispay_TW_Logger.php';
+require_once TWISPAY_PLUGIN_DIR . DIRECTORY_SEPARATOR . 'helpers' . DIRECTORY_SEPARATOR . 'class-twispay-tw-logger.php';
 /* Require the "Twispay_TW_Status_Updater" class. */
-require_once TWISPAY_PLUGIN_DIR . DIRECTORY_SEPARATOR . 'helpers' . DIRECTORY_SEPARATOR . 'Twispay_TW_Status_Updater.php';
+require_once TWISPAY_PLUGIN_DIR . DIRECTORY_SEPARATOR . 'helpers' . DIRECTORY_SEPARATOR . 'class-twispay-tw-status-updater.php';
 
 
 /**
@@ -39,7 +39,7 @@ function tw_twispay_p_refund_payment_transaction() {
 		);
 	}
 
-	if ( ! current_user_can( 'manage_woocommerce' ) ) {
+	if ( ! edit_posts( 'manage_woocommerce' ) ) {
 		wp_die(
 			esc_html__( 'You do not have permission to perform this action.', 'xmoney-payments' ),
 			esc_html__( 'Error', 'xmoney-payments' ),
@@ -58,7 +58,7 @@ function tw_twispay_p_refund_payment_transaction() {
 
 		/* Get configuration from database. */
 		global $wpdb;
-		$apiKey = '';
+		$api_key = '';
 
 		$table_name = esc_sql( $wpdb->prefix . 'twispay_tw_configuration' );
 
@@ -66,12 +66,12 @@ function tw_twispay_p_refund_payment_transaction() {
 		$configuration = $wpdb->get_row( "SELECT * FROM {$table_name}", $table_name );
 
 		if ( $configuration ) {
-			if ( $configuration->live_mode === '1' ) {
-				$apiKey = sanitize_text_field( $configuration->live_key );
-				$url    = 'https://api.xmoney.com/transaction/' . $transaction_id;
-			} elseif ( $configuration->live_mode === '0' ) {
-				$apiKey = sanitize_text_field( $configuration->staging_key );
-				$url    = 'https://api-stage.xmoney.com/transaction/' . $transaction_id;
+			if ( '1' === $configuration->live_mode ) {
+				$api_key = sanitize_text_field( $configuration->live_key );
+				$url     = 'https://api.xmoney.com/transaction/' . $transaction_id;
+			} elseif ( '0' === $configuration->live_mode ) {
+				$api_key = sanitize_text_field( $configuration->staging_key );
+				$url     = 'https://api-stage.xmoney.com/transaction/' . $transaction_id;
 			}
 		}
 
@@ -79,12 +79,12 @@ function tw_twispay_p_refund_payment_transaction() {
 			'method'  => 'DELETE',
 			'headers' => array(
 				'accept'        => 'application/json',
-				'Authorization' => $apiKey,
+				'Authorization' => $api_key,
 			),
 		);
 		$response = wp_remote_request( $url, $args );
 
-		if ( $response['response']['message'] === 'OK' ) {
+		if ( 'OK' === $response['response']['message'] ) {
 			/* Redirect to the Transaction list Page with success. */
 			wp_safe_redirect( admin_url( 'admin.php?page=tw-transaction&notice=success_refund' ) );
 		} else {
@@ -107,7 +107,7 @@ add_action( 'tw_refund_payment_transaction', 'tw_twispay_p_refund_payment_transa
  * @public
  * @return void
  */
-function tw_twispay_p_recurring_order( $request ) {
+function tw_twispay_p_recurring_order() {
 	if ( ! isset( $_POST['twispay_general_nonce'] ) ||
 		! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['twispay_general_nonce'] ) ), 'twispay_general_action' ) ) {
 
@@ -118,7 +118,7 @@ function tw_twispay_p_recurring_order( $request ) {
 		);
 	}
 
-	if ( ! current_user_can( 'manage_woocommerce' ) ) {
+	if ( ! current_user_can( 'edit_posts' ) ) {
 		wp_die(
 			esc_html__( 'You do not have permission to perform this action.', 'xmoney-payments' ),
 			esc_html__( 'Error', 'xmoney-payments' ),
@@ -137,17 +137,17 @@ function tw_twispay_p_recurring_order( $request ) {
 
 		/* Get configuration from database. */
 		global $wpdb;
-		$apiKey = '';
+		$api_key = '';
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$configuration = $wpdb->get_row( 'SELECT * FROM ' . $wpdb->prefix . 'twispay_tw_configuration' );
 
 		if ( $configuration ) {
-			if ( $configuration->live_mode === '1' ) {
-				$apiKey = sanitize_text_field( $configuration->live_key );
-				$url    = 'https://api.xmoney.com/order/' . $order_ad;
-			} elseif ( $configuration->live_mode === '0' ) {
-				$apiKey = sanitize_text_field( $configuration->staging_key );
-				$url    = 'https://api-stage.xmoney.com/order/' . $order_ad;
+			if ( '1' === $configuration->live_mode ) {
+				$api_key = sanitize_text_field( $configuration->live_key );
+				$url     = 'https://api.xmoney.com/order/' . $order_ad;
+			} elseif ( '0' === $configuration->live_mode ) {
+				$api_key = sanitize_text_field( $configuration->staging_key );
+				$url     = 'https://api-stage.xmoney.com/order/' . $order_ad;
 			}
 		}
 
@@ -155,12 +155,12 @@ function tw_twispay_p_recurring_order( $request ) {
 			'method'  => 'DELETE',
 			'headers' => array(
 				'accept'        => 'application/json',
-				'Authorization' => $apiKey,
+				'Authorization' => $api_key,
 			),
 		);
 		$response = wp_remote_request( $url, $args );
 
-		if ( $response['response']['message'] === 'OK' ) {
+		if ( 'OK' === $response['response']['message'] ) {
 			/* Redirect to the Transaction list Page with success. */
 			wp_safe_redirect( admin_url( 'admin.php?page=tw-transaction&notice=success_recurring' ) );
 		} else {
@@ -183,20 +183,20 @@ add_action( 'tw_recurring_order', 'tw_twispay_p_recurring_order' );
  * @public
  * @return void
  */
-function tw_twispay_p_synchronize_subscriptions( $request ) {
+function tw_twispay_p_synchronize_subscriptions() {
 	/* Get configuration from database. */
 	global $wpdb;
-	$apiKey = '';
+	$api_key = '';
     // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 	$configuration = $wpdb->get_row( 'SELECT * FROM ' . $wpdb->prefix . 'twispay_tw_configuration' );
 
 	if ( $configuration ) {
-		if ( $configuration->live_mode === '1' ) {
-			$apiKey  = sanitize_text_field( $configuration->live_key );
-			$baseUrl = 'https://api.xmoney.com/order?externalOrderId=__EXTERNAL_ORDER_ID__&orderType=recurring&page=1&perPage=1&reverseSorting=0';
-		} elseif ( $configuration->live_mode === '0' ) {
-			$apiKey  = sanitize_text_field( $configuration->staging_key );
-			$baseUrl = 'https://api-stage.xmoney.com/order?externalOrderId=__EXTERNAL_ORDER_ID__&orderType=recurring&page=1&perPage=1&reverseSorting=0';
+		if ( '1' === $configuration->live_mode ) {
+			$api_key  = sanitize_text_field( $configuration->live_key );
+			$base_url = 'https://api.xmoney.com/order?externalOrderId=__EXTERNAL_ORDER_ID__&orderType=recurring&page=1&perPage=1&reverseSorting=0';
+		} elseif ( '0' === $configuration->live_mode ) {
+			$api_key  = sanitize_text_field( $configuration->staging_key );
+			$base_url = 'https://api-stage.xmoney.com/order?externalOrderId=__EXTERNAL_ORDER_ID__&orderType=recurring&page=1&perPage=1&reverseSorting=0';
 		}
 	}
 
@@ -217,14 +217,14 @@ function tw_twispay_p_synchronize_subscriptions( $request ) {
 		$skip = false;
 
 		/* Construct the URL. */
-		$url = str_replace( '__EXTERNAL_ORDER_ID__', esc_html( $subscription->get_parent_id() ), $baseUrl );
+		$url = str_replace( '__EXTERNAL_ORDER_ID__', esc_html( $subscription->get_parent_id() ), $base_url );
 
 		/* Execute the request. This means to perform a "GET"/"PUT" request at the specified URL. */
 		$args     = array(
 			'method'  => 'GET',
 			'headers' => array(
 				'accept'        => 'application/json',
-				'Authorization' => $apiKey,
+				'Authorization' => $api_key,
 			),
 		);
 		$response = wp_remote_request( $url, $args );
@@ -235,7 +235,7 @@ function tw_twispay_p_synchronize_subscriptions( $request ) {
 			$skip = true;
 		}
 
-		if ( ( false === $skip ) && ( 200 != wp_remote_retrieve_response_code( $response ) ) ) {
+		if ( ( false === $skip ) && ( 200 !== wp_remote_retrieve_response_code( $response ) ) ) {
 			Twispay_TW_Logger::twispay_tw_log( esc_html__( '[RESPONSE-ERROR]: Unexpected HTTP response code: ', 'xmoney-payments' ) . wp_remote_retrieve_response_code( $response ) );
 			$skip = true;
 		}
@@ -248,10 +248,10 @@ function tw_twispay_p_synchronize_subscriptions( $request ) {
 				/* Check if any order was found on the server. */
 				if ( $response->pagination->currentItemCount ) {
 					/* Synchronize the statuses. */
-					Twispay_TW_Status_Updater::updateSubscriptionStatus( $subscription->get_parent_id(), $response->data[0]->orderStatus );
+					Twispay_TW_Status_Updater::update_subscription_status( $subscription->get_parent_id(), $response->data[0]->orderStatus );
 				} else {
 					/* Cancel the local subscription as no order was found on the server. */
-					Twispay_TW_Status_Updater::updateSubscriptionStatus( $subscription->get_parent_id(), Twispay_TW_Status_Updater::$RESULT_STATUSES['CANCEL_OK'] );
+					Twispay_TW_Status_Updater::update_subscription_status( $subscription->get_parent_id(), Twispay_TW_Status_Updater::$result_statuses['CANCEL_OK'] );
 				}
 
 				/* Redirect to the Transaction list Page with success. */

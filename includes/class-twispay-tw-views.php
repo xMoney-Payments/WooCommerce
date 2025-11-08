@@ -33,8 +33,8 @@ if ( ! class_exists( 'Twispay_TW_Views' ) ) :
 		/**
 		 * Render the Front Twispay View
 		 *
-		 * @public
-		 * @return string Individual view
+		 * @param string $slug The view slug filename (without ".php").
+		 * @return void
 		 */
 		public function twispay_tw_render_view( $slug ) {
 				include TWISPAY_PLUGIN_DIR . 'views/' . $slug . '.php';

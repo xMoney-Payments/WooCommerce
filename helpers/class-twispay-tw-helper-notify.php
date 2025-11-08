@@ -26,26 +26,26 @@ if ( ! class_exists( 'Twispay_TW_Helper_Notify' ) ) :
 		/**
 		 * Get the `jsonRequest` parameter (order parameters as JSON and base64 encoded).
 		 *
-		 * @param array $orderData The order parameters.
+		 * @param array $order_data The order parameters.
 		 *
 		 * @return string
 		 */
-		public static function getBase64JsonRequest( array $orderData ): string {
-			return base64_encode( json_encode( $orderData ) );
+		public static function get_base64_json_request( array $order_data ): string {
+			return base64_encode( json_encode( $order_data ) );
 		}
 
 
 		/**
 		 * Get the `checksum` parameter (the checksum computed over the `jsonRequest` and base64 encoded).
 		 *
-		 * @param array  $orderData The order parameters.
-		 * @param string $secretKey The secret key (from Twispay).
+		 * @param array  $order_data The order parameters.
+		 * @param string $secret_key The secret key (from Twispay).
 		 *
 		 * @return string
 		 */
-		public static function getBase64Checksum( array $orderData, $secretKey ): string {
-			$hmacSha512 = hash_hmac( /*algo*/'sha512', json_encode( $orderData ), $secretKey, /*raw_output*/true );
-			return base64_encode( $hmacSha512 );
+		public static function get_base64_checksum( array $order_data, $secret_key ): string {
+			$hmac_sha512 = hash_hmac( /*algo*/'sha512', json_encode( $order_data ), $secret_key, /*raw_output*/true );
+			return base64_encode( $hmac_sha512 );
 		}
 	}
 endif; /* End if class_exists. */
