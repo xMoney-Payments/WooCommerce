@@ -38,8 +38,12 @@ function twispay_tw_transaction_log_administrator() {
                 <h1><?php echo esc_html__( 'Transaction log','xmoney-payments' ); ?></h1>
                 <p><?php echo esc_html__( 'Transaction log in raw form.','xmoney-payments' ); ?></p>
                 <?php
-                    if ( file_exists( TWISPAY_PLUGIN_DIR . 'twispay-log.txt' ) ) {
-                        echo '<textarea readonly style="width: 900px; height: 386px; margin-top: 10px;">' . wp_kses( file_get_contents( TWISPAY_PLUGIN_DIR . 'twispay-log.txt' ), wp_kses_allowed_html( 'strip' ) ) . '</textarea>';
+                    $uploads   = wp_upload_dir();
+                    $log_file  = trailingslashit( $uploads['basedir'] ) . 'xmoney-payments/logs/twispay-log.txt';
+
+                    if ( file_exists( $log_file ) ) {
+                        $content = @file_get_contents( $log_file );
+                        echo '<textarea readonly style="width: 900px; height: 386px; margin-top: 10px;">' . esc_textarea( $content ) . '</textarea>';
                     } else {
                         echo '<p>' . esc_html__( 'No log recorded yet.','xmoney-payments' ) . '</p>';
                     }

@@ -26,26 +26,27 @@ require_once( TWISPAY_PLUGIN_DIR . DIRECTORY_SEPARATOR . 'helpers' . DIRECTORY_S
  */
 function twispay_tw_check_if_is_admin(): bool
 {
-    // Check if is admin page
+    // Early exit if not in admin.
     if ( ! is_admin() ) {
         return false;
     }
 
-    // Check if the page parameters is present
-    // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page GET parameter; not sensitive, only used to detect page context.
-    if ( ! isset( $_GET['page'] ) ) {
+    // Prefer current screen API over directly accessing $_GET to avoid nonce warnings.
+    // get_current_screen() is available on admin pages after 'current_screen' is set.
+    $screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
+    if ( ! $screen ) {
         return false;
     }
 
-    // Make array with all xMoney Payments Pages
-    $tw_pages = array(
-        'xmoney-payments',
-        'tw-transaction'
+    // Whitelist screen IDs for this plugin (top-level + subpages).
+    $tw_screen_ids = array(
+        'toplevel_page_xmoney-payments',
+        'xmoney-payments_page_xmoney-payments',
+        'xmoney-payments_page_tw-transaction',
+        'xmoney-payments_page_tw-transaction-log',
     );
 
-    // Check if current page is one of the xMoney Payments Pages
-    // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Safe GET parameter; not modifying anything, just used to determine admin page context
-    return in_array( sanitize_text_field( $_GET['page'] ), $tw_pages );
+    return in_array( $screen->id, $tw_screen_ids, true );
 }
 
 
@@ -338,7 +339,11 @@ function init_twispay_gateway_class() {
                      * The woocommerce_after_checkout_form hook will intercept the passed parameters and redirect
                      * to the xMoney Payments payment gateway page
                      */
-                    $args = array( 'order_id' =>  $order_id . '_sub' );
+                    // Include a nonce so the subscription processor can verify the request.
+                    $args = array(
+                        'order_id' =>  $order_id . '_sub',
+                        '_wpnonce' => wp_create_nonce( 'twispay_process' ),
+                    );
 
                     return array(
                       'result' => 'success',
@@ -361,7 +366,11 @@ function init_twispay_gateway_class() {
                      * The woocommerce_after_checkout_form hook will intercept the passed parameters and redirect
                      * to the xMoney Payments payment gateway page
                      */
-                    $args = array( 'order_id' =>  $order_id );
+                    // Include a nonce so the main processor can verify the request.
+                    $args = array(
+                        'order_id' =>  $order_id,
+                        '_wpnonce' => wp_create_nonce( 'twispay_process' ),
+                    );
 
                     return array(
                       'result' => 'success',

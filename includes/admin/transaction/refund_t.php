@@ -28,13 +28,18 @@ if ( file_exists( TWISPAY_PLUGIN_DIR . 'lang/' . $lang . '/lang.php' ) ) {
     <h2><?php echo esc_html__( 'Refund Payment Transaction','xmoney-payments' ); ?></h2>
     <p><?php echo esc_html__( 'Following payment transaction will be refunded:','xmoney-payments' ); ?></p>
 
-    <!-- Get all payment transactions ID from the $_GET parameters -->
+    <!-- Get all payment transactions ID from the $_GET parameters (only if nonce is valid) -->
     <?php
-        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, only for displaying a value, not processing an action
-        if ( isset( $_GET['payment_ad'] ) && esc_attr( sanitize_text_field(wp_unslash($_GET['payment_ad'])) ) ) {
-            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, only for displaying a value, not processing an action
-            foreach ( explode( ',', esc_attr(sanitize_text_field(wp_unslash($_GET['payment_ad'])) ) ) as $key => $a_id ) {
-                echo '<p>ID: #' . esc_html($a_id) . '</p>';
+        $list_nonce = isset($_GET['twispay_transactions_nonce']) ? sanitize_text_field( wp_unslash( $_GET['twispay_transactions_nonce'] ) ) : '';
+        if (
+            ! empty( $list_nonce ) &&
+            wp_verify_nonce( $list_nonce, 'twispay_transactions_action' ) &&
+            isset( $_GET['payment_ad'] ) &&
+            sanitize_text_field( wp_unslash( $_GET['payment_ad'] ) )
+        ) {
+            $ids_raw = sanitize_text_field( wp_unslash( $_GET['payment_ad'] ) );
+            foreach ( explode( ',', $ids_raw ) as $key => $a_id ) {
+                echo '<p>ID: #' . esc_html( $a_id ) . '</p>';
             }
         }
     ?>

@@ -10,7 +10,8 @@ class Twispay_Subscription_Processor {
     private string $nonce_action = 'twispay_process';
 
     public function __construct() {
-        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Safe: only reading GET to display checkout flow.
+        // Defer nonce verification until process() (pluggable may not be loaded yet here).
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only retrieval and sanitization.
         $this->order_id = !empty($_GET['order_id']) ? (int)sanitize_key($_GET['order_id']) : null;
         // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Safe: no state change occurs here.
         if ($this->order_id && strpos(sanitize_text_field(wp_unslash($_GET['order_id'])), '_sub') !== false) {
@@ -145,12 +146,12 @@ class Twispay_Subscription_Processor {
             $item['name']
         );
 
-        $orderId = NULL;
 
-        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Safe: reading GET only to build payment request, no state change.
+        $orderId = null;
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Already verified in process; sanitized below for safe echo.
         if (isset($_GET['order_id'])) {
-            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Safe: reading GET only to build payment request, no state change.
-            $orderId = sanitize_key($_GET['order_id']);
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Already verified in process; sanitized below for safe echo.
+            $orderId = sanitize_text_field(wp_unslash($_GET['order_id']));
         }
 
         $order_data = [

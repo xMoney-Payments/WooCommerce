@@ -36,11 +36,12 @@ function twispay_tw_transaction_administrator() {
         <?php
     }
     else {
-        // Check if the view / edit / delete action is detected, otherwise load the campaigns form
-        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, value used only for display
-        if ( isset( $_GET['action'] ) && sanitize_text_field( wp_unslash($_GET['action']) ) ) {
-            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, value used only for display
-            $action = sanitize_text_field( wp_unslash($_GET['action']) );
+        // Check if the view / edit / delete action is detected, otherwise load the campaigns form.
+        // Read-only routing: no state mutation; nonce not required. Parameters sanitized before use.
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Using sanitized GET purely for conditional include.
+        if ( isset( $_GET['action'] ) && sanitize_text_field( wp_unslash( $_GET['action'] ) ) ) {
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Using sanitized GET purely for conditional include.
+            $action = sanitize_text_field( wp_unslash( $_GET['action'] ) );
 
             switch ( $action ) {
                 case 'refund_payment':
@@ -74,10 +75,11 @@ function twispay_tw_transaction_administrator() {
 
 
                     <?php
-                        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, value used only to display proper message
-                        if ( isset( $_GET['notice'] ) && sanitize_text_field( wp_unslash($_GET['notice']) ) ) {
-                            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, value used only to display proper message
-                            $notice = sanitize_text_field( wp_unslash($_GET['notice']) );
+                        // Display-only notice handling; no state change performed.
+                        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Sanitized GET controls conditional messaging only.
+                        if ( isset( $_GET['notice'] ) && sanitize_text_field( wp_unslash( $_GET['notice'] ) ) ) {
+                            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Sanitized GET controls conditional messaging only.
+                            $notice = sanitize_text_field( wp_unslash( $_GET['notice'] ) );
 
                             switch ( $notice ) {
                                 case 'error_refund':
@@ -118,9 +120,9 @@ function twispay_tw_transaction_administrator() {
                                 case 'errorp_refund':
                                     ?>
                                         <div class="error notice">
-                                            <p><?php
-                                                    // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, value used only to display proper message
-                                                    echo (isset($_GET['emessage']) ? esc_html(sanitize_text_field(wp_unslash( $_GET['emessage'] )) ) : ''); ?></p>
+                        <p><?php
+                            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Display-only sanitized error message.
+                            echo ( isset( $_GET['emessage'] ) ? esc_html( sanitize_text_field( wp_unslash( $_GET['emessage'] ) ) ) : '' ); ?></p>
                                         </div>
                                     <?php
                                     break;
@@ -134,8 +136,9 @@ function twispay_tw_transaction_administrator() {
 
                     <form method="get">
                         <input type="hidden" name="page" value="<?php
-                            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page, value used only to set current page sanitized and unslashed
-                            echo (isset($_REQUEST['page']) ? esc_attr(sanitize_text_field(wp_unslash($_REQUEST['page'])) ) : '') ?>" />
+                            // Preserve page slug for search/sort form submission.
+                            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only context.
+                            echo ( isset( $_GET['page'] ) ? esc_attr( sanitize_text_field( wp_unslash( $_GET['page'] ) ) ) : '' ) ?>" />
                         <?php wp_nonce_field('twispay_transactions_action', 'twispay_transactions_nonce'); ?>
                         <?php $transaction_table->search_box( esc_html__( 'Search Order','xmoney-payments' ), 'search-query' ); ?>
                     </form>

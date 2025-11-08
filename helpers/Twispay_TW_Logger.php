@@ -80,12 +80,45 @@ if ( ! class_exists( 'Twispay_TW_Logger' ) ) :
          * @return Void
          */
         public static function twispay_tw_log( $message = FALSE ) {
-            $log_file = dirname( __FILE__ ) . '/../twispay-log.txt';
-            /* Build the log message. */
-            $message = (!$message) ? (PHP_EOL . PHP_EOL) : ("[" . gmdate( 'Y-m-d H:i:s' ) . "] " . esc_html( $message ) );
+            // Resolve uploads directory and ensure plugin subfolder exists: /uploads/xmoney-payments/logs/
+            $uploads = wp_upload_dir();
+            if ( ! empty( $uploads['error'] ) ) {
+                // If uploads dir isn't available, bail silently to avoid breaking site behavior.
+                return;
+            }
 
-            /* Try to append log to file and silence and PHP errors may occur. */
-            @file_put_contents( $log_file, esc_html( $message ) . PHP_EOL, FILE_APPEND );
+            $base_dir = trailingslashit( $uploads['basedir'] ) . 'xmoney-payments';
+            $log_dir  = trailingslashit( $base_dir ) . 'logs';
+
+            // Create directories
+            wp_mkdir_p( $log_dir );
+
+            // Initialize WP_Filesystem for safe file operations.
+            if ( ! function_exists( 'WP_Filesystem' ) ) {
+                require_once ABSPATH . 'wp-admin/includes/file.php';
+            }
+            $fs_connected = WP_Filesystem();
+            if ( ! $fs_connected ) {
+                return; // Fail silently if FS API not available
+            }
+            global $wp_filesystem;
+
+            // Add index.php (mitigate directory browsing); ignore PHPCS alt functions via WP API only.
+            $index_file = trailingslashit( $log_dir ) . 'index.php';
+            if ( ! $wp_filesystem->exists( $index_file ) ) {
+                $wp_filesystem->put_contents( $index_file, "<?php\n// Silence is golden.\n", FS_CHMOD_FILE );
+            }
+
+            $log_file = trailingslashit( $log_dir ) . 'twispay-log.txt';
+
+            // Build log line; no browser output, so no esc_* needed.
+            $line = ( ! $message )
+                ? ( PHP_EOL . PHP_EOL )
+                : ( '[' . gmdate( 'Y-m-d H:i:s' ) . '] ' . ( is_string( $message ) ? $message : wp_json_encode( $message ) ) );
+
+            // Append: read existing then write new combined contents.
+            $existing = $wp_filesystem->exists( $log_file ) ? (string) $wp_filesystem->get_contents( $log_file ) : '';
+            $wp_filesystem->put_contents( $log_file, $existing . $line . PHP_EOL, FS_CHMOD_FILE );
         }
     }
 endif; /* End if class_exists. */

@@ -355,28 +355,28 @@
          */
         public function search_box(string $text, string $input_id)
         {
-            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Safe: Used only for display filtering.
-            if (empty($_REQUEST['s']) && !$this->has_items())
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only search parameter used for display; no state change occurs.
+            if (empty($_GET['s']) && !$this->has_items())
                 return;
 
             $input_id = $input_id . '-search-input';
 
-            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Safe: Used only for display filtering.
-            if (!empty($_REQUEST['orderby']))
-                // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Safe: Used only for display filtering.
-                echo '<input type="hidden" name="orderby" value="' . esc_attr(sanitize_text_field(wp_unslash($_REQUEST['orderby']))) . '" />';
-            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Safe: Used only for display filtering.
-            if (!empty($_REQUEST['order']))
-                // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Safe: Used only for display filtering.
-                echo '<input type="hidden" name="order" value="' . esc_attr(sanitize_text_field(wp_unslash($_REQUEST['order']))) . '" />';
-            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Safe: Used only for display filtering.
-            if (!empty($_REQUEST['post_mime_type']))
-                // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Safe: Used only for display filtering.
-                echo '<input type="hidden" name="post_mime_type" value="' . esc_attr(sanitize_text_field(wp_unslash($_REQUEST['post_mime_type']))) . '" />';
-            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Safe: Used only for display filtering.
-            if (!empty($_REQUEST['detached']))
-                // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Safe: Used only for display filtering.
-                echo '<input type="hidden" name="detached" value="' . esc_attr(sanitize_text_field(wp_unslash($_REQUEST['detached']))) . '" />';
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Display-only preservation of sort key.
+            if (!empty($_GET['orderby']))
+                // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Display-only preservation of sort key.
+                echo '<input type="hidden" name="orderby" value="' . esc_attr(sanitize_text_field(wp_unslash($_GET['orderby']))) . '" />';
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Display-only preservation of sort direction.
+            if (!empty($_GET['order']))
+                // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Display-only preservation of sort direction.
+                echo '<input type="hidden" name="order" value="' . esc_attr(sanitize_text_field(wp_unslash($_GET['order']))) . '" />';
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Display-only filter parameter.
+            if (!empty($_GET['post_mime_type']))
+                // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Display-only filter parameter.
+                echo '<input type="hidden" name="post_mime_type" value="' . esc_attr(sanitize_text_field(wp_unslash($_GET['post_mime_type']))) . '" />';
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Display-only filter parameter.
+            if (!empty($_GET['detached']))
+                // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Display-only filter parameter.
+                echo '<input type="hidden" name="detached" value="' . esc_attr(sanitize_text_field(wp_unslash($_GET['detached']))) . '" />';
             ?>
             <p class="search-box">
                 <label class="screen-reader-text"
@@ -560,12 +560,12 @@
             }
 
             $extra_checks = "AND post_status != 'auto-draft'";
-            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Safe: Used only for display filtering.
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only filter; controls listing view only.
             if (!isset($_GET['post_status']) || 'trash' !== sanitize_text_field(wp_unslash($_GET['post_status']))) {
                 $extra_checks .= " AND post_status != 'trash'";
-                // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Safe: Used only for display filtering.
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only filter; controls listing view only.
             } elseif (isset($_GET['post_status'])) {
-                // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Safe: Used only for display filtering.
+                // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only filter; controls listing view only.
                 $extra_checks = $wpdb->prepare(' AND post_status = %s', sanitize_text_field(wp_unslash($_GET['post_status'])));
             }
 
@@ -599,7 +599,7 @@
             if (!$month_count || (1 == $month_count && 0 == $months[0]->month))
                 return;
 
-            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Safe: Used only for display filtering.
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only month filter; controls listing view only.
             $m = isset($_GET['m']) ? (int)sanitize_text_field(wp_unslash($_GET['m'])) : 0;
             ?>
             <label for="filter-by-date" class="screen-reader-text"><?php esc_html__('Filter by date', 'xmoney-payments'); ?></label>
@@ -724,8 +724,8 @@
          */
         public function get_twispay_pagenum(): int
         {
-            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Safe: Used only for display filtering.
-            $pagenum = isset($_REQUEST['paged']) ? absint(sanitize_text_field(wp_unslash($_REQUEST['paged']))) : 0;
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only pagination parameter.
+            $pagenum = isset($_GET['paged']) ? absint(sanitize_text_field(wp_unslash($_GET['paged']))) : 0;
 
             if (isset($this->_pagination_args['total_pages']) && $pagenum > $this->_pagination_args['total_pages'])
                 $pagenum = $this->_pagination_args['total_pages'];
@@ -1103,15 +1103,15 @@
                 $current_url = remove_query_arg('paged', $current_url);
             }
 
-            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Safe: Used only for display filtering.
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only sort control; does not mutate state.
             if (isset($_GET['orderby'])) {
-                // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Safe: Used only for display filtering.
+                // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only sort control; does not mutate state.
                 $current_orderby = sanitize_text_field(wp_unslash($_GET['orderby']));
             } else {
                 $current_orderby = '';
             }
 
-            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Safe: Used only for display filtering.
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only sort control; does not mutate state.
             if (isset($_GET['order']) && 'desc' === sanitize_text_field(wp_unslash($_GET['order']))) {
                 $current_order = 'desc';
             } else {
@@ -1398,8 +1398,8 @@
             $this->prepare_items();
 
             ob_start();
-            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Safe: Used only for display.
-            if (!empty($_REQUEST['no_placeholder'])) {
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only AJAX hint; affects rendering only.
+            if (!empty($_GET['no_placeholder'])) {
                 $this->display_rows();
             } else {
                 $this->display_rows_or_placeholder();

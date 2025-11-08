@@ -47,7 +47,13 @@ function tw_twispay_p_refund_payment_transaction() {
     }
 
     if ( isset( $_GET['payment_ad'] ) && sanitize_text_field(wp_unslash($_GET['payment_ad']) ) ) {
-        $transaction_id = sanitize_text_field(wp_unslash($_GET['payment_ad']));
+        $transaction_id_raw = sanitize_text_field( wp_unslash( $_GET['payment_ad'] ) );
+        // Enforce strict numeric transaction id to prevent path manipulation/credential leakage.
+        if ( ! preg_match( '/^[0-9]+$/', $transaction_id_raw ) ) {
+            wp_safe_redirect( admin_url( 'admin.php?page=tw-transaction&notice=error_refund' ) );
+            return;
+        }
+        $transaction_id = $transaction_id_raw;
 
         /* Get configuration from database. */
         global $wpdb;
@@ -114,8 +120,13 @@ function tw_twispay_p_recurring_order( $request ) {
     }
 
     if ( isset( $_GET['order_ad'] ) && sanitize_key( $_GET['order_ad'] ) ) {
-
-        $order_ad = (int) sanitize_key( $_GET['order_ad'] );
+        $order_ad_raw = sanitize_key( $_GET['order_ad'] );
+        // Order IDs are numeric; enforce to avoid unintended API target manipulation.
+        if ( ! preg_match( '/^[0-9]+$/', $order_ad_raw ) ) {
+            wp_safe_redirect( admin_url( 'admin.php?page=tw-transaction&notice=error_recurring' ) );
+            return;
+        }
+        $order_ad = (int) $order_ad_raw;
 
         /* Get configuration from database. */
         global $wpdb;

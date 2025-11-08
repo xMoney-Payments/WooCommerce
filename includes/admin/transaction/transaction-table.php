@@ -68,20 +68,30 @@ class Twispay_TransactionTable extends Twispay_Tw_List_Table {
      *
      */
     public function search_box(string $text, string $input_id ) {
-        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Viewing data only, no action performed.
-        if ( isset( $_REQUEST['orderby'] ) && esc_attr(sanitize_text_field(wp_unslash( $_REQUEST['orderby'])) ) ) {
-            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Viewing data only, no action performed.
-            echo '<input type="hidden" name="orderby" value="' . esc_attr(sanitize_text_field(wp_unslash($_REQUEST['orderby'])) ) . '" />';
+        // Read-only GET parameters for view state. Nonce not required because no state change occurs.
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Display-only preservation of sort/filter parameters.
+        if ( isset( $_GET['orderby'] ) ) {
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Display-only preservation of sort/filter parameters.
+            $orderby = sanitize_text_field( wp_unslash( $_GET['orderby'] ) );
+            if ( $orderby !== '' ) {
+                echo '<input type="hidden" name="orderby" value="' . esc_attr( $orderby ) . '" />';
+            }
         }
-        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Safe read for table sorting
-        if ( isset( $_REQUEST['order'] ) && esc_attr(sanitize_text_field(wp_unslash($_REQUEST['order'])) ) ) {
-            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Safe read for table sorting
-            echo '<input type="hidden" name="order" value="' . esc_attr(sanitize_text_field(wp_unslash($_REQUEST['order'])) ) . '" />';
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Display-only.
+        if ( isset( $_GET['order'] ) ) {
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Display-only.
+            $order = sanitize_text_field( wp_unslash( $_GET['order'] ) );
+            if ( $order !== '' ) {
+                echo '<input type="hidden" name="order" value="' . esc_attr( $order ) . '" />';
+            }
         }
-        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Safe read for status
-        if ( isset( $_REQUEST['status'] ) && esc_attr(sanitize_text_field(wp_unslash($_REQUEST['status'])) ) ) {
-            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Safe read for status
-            echo '<input type="hidden" name="status" value="' . esc_attr(sanitize_text_field(wp_unslash($_REQUEST['status'])) ) . '" />';
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Display-only.
+        if ( isset( $_GET['status'] ) ) {
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Display-only.
+            $status = sanitize_text_field( wp_unslash( $_GET['status'] ) );
+            if ( $status !== '' ) {
+                echo '<input type="hidden" name="status" value="' . esc_attr( $status ) . '" />';
+            }
         }
 
         ?>
@@ -122,8 +132,8 @@ class Twispay_TransactionTable extends Twispay_Tw_List_Table {
         global $wpdb;
 
         $views = array();
-        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Viewing data only, no action performed.
-        $current = ( ! empty( $_REQUEST['status'] ) ? sanitize_text_field( wp_unslash($_REQUEST['status']) ) : 'all' );
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only view filter.
+        $current = ( ! empty( $_GET['status'] ) ? sanitize_text_field( wp_unslash( $_GET['status'] ) ) : 'all' );
 
         //All link
         $class = ( $current == 'all' ? ' class="current"' :'' );
@@ -238,14 +248,12 @@ class Twispay_TransactionTable extends Twispay_Tw_List_Table {
         /**
          * Sanitize request variables safely (no nonce check needed for viewing data).
          */
-        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Safe read for search
-        $s = isset($_REQUEST['s']) ? sanitize_text_field(wp_unslash($_REQUEST['s'])) : 'all';
-
-        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Safe read for sorting
-        $order_by = isset($_REQUEST['orderby']) ? sanitize_text_field(wp_unslash($_REQUEST['orderby'])) : '';
-
-        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Safe read for sorting
-        $order_how = isset($_REQUEST['order']) ? sanitize_text_field(wp_unslash($_REQUEST['order'])) : 'asc';
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- All GET accesses are for read-only listing controls.
+        $s = isset( $_GET['s'] ) ? sanitize_text_field( wp_unslash( $_GET['s'] ) ) : 'all';
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only sort key.
+        $order_by = isset( $_GET['orderby'] ) ? sanitize_text_field( wp_unslash( $_GET['orderby'] ) ) : '';
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only sort direction.
+        $order_how = isset( $_GET['order'] ) ? sanitize_text_field( wp_unslash( $_GET['order'] ) ) : 'asc';
 
         /**
          * Safely define table names. esc_sql() used because $wpdb->prepare() cannot handle identifiers.

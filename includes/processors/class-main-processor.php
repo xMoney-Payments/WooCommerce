@@ -10,7 +10,8 @@ class Twispay_Main_Processor {
     private string $nonce_action = 'twispay_process';
 
     public function __construct() {
-        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Safe: only reading GET to display checkout flow.
+        // Defer nonce verification until process() (pluggable may not be loaded yet here).
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only retrieval and sanitization.
         $this->order_id = !empty($_GET['order_id']) ? (int)sanitize_key($_GET['order_id']) : null;
         // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Safe: no state change occurs here.
         if ($this->order_id && strpos(sanitize_text_field(wp_unslash($_GET['order_id'])), '_sub') === false) {
@@ -19,6 +20,18 @@ class Twispay_Main_Processor {
     }
 
     public function process() {
+        // Verify request integrity.
+        $raw_nonce = '';
+        if (isset($_POST['_wpnonce'])) {
+            $raw_nonce = sanitize_text_field(wp_unslash($_POST['_wpnonce']));
+        } elseif (isset($_GET['_wpnonce'])) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only retrieval.
+            $raw_nonce = sanitize_text_field(wp_unslash($_GET['_wpnonce']));
+        }
+        if (empty($raw_nonce) || !wp_verify_nonce($raw_nonce, $this->nonce_action)) {
+            wc_add_notice(esc_html__('Invalid request. Please try again.', 'xmoney-payments'), 'error');
+            wp_safe_redirect(wc_get_cart_url());
+            return;
+        }
         require_once TWISPAY_PLUGIN_DIR . 'helpers/Twispay_TW_Helper_Notify.php';
         require_once TWISPAY_PLUGIN_DIR . 'helpers/Twispay_TW_Helper_Processor.php';
         $this->language = Twispay_TW_Helper_Processor::get_current_language();
@@ -104,12 +117,11 @@ class Twispay_Main_Processor {
             $back_url
         ), 'twispay_process');
 
-        $orderId = NULL;
-
-        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Safe: reading GET only to build payment request, no state change.
-        if(isset($_GET['order_id'])){
-            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Safe: reading GET only to build payment request, no state change.
-            $orderId = sanitize_key($_GET['order_id']);
+        $orderId = null;
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Already verified in process; sanitized below for safe echo.
+        if (isset($_GET['order_id'])) {
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Already verified in process; sanitized below for safe echo.
+            $orderId = sanitize_text_field(wp_unslash($_GET['order_id']));
         }
 
         $order_data = [

@@ -77,8 +77,14 @@ if ( $configuration ) {
 /* Check if the POST is corrupted: Doesn't contain the 'opensslResult' and the 'result' fields. */
                                           /* OR */
 /* Check if the 'backUrl' is corrupted: Doesn't contain the 'secure_key' field or nonce. */
-if (!isset($_REQUEST['_wpnonce']) ||
-    !wp_verify_nonce(sanitize_text_field(wp_unslash($_REQUEST['_wpnonce'])), 'twispay_process')) {
+// Verify nonce from either POST or GET without relying on $_REQUEST
+$received_nonce = '';
+if ( isset( $_POST['_wpnonce'] ) ) {
+    $received_nonce = sanitize_text_field( wp_unslash( $_POST['_wpnonce'] ) );
+} elseif ( isset( $_GET['_wpnonce'] ) ) {
+    $received_nonce = sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) );
+}
+if ( empty( $received_nonce ) || ! wp_verify_nonce( $received_nonce, 'twispay_process' ) ) {
     if (((FALSE == isset($_POST['opensslResult'])) && (FALSE == isset($_POST['result']))) || (FALSE == isset($_GET['secure_key']))) {
         Twispay_TW_Logger::twispay_tw_log(esc_html__('[RESPONSE-ERROR]: Received empty response.', 'xmoney-payments'));
         ?>
@@ -293,7 +299,9 @@ if (FALSE == $order) {
 }
 
 /* Check if the WooCommerce order cart hash does NOT MATCH the one sent to the server. */
-if ( sanitize_text_field( wp_unslash($_GET['secure_key']) ) != $order->get_data()['cart_hash']) {
+$secure_key_raw = isset($_GET['secure_key']) ? sanitize_text_field( wp_unslash($_GET['secure_key']) ) : '';
+// Accept only hex characters and reasonable length to avoid passing arbitrary values onward.
+if ( empty($secure_key_raw) || ! preg_match('/^[A-Fa-f0-9]{16,64}$/', $secure_key_raw) || $secure_key_raw !== $order->get_data()['cart_hash'] ) {
     Twispay_TW_Logger::twispay_tw_log(esc_html__('[RESPONSE-ERROR]: Invalid order identification key.', 'xmoney-payments'));
     ?>
     <div class="error notice" style="margin-top: 20px;">

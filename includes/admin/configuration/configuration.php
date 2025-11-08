@@ -104,7 +104,7 @@ function twispay_tw_configuration() {
                             <th scope="row"><label for="r_custom_thankyou"><?php echo esc_html__( 'Redirect to custom Thank you page','xmoney-payments' ); ?></span></label></th>
                             <td>
                                 <?php echo wp_kses(twispay_tw_get_wp_pages(), twispay_allowed_tags()); ?>
-                                <p class="description"><?php echo esc_html__( 'If you want to display custom Thank you page, set it up here. You can create new custom page from','xmoney-payments' ); ?> <a href="<?php echo esc_url_raw(get_admin_url() . 'post-new.php?post_type=page'); ?>"><?php echo esc_html__( 'here','xmoney-payments' ); ?></a>.</p>
+                                <p class="description"><?php echo esc_html__( 'If you want to display custom Thank you page, set it up here. You can create new custom page from','xmoney-payments' ); ?> <a href="<?php echo esc_url(get_admin_url() . 'post-new.php?post_type=page'); ?>"><?php echo esc_html__( 'here','xmoney-payments' ); ?></a>.</p>
                             </td>
                         </tr>
                         <tr class="form-field" id="suppress_email">

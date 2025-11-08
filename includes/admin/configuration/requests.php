@@ -52,7 +52,7 @@ function tw_twispay_p_edit_general_configuration( $request ) {
 
     // Check if the Configuration row exist into Database
     // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table names are escaped manually and safe.
-    $configuration = $wpdb->get_results("SELECT * FROM {$table_name}", $table_name);
+    $configuration = $wpdb->get_results("SELECT * FROM {$table_name}");
 
     if ( $configuration ) {
         // Edit the Configuration into Database ( twispay_tw_configuration table )
