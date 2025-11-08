@@ -33,14 +33,14 @@ if (!defined('ABSPATH')) {
  * @return void
  */
 function tw_twispay_p_edit_general_configuration( $request ) {
-    $live_mode              = sanitize_text_field( $request['live_mode'] );
-    $staging_site_id        = sanitize_text_field( $request['staging_site_id'] );
-    $staging_private_key    = sanitize_text_field( $request['staging_private_key'] );
-    $live_site_id           = sanitize_text_field( $request['live_site_id'] );
-    $live_private_key       = sanitize_text_field( $request['live_private_key'] );
-    $thankyou_page          = sanitize_text_field( $request['wp_pages'] );
-    $suppress_email         = sanitize_text_field( $request['suppress_email'] );
-    $contact_email_o        = sanitize_email( $request['contact_email_o'] );
+    $live_mode              = sanitize_text_field(wp_unslash($request['live_mode'] ));
+    $staging_site_id        = sanitize_text_field(wp_unslash($request['staging_site_id'] ));
+    $staging_private_key    = sanitize_text_field(wp_unslash($request['staging_private_key']));
+    $live_site_id           = sanitize_text_field(wp_unslash($request['live_site_id']));
+    $live_private_key       = sanitize_text_field(wp_unslash($request['live_private_key']));
+    $thankyou_page          = sanitize_text_field(wp_unslash($request['wp_pages']));
+    $suppress_email         = sanitize_text_field(wp_unslash($request['suppress_email']));
+    $contact_email_o        = sanitize_email(wp_unslash($request['contact_email_o']));
 
     if ( $contact_email_o === '' ) {
         $contact_email_o = 0;

@@ -20,82 +20,132 @@ if (!defined('ABSPATH')) {
  * @public
  * @return void
  */
-function twispay_tw_main_action() {
-    // Only process admin actions on POST to avoid unintended GET triggers
-    if ( isset( $_POST['tw_general_action'] ) ) {
-        if (!isset($_POST['twispay_general_nonce']) ||
-            !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['twispay_general_nonce'])), 'twispay_general_action')) {
+function twispay_tw_main_action()
+{
 
-            wp_die(esc_attr_e('You do not have permission to access this file', 'xmoney-payments'), esc_attr_e('Error', 'xmoney-payments'), array('response' => 403));
+    if (isset($_POST['tw_general_action'])) {
+
+        /* Nonce check */
+        if (
+            !isset($_POST['twispay_general_nonce']) ||
+            !wp_verify_nonce(
+                sanitize_text_field(wp_unslash($_POST['twispay_general_nonce'])),
+                'twispay_general_action'
+            )
+        ) {
+            wp_die(
+                esc_html__('You do not have permission to access this file.', 'xmoney-payments'),
+                esc_html__('Error', 'xmoney-payments'),
+                array('response' => 403)
+            );
         }
 
-        /* Sanitize the requested action slug (underscores / alphanumerics only). */
-        $action_slug = sanitize_key( wp_unslash( $_POST['tw_general_action'] ) );
+        /* Sanitize the requested action */
+        $action = sanitize_key(wp_unslash($_POST['tw_general_action']));
 
-        /* Whitelist of allowed admin actions mapped to their hook names. */
-        $allowed_actions = array(
-            'edit_general_configuration' => 'tw_edit_general_configuration',
-            'refund_payment_transaction' => 'tw_refund_payment_transaction',
-            'recurring_order'            => 'tw_recurring_order',
-            'synchronize_subscriptions'  => 'tw_synchronize_subscriptions',
+        /**
+         * Whitelisted admin actions & their input fields.
+         */
+        $allowed_fields = array(
+
+            'edit_general_configuration' => array(
+                'live_mode' => 'text',
+                'staging_site_id' => 'text',
+                'staging_private_key' => 'text',
+                'live_site_id' => 'text',
+                'live_private_key' => 'text',
+                'wp_pages' => 'text',
+                'suppress_email' => 'text',
+                'contact_email_o' => 'text',
+            ),
+
+            'refund_payment_transaction' => array(
+                'payment_ad' => 'absint',
+            ),
+
+            'recurring_order' => array(
+                'order_ad' => 'absint',
+            ),
+
+            'synchronize_subscriptions' => array(),
         );
 
-        /* Reject anything not explicitly whitelisted. */
-        if ( ! isset( $allowed_actions[ $action_slug ] ) ) {
+        /* Validate the requested action */
+        if (!isset($allowed_fields[$action])) {
             wp_die(
-                esc_html__( 'Invalid action requested.', 'xmoney-payments' ),
-                esc_html__( 'Error', 'xmoney-payments' ),
-                array( 'response' => 400 )
+                esc_html__('Invalid request.', 'xmoney-payments'),
+                esc_html__('Error', 'xmoney-payments'),
+                array('response' => 403)
             );
         }
 
-        // Check if current user have administrator permissions (prefer manage_options for configuration, manage_woocommerce otherwise)
-        $needs_manage_options    = ( 'edit_general_configuration' === $action_slug );
-        $required_capability     = $needs_manage_options ? 'manage_options' : 'manage_woocommerce';
-        if ( ! current_user_can( $required_capability ) ) {
+        /**
+         * Capability enforcement
+         */
+        $required_capability = ('edit_general_configuration' === $action)
+            ? 'manage_options'
+            : 'manage_woocommerce';
+
+        if (!current_user_can($required_capability)) {
             wp_die(
-                esc_html__( 'You do not have permission to access this file', 'xmoney-payments' ),
-                esc_html__( 'Error', 'xmoney-payments' ),
-                array( 'response' => 403 )
+                esc_html__('You do not have permission to perform this action.', 'xmoney-payments'),
+                esc_html__('Error', 'xmoney-payments'),
+                array('response' => 403)
             );
         }
 
-        // Ensure request executed only within admin context
-        if ( ! is_admin() ) {
+        /* Ensure admin context */
+        if (!is_admin()) {
             wp_die(
-                esc_html__( 'You do not have permission to access the file from here', 'xmoney-payments' ),
-                esc_html__( 'Error', 'xmoney-payments' ),
-                array( 'response' => 403 )
+                esc_html__('Access is not allowed from this location.', 'xmoney-payments'),
+                esc_html__('Error', 'xmoney-payments'),
+                array('response' => 403)
             );
         }
 
-        /* Build sanitized argument array ONLY for the action that expects parameters. */
-        $hook_name   = $allowed_actions[ $action_slug ];
-        $action_args = null; // null => no args; array => pass as first arg
+        /* Sanitize arguments for the selected action (PHPCS Safe) */
+        $args = array();
 
-        if ( 'tw_edit_general_configuration' === $hook_name ) {
-            // Collect and sanitize expected configuration fields. Missing ones become empty strings.
-            $action_args = array(
-                'live_mode'           => isset( $_POST['live_mode'] ) ? sanitize_text_field( wp_unslash( $_POST['live_mode'] ) ) : '',
-                'staging_site_id'     => isset( $_POST['staging_site_id'] ) ? sanitize_text_field( wp_unslash( $_POST['staging_site_id'] ) ) : '',
-                'staging_private_key' => isset( $_POST['staging_private_key'] ) ? sanitize_text_field( wp_unslash( $_POST['staging_private_key'] ) ) : '',
-                'live_site_id'        => isset( $_POST['live_site_id'] ) ? sanitize_text_field( wp_unslash( $_POST['live_site_id'] ) ) : '',
-                'live_private_key'    => isset( $_POST['live_private_key'] ) ? sanitize_text_field( wp_unslash( $_POST['live_private_key'] ) ) : '',
-                'wp_pages'            => isset( $_POST['wp_pages'] ) ? sanitize_text_field( wp_unslash( $_POST['wp_pages'] ) ) : '',
-                'suppress_email'      => isset( $_POST['suppress_email'] ) ? sanitize_text_field( wp_unslash( $_POST['suppress_email'] ) ) : '',
-                'contact_email_o'     => isset( $_POST['contact_email_o'] ) ? sanitize_email( wp_unslash( $_POST['contact_email_o'] ) ) : '',
-            );
-        } elseif ( 'tw_recurring_order' === $hook_name || 'tw_synchronize_subscriptions' === $hook_name ) {
-            // These callbacks are defined with one parameter but don't use it; pass an empty array to satisfy signature.
-            $action_args = array();
+        foreach ($allowed_fields[$action] as $field => $type) {
+
+            if (isset($_POST[$field])) {
+
+                switch ($type) {
+
+                    case 'absint':
+                        $args[$field] = absint(wp_unslash($_POST[$field]));
+                        break;
+
+                    case 'text':
+                    default:
+                        $args[$field] = sanitize_text_field(wp_unslash($_POST[$field]));
+                        break;
+                }
+            }
         }
 
-        /* Fire the whitelisted hook with sanitized arguments (or none). */
-        if ( null === $action_args ) {
-            do_action( $hook_name );
-        } else {
-            do_action( $hook_name, $action_args );
+        /**
+         * ✅ Direct Routing (No dynamic hook execution)
+         */
+        switch ($action) {
+
+            case 'edit_general_configuration':
+                tw_twispay_p_edit_general_configuration($args);
+                break;
+
+            case 'refund_payment_transaction':
+                tw_twispay_p_refund_payment_transaction();
+                break;
+
+            case 'recurring_order':
+                tw_twispay_p_recurring_order($args);
+                break;
+
+            case 'synchronize_subscriptions':
+                tw_twispay_p_synchronize_subscriptions($args);
+                break;
         }
     }
 }
-add_action( 'init', 'twispay_tw_main_action' );
+
+add_action('admin_init', 'twispay_tw_main_action');
