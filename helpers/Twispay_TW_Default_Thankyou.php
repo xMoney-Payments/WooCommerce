@@ -10,24 +10,25 @@
  */
 
 /* Exit if the file is accessed directly. */
-if ( !defined('ABSPATH') ) { exit; }
+if ( ! defined( 'ABSPATH' ) ) {
+	exit; }
 
 /* Security class check */
 if ( ! class_exists( 'Twispay_TW_Default_Thankyou' ) ) :
-    /**
-     * Twispay Helper Class
-     *
-     * Class that redirects user to the order page.
-     */
-    class Twispay_TW_Default_Thankyou extends WC_Payment_Gateway {
-      /**
-       * Twispay Gateway Constructor
-       *
-       * @public
-       * @return void
-       */
-      public function __construct( $order ) {
-        wp_safe_redirect( esc_url( $this->get_return_url( $order ) ) );
-      }
-    }
+	/**
+	 * Twispay Helper Class
+	 *
+	 * Class that redirects user to the order page.
+	 */
+	class Twispay_TW_Default_Thankyou extends WC_Payment_Gateway {
+		/**
+		 * Twispay Gateway Constructor
+		 *
+		 * @public
+		 * @return void
+		 */
+		public function __construct( $tw_order ) {
+			wp_safe_redirect( esc_url( $this->get_return_url( $tw_order ) ) );
+		}
+	}
 endif; /* End if class_exists. */
