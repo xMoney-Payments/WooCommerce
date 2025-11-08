@@ -31,19 +31,19 @@ if ( ! class_exists( 'Twispay' ) ) {
 		 * @private
 		 * @var    Twispay Instance of class Twispay
 		 */
-		private static $__instance;
+		private static $instance;
 
 		/**
+		 * Payment confirmation handler instance.
 		 *
-		 * @public
-		 * @var    Twispay_TW_Payment_Confirmation Instance of class Twispay_TW_Payment_Confirmation
+		 * @var Twispay_TW_Payment_Confirmation
 		 */
 		public $payment_confirmation;
 
 		/**
+		 * Views renderer instance.
 		 *
-		 * @public
-		 * @var    Twispay_TW_Views Instance of class Twispay_TW_Views
+		 * @var Twispay_TW_Views
 		 */
 		public $views;
 
@@ -56,13 +56,13 @@ if ( ! class_exists( 'Twispay' ) ) {
 		 * @return Twispay
 		 */
 		public static function instance() {
-			if ( ! isset( self::$__instance ) && ! ( self::$__instance instanceof Twispay ) ) {
-				self::$__instance = new self();
+			if ( ! isset( self::$instance ) && ! ( self::$instance instanceof Twispay ) ) {
+				self::$instance = new self();
 
-				self::$__instance->twispay_tw_set_objects();
+				self::$instance->twispay_tw_set_objects();
 			}
 
-			return self::$__instance;
+			return self::$instance;
 		}
 
 		/**
@@ -131,8 +131,8 @@ if ( ! class_exists( 'Twispay' ) ) {
 		 */
 		private function twispay_tw_set_objects() {
 			if ( get_option( 'twispay_tw_installed' ) ) {
-				self::$__instance->payment_confirmation = new Twispay_TW_Payment_Confirmation();
-				self::$__instance->views                = new Twispay_TW_Views();
+				self::$instance->payment_confirmation = new Twispay_TW_Payment_Confirmation();
+				self::$instance->views                = new Twispay_TW_Views();
 			}
 		}
 
@@ -166,6 +166,12 @@ if ( ! class_exists( 'Twispay' ) ) {
 			require_once TWISPAY_PLUGIN_DIR . 'includes/class-twispay-server-to-server.php';
 		}
 
+		/**
+		 * Register additional public query variables.
+		 *
+		 * @param array $vars WP query vars.
+		 * @return array Modified vars.
+		 */
 		public function twispay_query_vars_filter( $vars ) {
 			$vars[] .= 'order_id';
 			$vars[] .= 'twispay-ipn';
@@ -174,6 +180,11 @@ if ( ! class_exists( 'Twispay' ) ) {
 	}
 }
 
+/**
+ * Display admin notice when WooCommerce is missing.
+ *
+ * @return void
+ */
 function twispay_missing_wc_notice() {
 	$lang = explode( '-', get_bloginfo( 'language' ) );
 	$lang = $lang[0];
@@ -208,7 +219,7 @@ function TW() {
 	I've tried to call this function using actions, but the payment method is missed both
 	in admin and checkout page in that case.
 	*/
-	if ( ! in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', get_option( 'active_plugins' ) ) ) ) {
+	if ( ! in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', get_option( 'active_plugins' ) ), true ) ) {
 		add_action( 'admin_notices', 'twispay_missing_wc_notice' );
 		return false;
 	}

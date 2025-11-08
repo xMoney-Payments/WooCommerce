@@ -11,13 +11,17 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-	/**
-	 * Base class for displaying a list of items in an ajaxified HTML table.
-	 *
-	 * @since 3.1.0
-	 * @access private
-	 */
-class Twispay_Tw_List_Table {
+/**
+ * Internal copy of WP_List_Table adapted for Twispay admin pages.
+ *
+ * Provides table layout, pagination, bulk actions, row rendering, and
+ * view switching used inside the xMoney Payments plugin.
+ *
+ * @since 1.0.0
+ */
+/* phpcs:disable PSR2.Classes.PropertyDeclaration.Underscore */
+
+abstract class Twispay_Tw_List_Table {
 	/**
 	 * The current list of items.
 	 *
@@ -193,6 +197,8 @@ class Twispay_Tw_List_Table {
 	}
 
 	/**
+	 * Returns the name.
+	 *
 	 * @param string $name Property name.
 	 * @param mixed  $value Property value.
 	 */
@@ -496,8 +502,8 @@ class Twispay_Tw_List_Table {
 	/**
 	 * Generate row actions div
 	 *
-	 * @param array $actions The list of actions
-	 * @param bool  $always_visible Whether the actions should be always visible
+	 * @param array $actions The list of actions.
+	 * @param bool  $always_visible Whether the actions should be always visible.
 	 * @return string
 	 * @since 3.1.0
 	 * @access protected
@@ -526,7 +532,7 @@ class Twispay_Tw_List_Table {
 	/**
 	 * Display a monthly dropdown for filtering items
 	 *
-	 * @param string $post_type
+	 * @param string $post_type The post type being filtered.
 	 * @global wpdb $wpdb
 	 * @global WP_Locale $wp_locale
 	 *
@@ -624,11 +630,11 @@ class Twispay_Tw_List_Table {
 	/**
 	 * Display a view switcher
 	 *
-	 * @param string $current_mode
+	 * @param string $current_mode The current display mode being used.
 	 * @since 3.1.0
 	 * @access protected
 	 */
-	protected function view_switcher( string $current_mode ) {
+	protected function view_switcher( string $current_mode ): void {
 		?>
 			<input type="hidden" name="mode" value="<?php echo esc_attr( $current_mode ); ?>"/>
 			<div class="view-switch">
@@ -746,16 +752,16 @@ class Twispay_Tw_List_Table {
 	/**
 	 * Get number of items to display on a single page
 	 *
-	 * @param string $option
-	 * @param int    $default
+	 * @param string $option Option name for per-page setting.
+	 * @param int    $per_page_default Default items per page.
 	 * @return int
 	 * @since 3.1.0
 	 * @access protected
 	 */
-	protected function get_items_per_page( string $option, int $default = 20 ): int {
+	protected function get_items_per_page( string $option, int $per_page_default = 20 ): int {
 		$per_page = (int) get_user_option( $option );
 		if ( empty( $per_page ) || $per_page < 1 ) {
-			$per_page = $default;
+			$per_page = $per_page_default;
 		}
 
 		/**
@@ -776,7 +782,7 @@ class Twispay_Tw_List_Table {
 	/**
 	 * Display the pagination.
 	 *
-	 * @param string $which
+	 * @param string $which The position (top or bottom).
 	 * @since 3.1.0
 	 * @access protected
 	 */
@@ -815,7 +821,10 @@ class Twispay_Tw_List_Table {
 		$total_pages_before = '<span class="paging-input">';
 		$total_pages_after  = '</span></span>';
 
-		$disable_first = $disable_last = $disable_prev = $disable_next = false;
+		$disable_first = false;
+		$disable_last  = false;
+		$disable_prev  = false;
+		$disable_next  = false;
 
 		if ( 1 === $current ) {
 			$disable_first = true;
@@ -911,13 +920,13 @@ class Twispay_Tw_List_Table {
 	 * Get a list of columns. The format is:
 	 * 'internal-name' => 'Title'
 	 *
-	 * @return array
+	 * @return array Empty array.
 	 * @since 3.1.0
 	 * @access public
-	 * @abstract
 	 */
 	public function get_columns() {
-		die( 'function WP_List_Table::get_columns() must be over-ridden in a sub-class.' );
+		// This base class provides no columns — subclasses must override
+		return array();
 	}
 
 	/**
@@ -1080,7 +1089,7 @@ class Twispay_Tw_List_Table {
 	/**
 	 * Print column headers, accounting for hidden and sortable columns.
 	 *
-	 * @param bool $with_id Whether to set the id attribute or not
+	 * @param bool $with_id Whether to set the id attribute or not.
 	 * @since 3.1.0
 	 * @access public
 	 *
@@ -1216,7 +1225,7 @@ class Twispay_Tw_List_Table {
 	/**
 	 * Generate the table navigation above or below the table
 	 *
-	 * @param string $which
+	 * @param string $which The position (top or bottom).
 	 * @since 3.1.0
 	 * @access protected
 	 */
@@ -1243,7 +1252,7 @@ class Twispay_Tw_List_Table {
 	/**
 	 * Extra controls to be displayed between bulk actions and pagination
 	 *
-	 * @param string $which
+	 * @param string $which The position (top or bottom).
 	 * @since 3.1.0
 	 * @access protected
 	 */
@@ -1279,11 +1288,9 @@ class Twispay_Tw_List_Table {
 	}
 
 	/**
-	 * Generates content for a single row of the table
+	 * Generates markup for a single table row.
 	 *
-	 * @param array $item The current item
-	 * @since 3.1.0
-	 * @access public
+	 * @param array $item The current item data.
 	 */
 	public function single_row( array $item ) {
 		echo '<tr>';
@@ -1292,17 +1299,18 @@ class Twispay_Tw_List_Table {
 	}
 
 	/**
-	 * Generates the default column output.
+	 * Generates the output for a default column.
 	 *
-	 * @param array  $item The current item data.
-	 * @param string $column_name Column name being rendered.
+	 * @param array  $item The current item data array.
+	 * @param string $column_name The column name being rendered.
 	 */
 	protected function column_default( array $item, string $column_name ) {
 	}
 
 	/**
+	 * Outputs the checkbox column HTML.
 	 *
-	 * @param array $item
+	 * @param array $item The current item data array.
 	 */
 	protected function column_cb( array $item ) {
 	}
@@ -1310,7 +1318,7 @@ class Twispay_Tw_List_Table {
 	/**
 	 * Generates the columns for a single row of the table
 	 *
-	 * @param array $item The current item
+	 * @param array $item The current item data array.
 	 * @since 3.1.0
 	 * @access protected
 	 */
@@ -1363,9 +1371,9 @@ class Twispay_Tw_List_Table {
 	/**
 	 * Generates and display row actions links for the list table.
 	 *
-	 * @param array  $item The item being acted upon.
-	 * @param string $column_name Current column name.
-	 * @param string $primary Primary column name.
+	 * @param array  $item The item data array for the current row.
+	 * @param string $column_name The name of the column being rendered.
+	 * @param string $primary The primary column name.
 	 * @return string The row actions HTML, or an empty string if the current column is the primary column.
 	 * @since 4.3.0
 	 * @access protected
