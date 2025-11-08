@@ -23,10 +23,10 @@ class Twispay_Main_Processor {
         require_once TWISPAY_PLUGIN_DIR . 'helpers/Twispay_TW_Helper_Processor.php';
         $this->language = Twispay_TW_Helper_Processor::get_current_language();
 
-        // Load process css & js files
-        wp_enqueue_style('ma-process-css', TWISPAY_PLUGIN_URL . 'assets/css/process.css', [], TWISPAY_VERSION, true);
-        wp_enqueue_script('ma-process-js', TWISPAY_PLUGIN_URL . 'assets/js/process.js', array(), TWISPAY_VERSION, true);
+        // Load process css
+        wp_enqueue_style('ma-process-css', TWISPAY_PLUGIN_URL . 'assets/css/process.css', array('woocommerce-general'), TWISPAY_VERSION);
 
+        // Use inline checkout if enabled.
         if ( function_exists('twispay_tw_is_inline_enabled') && twispay_tw_is_inline_enabled() ) {
             $order = wc_get_order( $this->order_id );
             if ( ! $order ) { return; }
@@ -39,84 +39,54 @@ class Twispay_Main_Processor {
 
             $sessionToken = Twispay_TW_Helper_Processor::get_session_token( $is_live, $secretKey );
 
-            $sdk_url = $is_live ? ( Twispay_TW_Helper_Processor::LIVE_URL_JS . '/sdk/0.0.9/xmoney.js' )
-                                : ( Twispay_TW_Helper_Processor::STAGE_URL_JS . '/sdk/0.0.9/xmoney.js' );
+            $sdk_url = $is_live ? ( Twispay_TW_Helper_Processor::LIVE_URL_JS . '/sdk/0.0.18/xmoney.js' )
+                                : ( Twispay_TW_Helper_Processor::STAGE_URL_JS . '/sdk/0.0.18/xmoney.js' );
 
             // Enqueue the xMoney SDK script properly.
             wp_enqueue_script(
                 'xmoney-inline-sdk',
                 $sdk_url,
-                array(), // no dependencies
+                array(),
                 TWISPAY_VERSION,
-                true     // load in footer
+                true
             );
+
+            wp_register_script(
+                'xmoney-inline-js',
+                TWISPAY_PLUGIN_URL . 'assets/js/inline.js',
+                array('jquery'),
+                TWISPAY_VERSION,
+                true
+            );
+
+            $user_id = get_current_user_id();
+
+            $saved_card = $user_id ? get_user_meta($user_id, '_xmoney_saved_card', true) : null;
+
+            $params = [
+                'payload' => $request['data'],
+                'checksum' => $request['checksum'],
+                'publicKey' => $publicKey,
+                'sessionToken' => $sessionToken,
+                'orderId' => $this->order_id,
+                'confirmUrl' => esc_url_raw(rest_url('xmoney/v1/inline/confirm')),
+                'restNonce' => wp_create_nonce('wp_rest'),
+            ];
+
+            if($saved_card){
+                $params['savedCards'] = Twispay_TW_Helper_Processor::get_saved_cards($saved_card['customer_id'], $secretKey);
+                $params['userId'] = $saved_card['customer_id'];
+            }
+
+
+            wp_localize_script('xmoney-inline-js', 'xmoneyData', $params);
+            wp_enqueue_script('xmoney-inline-js');
             ?>
-            <div id="tw-xmoney-inline-wrap" style="margin:16px 0;">
-              <div id="xmoney-checkout-container" style="min-height: 280px;"></div>
+
+            <div class="wrapper-loader">
+                <div class="loader"></div>
             </div>
 
-            <script>
-                document.addEventListener('DOMContentLoaded', function () {
-
-                    jQuery(function ($) {
-
-                        // Always unbind first to avoid duplicates
-                        $(document.body).off('checkout_place_order_xmoney-payments');
-
-                        // Also block plain form submit as backup
-                        $('form.checkout').on('submit', function (e) {
-                            if ($('#payment-form-widget').length && $('#payment_method_xmoney-payments').is(':checked')) {
-                                e.preventDefault();
-                                e.stopImmediatePropagation();
-                                return false;
-                            }
-                        });
-                    });
-
-                    try {
-                        const form = new XMoneyPaymentForm({
-                            container: 'xmoney-checkout-container',
-                            payload: <?php echo wp_json_encode($request['data']); ?>,
-                            checksum: <?php echo wp_json_encode($request['checksum']); ?>,
-                            publicKey: <?php echo wp_json_encode($publicKey); ?>,
-                            sessionToken: <?php echo wp_json_encode($sessionToken); ?>,
-                            saveCard: true,
-                            onPaymentComplete: function (result) {
-                                fetch("<?php echo esc_url(rest_url('xmoney/v1/inline/confirm')); ?>", {
-                                    method: "POST",
-                                    headers: {
-                                        "Content-Type": "application/json",
-                                        "X-WP-Nonce": "<?php echo esc_js(wp_create_nonce('wp_rest')); ?>"
-                                    },
-                                    body: JSON.stringify({
-                                        order_id: "<?php echo esc_js($this->order_id); ?>",
-                                        result: result,
-                                        customer_id: result.customerId || null,
-                                        payment_method_id: result.paymentMethodId || null
-                                    })
-                                }).then(r => r.json()).then(resp => {
-                                    if (resp && resp.success) {
-                                        window.location.href = resp.redirect;
-                                    } else {
-                                        alert(resp && resp.message ? resp.message : "Payment failed.");
-                                    }
-                                }).catch(function () {
-                                    alert("Network error while confirming payment.");
-                                });
-                            },
-                            onError: function (err) {
-                                console.error('xMoney error', err);
-                            }
-                        });
-                        // Expose a trigger for "Place Order" button
-                        window.__xmoneyTrigger = function () {
-                            form.pay(); // This triggers the inline card form submission
-                        };
-                    } catch (e) {
-                        console.error(e);
-                    }
-                });
-            </script>
             <?php
             return;
         }
@@ -144,6 +114,7 @@ class Twispay_Main_Processor {
         </form>
 
         <?php
+        wp_enqueue_script('ma-process-js', TWISPAY_PLUGIN_URL . 'assets/js/process.js', array('jquery'), TWISPAY_VERSION, true);
     }
 
     private function prepare_request_data() {
@@ -230,14 +201,6 @@ class Twispay_Main_Processor {
             'invoiceEmail' => '',
             'backUrl' => $back_url,
         ];
-
-        $user_id = get_current_user_id();
-
-        $saved_card = $user_id ? get_user_meta($user_id, '_xmoney_saved_card', true) : null;
-
-        if (!empty($saved_card['payment_method_id'])) {
-            $order_data['customerPaymentMethodId'] = $saved_card['payment_method_id'];
-        }
 
         $request_data = Twispay_TW_Helper_Notify::getBase64JsonRequest($order_data);
         $checksum = Twispay_TW_Helper_Notify::getBase64Checksum($order_data, $configuration['secret_key']);

@@ -35,9 +35,6 @@ class Twispay_Subscription_Processor {
 
         // Load process css & js files
         wp_enqueue_style('ma-process-css', TWISPAY_PLUGIN_URL . 'assets/css/process.css', [], TWISPAY_VERSION, true);
-        wp_enqueue_script('ma-process-js', TWISPAY_PLUGIN_URL . 'assets/js/process.js', array(), TWISPAY_VERSION, true);
-
-        $config = Twispay_TW_Helper_Processor::get_configuration();
 
         // Use inline checkout if enabled.
         if (function_exists('twispay_tw_is_inline_enabled') && twispay_tw_is_inline_enabled()) {
@@ -45,81 +42,63 @@ class Twispay_Subscription_Processor {
             if (!$order) {
                 return;
             }
-
+            $config = Twispay_TW_Helper_Processor::get_configuration();
             $is_live = !empty($config['is_live']);
             $publicKey = $config['site_id'];
             $secretKey = $config['secret_key'];
 
-            try {
-                $request = $this->prepare_request_data();
-                $session_token = Twispay_TW_Helper_Processor::get_session_token($is_live, $secretKey);
-            } catch (Exception $e) {
-                wc_add_notice($e->getMessage(), 'error');
-                wp_safe_redirect(wc_get_cart_url());
-                return;
-            }
+            $request = $this->prepare_request_data();
 
-            $sdk_url = $is_live
-                ? (Twispay_TW_Helper_Processor::LIVE_URL_JS . '/sdk/0.0.9/xmoney.js')
-                : (Twispay_TW_Helper_Processor::STAGE_URL_JS . '/sdk/0.0.9/xmoney.js');
+            $sessionToken = Twispay_TW_Helper_Processor::get_session_token($is_live, $secretKey);
+
+            $sdk_url = $is_live ? (Twispay_TW_Helper_Processor::LIVE_URL_JS . '/sdk/0.0.18/xmoney.js')
+                : (Twispay_TW_Helper_Processor::STAGE_URL_JS . '/sdk/0.0.18/xmoney.js');
 
             // Enqueue the xMoney SDK script properly.
             wp_enqueue_script(
                 'xmoney-inline-sdk',
                 $sdk_url,
-                array(), // no dependencies
+                array(),
                 TWISPAY_VERSION,
-                true     // load in footer
+                true
             );
+
+            wp_register_script(
+                'xmoney-inline-js',
+                TWISPAY_PLUGIN_URL . 'assets/js/inline.js',
+                array('jquery'),
+                TWISPAY_VERSION,
+                true
+            );
+
+            $user_id = get_current_user_id();
+
+            $saved_card = $user_id ? get_user_meta($user_id, '_xmoney_saved_card', true) : null;
+
+            $params = [
+                'payload' => $request['data'],
+                'checksum' => $request['checksum'],
+                'publicKey' => $publicKey,
+                'sessionToken' => $sessionToken,
+                'orderId' => $this->order_id,
+                'confirmUrl' => esc_url_raw(rest_url('xmoney/v1/inline/confirm')),
+                'restNonce' => wp_create_nonce('wp_rest'),
+            ];
+
+            if ($saved_card) {
+                $params['savedCards'] = Twispay_TW_Helper_Processor::get_saved_cards($saved_card['customer_id'], $secretKey);
+                $params['userId'] = $saved_card['customer_id'];
+            }
+
+
+            wp_localize_script('xmoney-inline-js', 'xmoneyData', $params);
+            wp_enqueue_script('xmoney-inline-js');
             ?>
-            <div id="tw-xmoney-inline-wrap" style="margin:16px 0;">
-                <div id="xmoney-checkout-container" style="min-height:280px;"></div>
+
+            <div class="wrapper-loader">
+                <div class="loader"></div>
             </div>
 
-            <script>
-                document.addEventListener('DOMContentLoaded', function () {
-                    try {
-                        const form = new XMoneyPaymentForm({
-                            container: 'xmoney-checkout-container',
-                            payload: <?php echo wp_json_encode($request['data']); ?>,
-                            checksum: <?php echo wp_json_encode($request['checksum']); ?>,
-                            publicKey: <?php echo wp_json_encode($publicKey); ?>,
-                            sessionToken: <?php echo wp_json_encode($session_token); ?>,
-                            saveCard: true,
-                            onPaymentComplete: function (result) {
-                                fetch("<?php echo esc_url(rest_url('xmoney/v1/inline/confirm')); ?>", {
-                                    method: "POST",
-                                    headers: {
-                                        "Content-Type": "application/json",
-                                        "X-WP-Nonce": "<?php echo esc_js(wp_create_nonce('wp_rest')); ?>"
-                                    },
-                                    body: JSON.stringify({
-                                        order_id: "<?php echo esc_js($this->order_id); ?>",
-                                        result: result
-                                    })
-                                }).then(r => r.json()).then(resp => {
-                                    if (resp && resp.success) {
-                                        window.location.href = resp.redirect;
-                                    } else {
-                                        alert(resp && resp.message ? resp.message : "Payment failed.");
-                                    }
-                                }).catch(function () {
-                                    alert("Network error while confirming payment.");
-                                });
-                            },
-                            onError: function (err) {
-                                console.error('xMoney error', err);
-                            }
-                        });
-
-                        window.__xmoneyTrigger = function () {
-                            form.pay(); // This triggers the inline card form submission
-                        };
-                    } catch (e) {
-                        console.error(e);
-                    }
-                });
-            </script>
             <?php
             return;
         }
@@ -145,7 +124,9 @@ class Twispay_Subscription_Processor {
             <input type="hidden" name="checksum" value="<?php echo esc_attr($request_data['checksum']); ?>">
         </form>
 
+
         <?php
+        wp_enqueue_script('ma-process-js', TWISPAY_PLUGIN_URL . 'assets/js/process.js', array('jquery'), TWISPAY_VERSION, true);
     }
 
     private function prepare_request_data() {
@@ -211,13 +192,13 @@ class Twispay_Subscription_Processor {
 
         // Build back URL and add a nonce so the callback endpoint can optionally verify it
         $back_url = get_permalink(get_page_by_path('xmoney-payments-confirmation'));
-        $back_url = wp_nonce_url(add_query_arg(
+        $back_url = add_query_arg(
             [
                 'secure_key' => $order->get_data()['cart_hash'],
                 '_wpnonce' => wp_create_nonce($this->nonce_action),
             ],
             $back_url
-        ), 'twispay_process');
+        );
 
         /* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! */
         /* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! IMPORTANT !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! */
@@ -243,9 +224,9 @@ class Twispay_Subscription_Processor {
 
         $orderId = NULL;
 
-        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Safe: reading GET only to build payment request, no state change.
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- GET parameter identifies subscription order; sanitized and verified against WooCommerce order, safe for request data.
         if (isset($_GET['order_id'])) {
-            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Safe: reading GET only to build payment request, no state change.
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Same GET parameter used to prepare request data; sanitized and verified, safe to use.
             $orderId = sanitize_key($_GET['order_id']);
         }
 

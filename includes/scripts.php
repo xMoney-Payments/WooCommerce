@@ -439,6 +439,14 @@ function init_twispay_gateway_class() {
                 Twispay_TW_Logger::twispay_tw_updateTransactionStatus($order_id, Twispay_TW_Status_Updater::$RESULT_STATUSES['REFUND_OK']);
                 return true;
             }
+
+            public function payment_fields()
+            {
+                // Inline iframe container (persistent!)
+                echo '<div id="tw-xmoney-inline-wrap" style="margin:16px 0;">
+                        <div id="xmoney-checkout-container" style="min-height: 280px;"></div>
+                      </div>';
+            }
         }
     }
 }

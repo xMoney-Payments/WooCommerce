@@ -20,12 +20,11 @@ class Twispay_TW_Helper_Processor {
      *
      * @param bool $is_live Whether to use live or sandbox environment.
      * @param string $secret_key The xMoney secret key.
-     * @param string $env Optional environment override ('production' or 'sandbox').
      * @return string|null The session token, or null on failure.
      */
-    public static function get_session_token($is_live, $secret_key, $env = 'sandbox')
+    public static function get_session_token($is_live, $secret_key)
     {
-        $url = (('production' === $env || $is_live) ? self::LIVE_URL : self::STAGE_URL) . '/auth/jwt-token';
+        $url = ($is_live ? self::LIVE_URL : self::STAGE_URL) . '/auth/jwt-token';
 
         $args = [
             'headers' => [
@@ -102,6 +101,43 @@ class Twispay_TW_Helper_Processor {
         }
 
         return null;
+    }
+
+    public static function get_saved_cards($customer_id, $secret_key)
+    {
+        if (empty($customer_id)) {
+            return [];
+        }
+
+        $config = Twispay_TW_Helper_Processor::get_configuration();
+        $is_live = !empty($config['is_live']);
+
+        $url = ($is_live ? self::LIVE_URL : self::STAGE_URL) . '/card?customerId=' . urlencode($customer_id);
+
+        $response = wp_remote_get($url, [
+            'headers' => [
+                'Authorization' => 'Bearer ' . sanitize_text_field($secret_key),
+                'Content-Type' => 'application/json',
+            ],
+            'timeout' => 30,
+            'sslverify' => true,
+        ]);
+
+
+
+        if (is_wp_error($response)) {
+            return [];
+        }
+
+        $body = json_decode(wp_remote_retrieve_body($response), true);
+
+        $response = [];
+
+        if(is_array($body) && isset($body['data'])){
+            $response = $body['data'];
+        }
+
+        return $response;
     }
 
     public static function get_current_language(): string

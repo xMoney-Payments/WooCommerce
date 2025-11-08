@@ -20,10 +20,10 @@
 
                 // If the SDK already returns decrypted data (no 'result' key), use it directly
                 if (empty($result['result'])) {
-                    $paymentResponse = (array)$result; // already decrypted
+                    $paymentResponse = $result; // already decrypted
                 } else {
                     // Fallback for encrypted SDK format
-                    $paymentResponse = twispay_tw_decrypt_inline_payload((array)$result);
+                    $paymentResponse = twispay_tw_decrypt_inline_payload($result);
                     if (is_wp_error($paymentResponse)) {
                         return new WP_REST_Response(
                             ['success' => false, 'message' => $paymentResponse->get_error_message()],
@@ -43,11 +43,11 @@
                 }
 
                 /* Validate the decrypted response. */
-                Twispay_TW_Helper_Response::twispay_tw_checkValidation($paymentResponse, $tw_lang);
+                Twispay_TW_Helper_Response::twispay_tw_checkValidation($paymentResponse);
 
 
                 // Save card token to user meta if user is logged in and chose to save.
-                if ($customer_id && $order->get_user_id()) {
+                if ($customer_id && $order->get_user_id() && isset($paymentResponse['saveCard ']) && $paymentResponse['saveCard '] == true) {
                     $config = Twispay_TW_Helper_Processor::get_configuration();
                     $is_live = !empty($config['is_live']);
                     $secret_key = $config['secret_key'];
