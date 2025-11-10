@@ -12,29 +12,7 @@ function initXMoneyForm() {
 
         const customThemeStyles = {
             theme: "light",
-            variables: {
-                colorPrimary: "#009688",
-                colorDanger: "#e53935",
-                colorText: "#212121",
-                colorTextSecondary: "#757575",
-                colorTextPlaceholder: "#bdbdbd",
-                colorBorder: "#e0e0e0",
-                colorBorderFocus: "#009688",
-                colorBackground: "#f5f5f5",
-                colorBackgroundFocus: "#0096880a",
-            },
-            layout: {
-                showBranding: false   // ✅ CORRECT WHITE-LABEL FLAG FOR SDK 0.0.18
-            }
         }
-
-        const paymentMethods = cards.map(c => ({
-            cardId: String(c.id),
-            brand: c.brand,
-            last4: String(c.last4).slice(-4),
-            expMonth: String(c.expMonth).padStart(2, '0'),
-            expYear: String(c.expYear),
-        }));
 
         const form = new XMoneyPaymentForm({
             container: 'xmoney-checkout-container',
@@ -43,12 +21,10 @@ function initXMoneyForm() {
             publicKey: xmoneyData.publicKey,
             sessionToken: xmoneyData.sessionToken,
             userId: xmoneyData.userId,
-            enableSavedCards: true,
             options: {
-                appearance: customThemeStyles, // <-- This must be present
+                displayCardHolderName: true, // <-- This must be present
+                displaySaveCardOption: xmoneyData.userId > 0,
             },
-
-            savedCards: paymentMethods,
 
             onPaymentComplete: function (result) {
 

@@ -85,8 +85,14 @@ class Twispay_Subscription_Processor {
                 'restNonce' => wp_create_nonce('wp_rest'),
             ];
 
+            if ($user_id) {
+                $params['options']['displaySaveCardOption'] = false;
+            }
+
             if ($saved_card) {
                 $params['savedCards'] = Twispay_TW_Helper_Processor::get_saved_cards($saved_card['customer_id'], $secretKey);
+                $params['options']['displayCardHolderName'] = true;
+                $params['options']['enableSavedCards'] = true;
                 $params['userId'] = $saved_card['customer_id'];
             }
 
