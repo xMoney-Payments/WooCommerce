@@ -38,6 +38,11 @@ class Twispay_Main_Processor {
             $request = $this->prepare_request_data();
 
             $sessionToken = Twispay_TW_Helper_Processor::get_session_token( $is_live, $secretKey );
+            if ( ! $sessionToken && function_exists('wc_get_logger') ) {
+                $logger = wc_get_logger();
+                // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+                $logger->warning( '[xMoney] Inline: session token not retrieved for environment ' . ( $is_live ? 'live' : 'stage' ), [ 'source' => 'xmoney-payments' ] );
+            }
 
             $sdk_url = $is_live ? ( Twispay_TW_Helper_Processor::LIVE_URL_JS . '/sdk/0.0.18/xmoney.js' )
                                 : ( Twispay_TW_Helper_Processor::STAGE_URL_JS . '/sdk/0.0.18/xmoney.js' );
@@ -64,24 +69,31 @@ class Twispay_Main_Processor {
             $saved_card = $user_id ? get_user_meta($user_id, '_xmoney_saved_card', true) : null;
 
             $params = [
-                'payload' => $request['data'],
-                'checksum' => $request['checksum'],
-                'publicKey' => $publicKey,
-                'sessionToken' => $sessionToken,
-                'orderId' => $this->order_id,
-                'confirmUrl' => esc_url_raw(rest_url('xmoney/v1/inline/confirm')),
-                'restNonce' => wp_create_nonce('wp_rest'),
+                'payload'    => $request['data'],
+                'checksum'   => $request['checksum'],
+                'publicKey'  => $publicKey,
+                'orderId'    => $this->order_id,
+                'confirmUrl' => esc_url_raw( rest_url( 'xmoney/v1/inline/confirm' ) ),
+                'restNonce'  => wp_create_nonce( 'wp_rest' ),
+                'options'    => [],
             ];
 
-            if($user_id){
+            if ( $sessionToken ) {
+                $params['sessionToken'] = $sessionToken;
+            }
+
+            if ( $user_id ) {
+                // Decide whether to show save card option for logged-in users; keep false to minimize SDK branches
                 $params['options']['displaySaveCardOption'] = false;
             }
 
-            if($saved_card){
-                $params['savedCards'] = Twispay_TW_Helper_Processor::get_saved_cards($saved_card['customer_id'], $secretKey);
+            if ( $sessionToken && $saved_card ) {
+                $params['savedCards'] = Twispay_TW_Helper_Processor::get_saved_cards( $saved_card['customer_id'], $secretKey );
                 $params['options']['displayCardHolderName'] = true;
-                $params['options']['enableSavedCards'] = true;
+                $params['options']['enableSavedCards']   = true;
                 $params['userId'] = $saved_card['customer_id'];
+            } else {
+                $params['options']['enableSavedCards'] = false;
             }
 
 
