@@ -2,7 +2,7 @@
 /**
  * Main processor for subscription xMoney Payments orders.
  *
- * @package Twispay/Front
+ * @package Xmoney/Front
  */
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -13,7 +13,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * Builds request payloads, validates order context, and renders the redirect form.
  */
-class Twispay_Subscription_Processor {
+class Xmoney_Payments_Subscription_Processor {
 	/**
 	 * Order ID extracted from request, or null if not provided.
 	 *
@@ -31,7 +31,7 @@ class Twispay_Subscription_Processor {
 	 *
 	 * @var string
 	 */
-	private string $nonce_action = 'twispay_process';
+	private string $nonce_action = 'xmoney_payments_process';
 
 	/**
 	 * Constructor.
@@ -67,13 +67,13 @@ class Twispay_Subscription_Processor {
 			exit;
 		}
 
-		require_once TWISPAY_PLUGIN_DIR . 'helpers/class-twispay-tw-helper-notify.php';
-		require_once TWISPAY_PLUGIN_DIR . 'helpers/Twispay_TW_Helper_Processor.php';
-		$this->language = Twispay_TW_Helper_Processor::get_current_language();
+		require_once XMONEY_PAYMENTS_PLUGIN_DIR . 'helpers/class-xmoney-payments-helper-notify.php';
+		require_once XMONEY_PAYMENTS_PLUGIN_DIR . 'helpers/Xmoney_Payments_Helper_Processor.php';
+		$this->language = Xmoney_Payments_Helper_Processor::get_current_language();
 
 		// Load process css & js files
-		wp_enqueue_style( 'ma-process-css', TWISPAY_PLUGIN_URL . 'assets/css/process.css', array(), TWISPAY_VERSION, true );
-		wp_enqueue_script( 'ma-process-js', TWISPAY_PLUGIN_URL . 'assets/js/process.js', array(), TWISPAY_VERSION, true );
+		wp_enqueue_style( 'ma-process-css', XMONEY_PAYMENTS_PLUGIN_URL . 'assets/css/process.css', array(), XMONEY_PAYMENTS_VERSION, true );
+		wp_enqueue_script( 'ma-process-js', XMONEY_PAYMENTS_PLUGIN_URL . 'assets/js/process.js', array(), XMONEY_PAYMENTS_VERSION, true );
 
 		try {
 			$request_data = $this->prepare_request_data();
@@ -91,7 +91,7 @@ class Twispay_Subscription_Processor {
 		<form action="<?php echo esc_url( $request_data['host_name'] ); ?>"
 				method="POST"
 				accept-charset="UTF-8"
-				id="twispay_payment_form">
+				id="xmoney_payments_payment_form">
 			<input type="hidden" name="jsonRequest" value="<?php echo esc_attr( $request_data['data'] ); ?>">
 			<input type="hidden" name="checksum" value="<?php echo esc_attr( $request_data['checksum'] ); ?>">
 		</form>
@@ -107,19 +107,19 @@ class Twispay_Subscription_Processor {
 	 */
 	private function prepare_request_data() {
 		// FIXME: Change this i18n logic with the idiomatic one.
-		if ( file_exists( TWISPAY_PLUGIN_DIR . 'lang/' . $this->language . '/lang.php' ) ) {
-			require TWISPAY_PLUGIN_DIR . 'lang/' . $this->language . '/lang.php';
+		if ( file_exists( XMONEY_PAYMENTS_PLUGIN_DIR . 'lang/' . $this->language . '/lang.php' ) ) {
+			require XMONEY_PAYMENTS_PLUGIN_DIR . 'lang/' . $this->language . '/lang.php';
 		} else {
-			require TWISPAY_PLUGIN_DIR . 'lang/en/lang.php';
+			require XMONEY_PAYMENTS_PLUGIN_DIR . 'lang/en/lang.php';
 		}
 
-		$tw_order = wc_get_order( $this->order_id );
+		$xmoney_payments_order = wc_get_order( $this->order_id );
 
 		if ( ! class_exists( WC_Subscription::class ) ) {
 			throw new Exception( esc_html__( 'You are not allowed to access this file.', 'xmoney-payments' ) );
 		}
 
-		if ( empty( $this->order_id ) || false === $tw_order ) {
+		if ( empty( $this->order_id ) || false === $xmoney_payments_order ) {
 			throw new Exception( esc_html__( 'You are not allowed to access this file.', 'xmoney-payments' ) );
 		}
 
@@ -127,17 +127,17 @@ class Twispay_Subscription_Processor {
 			throw new Exception( esc_html__( 'The order has no items.', 'xmoney-payments' ) );
 		}
 
-		if ( 1 < count( $tw_order->get_items() ) ) {
+		if ( 1 < count( $xmoney_payments_order->get_items() ) ) {
 			throw new Exception( esc_html__( 'Orders with subscriptions cannot have other products too.', 'xmoney-payments' ) );
 		}
 
-		$configuration = Twispay_TW_Helper_Processor::get_configuration();
+		$configuration = Xmoney_Payments_Helper_Processor::get_configuration();
 
 		if ( empty( $configuration ) ) {
 			throw new Exception( esc_html__( 'Missing configuration for plugin.', 'xmoney-payments' ) );
 		}
 
-		$subscription = wcs_get_subscriptions_for_order( $tw_order );
+		$subscription = wcs_get_subscriptions_for_order( $xmoney_payments_order );
 		$subscription = reset( $subscription );
 
 		$data = $subscription->get_data();
@@ -150,7 +150,7 @@ class Twispay_Subscription_Processor {
 			'city'       => ! empty( $data['billing']['city'] ) ? $data['billing']['city'] : $data['shipping']['city'],
 			'address'    => ! empty( $data['billing']['address_1'] ) ? $data['billing']['address_1'] : '',
 			'zipCode'    => ! empty( $data['billing']['postcode'] ) ? $data['billing']['postcode'] : $data['shipping']['postcode'],
-			'phone'      => Twispay_TW_Helper_Processor::format_phone( $data['billing']['phone'] ),
+			'phone'      => Xmoney_Payments_Helper_Processor::format_phone( $data['billing']['phone'] ),
 			'email'      => $data['billing']['email'],
 		);
 
@@ -162,12 +162,12 @@ class Twispay_Subscription_Processor {
 		$back_url = wp_nonce_url(
 			add_query_arg(
 				array(
-					'secure_key' => $tw_order->get_data()['cart_hash'],
+					'secure_key' => $xmoney_payments_order->get_data()['cart_hash'],
 					'_wpnonce'   => wp_create_nonce( $this->nonce_action ),
 				),
 				$back_url
 			),
-			'twispay_process'
+			'xmoney_payments_process'
 		);
 
 		// Assumption: A subscription order contains exactly one subscription product.
@@ -218,11 +218,11 @@ class Twispay_Subscription_Processor {
 			$order_data['order']['firstBillDate'] = $first_billing_date;
 		}
 
-		$request_data = Twispay_TW_Helper_Notify::get_base64_json_request( $order_data );
-		$checksum     = Twispay_TW_Helper_Notify::get_base64_checksum( $order_data, $configuration['secret_key'] );
+		$request_data = Xmoney_Payments_Helper_Notify::get_base64_json_request( $order_data );
+		$checksum     = Xmoney_Payments_Helper_Notify::get_base64_checksum( $order_data, $configuration['secret_key'] );
 		$host_name    = add_query_arg(
 			array( 'lang' => $this->language ),
-			$configuration['is_live'] ? Twispay_TW_Helper_Processor::LIVE_URL : Twispay_TW_Helper_Processor::STAGE_URL
+			$configuration['is_live'] ? Xmoney_Payments_Helper_Processor::LIVE_URL : Xmoney_Payments_Helper_Processor::STAGE_URL
 		);
 
 		return array(

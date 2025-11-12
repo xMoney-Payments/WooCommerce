@@ -1,12 +1,12 @@
 <?php
 /**
- * Twispay Custom Transaction Table Class
+ * Xmoney Payments Custom Transaction Table Class
  *
  * Custom Transaction Class on the Administrator dashboard
  *
- * @package  Twispay/Admin
+ * @package  Xmoney/Admin
  * @category Admin
- * @author   Twispay
+ * @author   Xmoney Payments
  */
 
 /* Exit if the file is accessed directly. */
@@ -15,12 +15,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Add the copy of the WP_List_Table class. We made a copy because the class is private.
-require_once TWISPAY_PLUGIN_DIR . 'includes/class-twispay-tw-list-table.php';
+require_once XMONEY_PAYMENTS_PLUGIN_DIR . 'includes/class-xmoney-payments-list-table.php';
 
 /**
  * Base custom class for displaying a list of items in an ajaxified HTML table.
  */
-class Twispay_Transaction_Table extends Twispay_Tw_List_Table {
+class Xmoney_Payments_Transaction_Table extends Xmoney_Payments_List_Table {
 
 	/**
 	 * Constructor.
@@ -79,9 +79,9 @@ class Twispay_Transaction_Table extends Twispay_Tw_List_Table {
         // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Display-only.
 		if ( isset( $_GET['order'] ) ) {
             // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Display-only.
-			$tw_order = sanitize_text_field( wp_unslash( $_GET['order'] ) );
-			if ( '' !== $tw_order ) {
-				echo '<input type="hidden" name="order" value="' . esc_attr( $tw_order ) . '" />';
+			$xmoney_payments_order = sanitize_text_field( wp_unslash( $_GET['order'] ) );
+			if ( '' !== $xmoney_payments_order ) {
+				echo '<input type="hidden" name="order" value="' . esc_attr( $xmoney_payments_order ) . '" />';
 			}
 		}
         // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Display-only.
@@ -107,10 +107,10 @@ class Twispay_Transaction_Table extends Twispay_Tw_List_Table {
 	 * @param Object $wpdb         WordPress refference to database.
 	 */
 	private function get_all_count( object $wpdb ) {
-		$table_name = $wpdb->prefix . 'twispay_tw_transactions';
+		$table_name = $wpdb->prefix . 'xmoney_payments_transactions';
 
 		$table_name = esc_sql( $table_name );
-        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is known and safe.
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Table name is fixed and not user input.
 		$wpdb->get_results( "SELECT id_tw_transactions FROM {$table_name}" );
 
 		return $wpdb->num_rows;
@@ -260,7 +260,7 @@ class Twispay_Transaction_Table extends Twispay_Tw_List_Table {
 		/**
 		 * Safely define table names. esc_sql() used because $wpdb->prepare() cannot handle identifiers.
 		 */
-		$transaction_table = esc_sql( $wpdb->prefix . 'twispay_tw_transactions' );
+		$transaction_table = esc_sql( $wpdb->prefix . 'xmoney_payments_transactions' );
 		$users_table       = esc_sql( $wpdb->users );
 
 		$per_page  = 10;
@@ -321,11 +321,11 @@ class Twispay_Transaction_Table extends Twispay_Tw_List_Table {
 		 * Execute query safely.
 		 * Direct query is acceptable here because we are performing a read with full escaping.
 		 */
-        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared -- Query manually built with fully escaped table names and safe values.
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Query manually built with fully escaped table names and safe values.
 		$data = $wpdb->get_results( $query, ARRAY_A );
 
 		// Set pagination to page.
-		$current_page = $this->get_twispay_pagenum();
+		$current_page = $this->get_xmoney_payments_pagenum();
 		$total_items  = count( $data );
 		$data         = array_slice( $data, ( ( $current_page - 1 ) * $per_page ), $per_page );
 		$this->items  = $data;

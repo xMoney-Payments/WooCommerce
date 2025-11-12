@@ -1,12 +1,12 @@
 <?php
 /**
- * Twispay Helpers
+ * Xmoney Payments Helpers
  *
- * Encodes notifications sent to the twispay platform.
+ * Encodes notifications sent to the xmoney platform.
  *
- * @package  Twispay/Front
+ * @package  Xmoney/Front
  * @category Front
- * @author   Twispay
+ * @author   Xmoney Payments
  */
 
 /* Exit if the file is accessed directly. */
@@ -14,15 +14,15 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; }
 
 /* Security class check */
-if ( ! class_exists( 'Twispay_TW_Helper_Notify' ) ) :
+if ( ! class_exists( 'Xmoney_Payments_Helper_Notify' ) ) :
 	/**
-	 * Twispay Helper Class
+	 * Xmoney Payments Helper Class
 	 *
 	 * Class that implements methods to get the value
 	 * of `jsonRequest` and `checksum` that need to be
-	 * sent by POST when making a Twispay order.
+	 * sent by POST when making a Xmoney Payments order.
 	 */
-	class Twispay_TW_Helper_Notify {
+	class Xmoney_Payments_Helper_Notify {
 		/**
 		 * Get the `jsonRequest` parameter (order parameters as JSON and base64 encoded).
 		 *
@@ -39,7 +39,7 @@ if ( ! class_exists( 'Twispay_TW_Helper_Notify' ) ) :
 		 * Get the `checksum` parameter (the checksum computed over the `jsonRequest` and base64 encoded).
 		 *
 		 * @param array  $order_data The order parameters.
-		 * @param string $secret_key The secret key (from Twispay).
+		 * @param string $secret_key The secret key (from Xmoney).
 		 *
 		 * @return string
 		 */

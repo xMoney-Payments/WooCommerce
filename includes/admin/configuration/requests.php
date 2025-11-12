@@ -1,12 +1,12 @@
 <?php
 /**
- * Twispay Configuration Request Page
+ * Xmoney Payments Configuration Request Page
  *
  * Here is processed all configuration actions( edit )
  *
- * @package Twispay_Payment_Gateway
+ * @package Xmoney_Payments_Payment_Gateway
  * @category Admin
- * @author   Twispay
+ * @author   Xmoney Payments
  */
 
 /* Exit if the file is accessed directly. */
@@ -15,7 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Twispay Edit Configuration.
+ * Xmoney Payments Edit Configuration.
  *
  * Process the edit configuration request and store values into the database.
  *
@@ -34,7 +34,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @return void
  */
-function tw_twispay_p_edit_general_configuration( $request ) {
+function xmoney_payments_edit_general_configuration( $request ) {
 	$live_mode           = sanitize_text_field( wp_unslash( $request['live_mode'] ) );
 	$staging_site_id     = sanitize_text_field( wp_unslash( $request['staging_site_id'] ) );
 	$staging_private_key = sanitize_text_field( wp_unslash( $request['staging_private_key'] ) );
@@ -50,14 +50,14 @@ function tw_twispay_p_edit_general_configuration( $request ) {
 
 	// WordPress database refference
 	global $wpdb;
-	$table_name = esc_sql( $wpdb->prefix . 'twispay_tw_configuration' );
+	$table_name = esc_sql( $wpdb->prefix . 'xmoney_payments_configuration' );
 
 	// Check if the Configuration row exist into Database
     // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table names are escaped manually and safe.
 	$configuration = $wpdb->get_results( "SELECT * FROM {$table_name}" );
 
 	if ( $configuration ) {
-		// Edit the Configuration into Database ( twispay_tw_configuration table )
+		// Edit the Configuration into Database ( xmoney_payments_configuration table )
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$wpdb->update(
 			$table_name,
@@ -76,7 +76,7 @@ function tw_twispay_p_edit_general_configuration( $request ) {
 			)
 		);
 	} else {
-		// If by any chance the configuration row does not exist, add default one immediately. ( twispay_tw_configuration table )
+		// If by any chance the configuration row does not exist, add default one immediately. ( xmoney_payments_configuration table )
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$wpdb->insert(
 			$table_name,
@@ -85,7 +85,7 @@ function tw_twispay_p_edit_general_configuration( $request ) {
 			)
 		);
 
-		// Edit the Configuration into Database ( twispay_tw_configuration table )
+		// Edit the Configuration into Database ( xmoney_payments_configuration table )
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$wpdb->update(
 			$table_name,
@@ -108,8 +108,8 @@ function tw_twispay_p_edit_general_configuration( $request ) {
 	// Redirect to the Configuration Page
 	$redirect_url = add_query_arg(
 		array(
-			'notice'               => 'edit_configuration',
-			'twispay_notice_nonce' => wp_create_nonce( 'twispay_notice_action' ),
+			'notice'                       => 'edit_configuration',
+			'xmoney_payments_notice_nonce' => wp_create_nonce( 'xmoney_payments_notice_action' ),
 		),
 		admin_url( 'admin.php?page=xmoney-payments' )
 	);
@@ -117,4 +117,4 @@ function tw_twispay_p_edit_general_configuration( $request ) {
 	wp_safe_redirect( $redirect_url );
 	exit;
 }
-add_action( 'tw_edit_general_configuration', 'tw_twispay_p_edit_general_configuration' );
+add_action( 'xmoney_payments_edit_general_configuration', 'xmoney_payments_edit_general_configuration' );

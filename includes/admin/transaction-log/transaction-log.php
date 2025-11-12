@@ -1,12 +1,12 @@
 <?php
 /**
- * Twispay Transaction Log Admin Page
+ * Xmoney Payments Transaction Log Admin Page
  *
- * Twispay transaction log page on the Administrator dashboard
+ * Xmoney Payments transaction log page on the Administrator dashboard
  *
- * @package  Twispay/Admin
+ * @package  Xmoney/Admin
  * @category Admin
- * @author   Twispay
+ * @author   Xmoney Payments
  */
 
 // Exit if the file is accessed directly
@@ -15,18 +15,18 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Display the Twispay transaction log administrator page.
+ * Display the Xmoney Payments transaction log administrator page.
  *
  * @return void
  */
-function twispay_tw_transaction_log_administrator() {
+function xmoney_payments_transaction_log_administrator() {
 	// Load languages
 	$lang = explode( '-', get_bloginfo( 'language' ) );
 	$lang = $lang[0];
-	if ( file_exists( TWISPAY_PLUGIN_DIR . 'lang/' . $lang . '/lang.php' ) ) {
-		require TWISPAY_PLUGIN_DIR . 'lang/' . $lang . '/lang.php';
+	if ( file_exists( XMONEY_PAYMENTS_PLUGIN_DIR . 'lang/' . $lang . '/lang.php' ) ) {
+		require XMONEY_PAYMENTS_PLUGIN_DIR . 'lang/' . $lang . '/lang.php';
 	} else {
-		require TWISPAY_PLUGIN_DIR . 'lang/en/lang.php';
+		require XMONEY_PAYMENTS_PLUGIN_DIR . 'lang/en/lang.php';
 	}
 
 	if ( ! class_exists( 'WooCommerce' ) ) {
@@ -43,7 +43,7 @@ function twispay_tw_transaction_log_administrator() {
 				<p><?php echo esc_html__( 'Transaction log in raw form.', 'xmoney-payments' ); ?></p>
 				<?php
 					$uploads  = wp_upload_dir();
-					$log_file = trailingslashit( $uploads['basedir'] ) . 'xmoney-payments/logs/twispay-log.txt';
+					$log_file = trailingslashit( $uploads['basedir'] ) . 'xmoney-payments/logs/xmoney-payments-log.txt';
 
 				if ( file_exists( $log_file ) ) {
 					$content = '';

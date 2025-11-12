@@ -1,12 +1,12 @@
 <?php
 /**
- * Twispay Main Request Page
+ * Xmoney Payments Main Request Page
  *
  * Here is processed all actions. They will be sent later to their controllers
  *
- * @package  Twispay/Admin
+ * @package  Xmoney/Admin
  * @category Admin
- * @author   Twispay
+ * @author   Xmoney Payments
  */
 /* Exit if the file is accessed directly. */
 if ( ! defined( 'ABSPATH' ) ) {
@@ -14,22 +14,22 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Hooks every Twispay actions and process them in order to be
+ * Hooks every Xmoney Payments actions and process them in order to be
  * sent later to their own controllers.
  *
  * @public
  * @return void
  */
-function twispay_tw_main_action() {
+function xmoney_payments_main_action() {
 
-	if ( isset( $_POST['tw_general_action'] ) ) {
+	if ( isset( $_POST['xmoney_payments_general_action'] ) ) {
 
 		/* Nonce check */
 		if (
-			! isset( $_POST['twispay_general_nonce'] ) ||
+			! isset( $_POST['xmoney_payments_general_nonce'] ) ||
 			! wp_verify_nonce(
-				sanitize_text_field( wp_unslash( $_POST['twispay_general_nonce'] ) ),
-				'twispay_general_action'
+				sanitize_text_field( wp_unslash( $_POST['xmoney_payments_general_nonce'] ) ),
+				'xmoney_payments_general_action'
 			)
 		) {
 			wp_die(
@@ -40,7 +40,7 @@ function twispay_tw_main_action() {
 		}
 
 		/* Sanitize the requested action */
-		$action = sanitize_key( wp_unslash( $_POST['tw_general_action'] ) );
+		$action = sanitize_key( wp_unslash( $_POST['xmoney_payments_general_action'] ) );
 
 		/**
 		 * Whitelisted admin actions & their input fields.
@@ -129,22 +129,22 @@ function twispay_tw_main_action() {
 		switch ( $action ) {
 
 			case 'edit_general_configuration':
-				tw_twispay_p_edit_general_configuration( $args );
+				xmoney_payments_edit_general_configuration( $args );
 				break;
 
 			case 'refund_payment_transaction':
-				tw_twispay_p_refund_payment_transaction();
+				xmoney_payments_refund_payment_transaction();
 				break;
 
 			case 'recurring_order':
-				tw_twispay_p_recurring_order( $args );
+				xmoney_payments_recurring_order( $args );
 				break;
 
 			case 'synchronize_subscriptions':
-				tw_twispay_p_synchronize_subscriptions( $args );
+				xmoney_payments_synchronize_subscriptions( $args );
 				break;
 		}
 	}
 }
 
-add_action( 'admin_init', 'twispay_tw_main_action' );
+add_action( 'admin_init', 'xmoney_payments_main_action' );
