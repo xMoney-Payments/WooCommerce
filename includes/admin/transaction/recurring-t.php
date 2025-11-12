@@ -32,14 +32,14 @@ if ( file_exists( XMONEY_PAYMENTS_PLUGIN_DIR . 'lang/' . $xmoney_payments_lang .
 	<?php
 		$xmoney_payments_list_nonce = isset( $_GET['xmoney_payments_transactions_nonce'] ) ? sanitize_text_field( wp_unslash( $_GET['xmoney_payments_transactions_nonce'] ) ) : '';
 	if (
-			! empty($xmoney_payments_list_nonce ) &&
-			wp_verify_nonce($xmoney_payments_list_nonce, 'xmoney_payments_transactions_action' ) &&
+			! empty( $xmoney_payments_list_nonce ) &&
+			wp_verify_nonce( $xmoney_payments_list_nonce, 'xmoney_payments_transactions_action' ) &&
 			isset( $_GET['order_ad'] ) &&
 			sanitize_text_field( wp_unslash( $_GET['order_ad'] ) )
 		) {
 		$xmoney_payments_ids_raw = sanitize_text_field( wp_unslash( $_GET['order_ad'] ) );
 		foreach ( explode( ',', $xmoney_payments_ids_raw ) as $xmoney_payments_key => $xmoney_payments_a_id ) {
-			echo '<p>ID: #' . esc_html($xmoney_payments_a_id ) . '</p>';
+			echo '<p>ID: #' . esc_html( $xmoney_payments_a_id ) . '</p>';
 		}
 	}
 	?>

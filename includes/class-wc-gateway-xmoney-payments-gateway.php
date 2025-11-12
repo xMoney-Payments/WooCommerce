@@ -544,7 +544,7 @@ global $wpdb;
 // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 $xmoney_payments_suppress_email = $wpdb->get_row( 'SELECT suppress_email FROM ' . $wpdb->prefix . 'xmoney_payments_configuration' );
 
-if ($xmoney_payments_suppress_email ) {
+if ( $xmoney_payments_suppress_email ) {
 	if ( '1' === $xmoney_payments_suppress_email->suppress_email ) {
 		add_action( 'woocommerce_email', 'xmoney_payments_unhook_woo_order_emails' );
 	}
