@@ -1,5 +1,5 @@
 === xMoney Payments ===
-Contributors: xmoney
+Contributors: xmoneypayments
 Tags: payment, gateway, module
 Requires at least: 4.6
 Tested up to: 6.8

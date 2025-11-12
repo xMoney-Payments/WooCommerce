@@ -9,27 +9,27 @@
  * @author   Twispay
  */
 /* Exit if the file is accessed directly. */
-if (!defined('ABSPATH')) {
-    exit;
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
 }
 
 // Exit if the file is accessed directly
 if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
-    exit;
+	exit;
 }
 
 delete_option( 'twispay_tw_installed' );
 
 // Delete All TW Twispay Pages
-$page = get_page_by_path('xmoney-payments-confirmation');
-if ($page) {
-	wp_delete_post( $page->ID, true );
+$tw_page = get_page_by_path( 'xmoney-payments-confirmation' );
+if ( $tw_page ) {
+	wp_delete_post( $tw_page->ID, true );
 }
 
 // Remove All Tables
 global $wpdb;
 
 // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
-$wpdb->query( "DROP TABLE IF EXISTS " . $wpdb->prefix . "twispay_tw_configuration" );
+$wpdb->query( 'DROP TABLE IF EXISTS ' . $wpdb->prefix . 'twispay_tw_configuration' );
 // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
-$wpdb->query( "DROP TABLE IF EXISTS " . $wpdb->prefix . "twispay_tw_transactions" );
+$wpdb->query( 'DROP TABLE IF EXISTS ' . $wpdb->prefix . 'twispay_tw_transactions' );
