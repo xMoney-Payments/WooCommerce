@@ -108,7 +108,7 @@ function xmoney_payments_edit_general_configuration( $request ) {
 	// Redirect to the Configuration Page
 	$redirect_url = add_query_arg(
 		array(
-			'notice'                 => 'edit_configuration',
+			'notice'                       => 'edit_configuration',
 			'xmoney_payments_notice_nonce' => wp_create_nonce( 'xmoney_payments_notice_action' ),
 		),
 		admin_url( 'admin.php?page=xmoney-payments' )

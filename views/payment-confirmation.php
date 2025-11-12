@@ -257,7 +257,7 @@ if ( true !== $order_validation ) {
 
 
 /* Extract the WooCommerce order. */
-$order_id        = explode( '_', $decrypted['externalOrderId'] )[0];
+$order_id              = explode( '_', $decrypted['externalOrderId'] )[0];
 $xmoney_payments_order = wc_get_order( $order_id );
 
 /* Check if the WooCommerce order extraction failed. */

@@ -235,13 +235,13 @@ function init_xmoney_payments_gateway_class() {
 			 */
 			public function is_available(): bool {
 				$xmoney_payments_order = null;
-				$needs_shipping  = false;
+				$needs_shipping        = false;
 
 				// Test if shipping is needed first
 				if ( WC()->cart && WC()->cart->needs_shipping() ) {
 					$needs_shipping = true;
 				} elseif ( is_page( wc_get_page_id( 'checkout' ) ) && 0 < get_query_var( 'order-pay' ) ) {
-					$order_id        = absint( get_query_var( 'order-pay' ) );
+					$order_id              = absint( get_query_var( 'order-pay' ) );
 					$xmoney_payments_order = wc_get_order( $order_id );
 
 					// Test if order needs shipping.
