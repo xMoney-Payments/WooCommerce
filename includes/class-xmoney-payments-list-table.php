@@ -421,6 +421,7 @@ abstract class Xmoney_Payments_List_Table {
 		 * @param array $views An array of available list table views.
 		 * @since 3.5.0
 		 */
+        // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- Using a core WordPress hook.
 		$views = apply_filters( "views_{$this->screen->id}", $views );
 
 		if ( empty( $views ) ) {
@@ -471,6 +472,7 @@ abstract class Xmoney_Payments_List_Table {
 			 * @param array $actions An array of the available bulk actions.
 			 * @since 3.5.0
 			 */
+            // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- Using a core WordPress filter for bulk actions.
 			$this->_actions = apply_filters( "bulk_actions_{$this->screen->id}", $this->_actions );
 			$two            = '';
 		} else {
@@ -548,6 +550,7 @@ abstract class Xmoney_Payments_List_Table {
 		 * @param string $post_type The post type.
 		 * @since 4.2.0
 		 */
+        // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- Using WordPress core filter 'disable_months_dropdown'.
 		if ( apply_filters( 'disable_months_dropdown', false, $post_type ) ) {
 			return;
 		}
@@ -586,6 +589,7 @@ abstract class Xmoney_Payments_List_Table {
 		 * @param string $post_type The post type.
 		 * @since 3.7.0
 		 */
+        // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- Using core WordPress filter 'months_dropdown_results'.
 		$months = apply_filters( 'months_dropdown_results', $months, $post_type );
 
 		$month_count = count( $months );
@@ -775,6 +779,7 @@ abstract class Xmoney_Payments_List_Table {
 		 * @param int $per_page Number of items to be displayed. Default 20.
 		 * @since 2.9.0
 		 */
+        // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.DynamicHooknameFound -- Using core WordPress dynamic hook `$option` for per-page filters.
 		return (int) apply_filters( $option, $per_page );
 	}
 
@@ -1008,6 +1013,7 @@ abstract class Xmoney_Payments_List_Table {
 		 * @param string $context Screen ID for specific list table, e.g. 'plugins'.
 		 * @since 4.3.0
 		 */
+        // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- Using core WordPress filter 'list_table_primary_column'.
 		$column = apply_filters( 'list_table_primary_column', $default, $this->screen->id );
 
 		if ( empty( $column ) || ! isset( $columns[ $column ] ) ) {
@@ -1050,7 +1056,7 @@ abstract class Xmoney_Payments_List_Table {
 		 * @param array $sortable_columns An array of sortable columns.
 		 * @since 3.5.0
 		 */
-		$_sortable = apply_filters( "manage_{$this->screen->id}_sortable_columns", $sortable_columns );
+		$_sortable = apply_filters( "xmoney_payments_manage_{$this->screen->id}_sortable_columns", $sortable_columns );
 
 		$sortable = array();
 		foreach ( $_sortable as $id => $data ) {

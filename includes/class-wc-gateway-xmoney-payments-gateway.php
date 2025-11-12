@@ -111,7 +111,7 @@ add_action( 'wp_enqueue_scripts', 'xmoney_payments_add_front_css' );
  *
  * @public
  */
-function init_xmoney_payments_gateway_class() {
+function xmoney_payments_init_gateway_class() {
 	if ( class_exists( 'WooCommerce' ) ) {
 		/**
 		 *  WooCommerce Gateway implementation for xMoney Payments.
@@ -256,6 +256,7 @@ function init_xmoney_payments_gateway_class() {
 					}
 				}
 
+                // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- Using a core WooCommerce hook.
 				$needs_shipping = apply_filters( 'woocommerce_cart_needs_shipping', $needs_shipping );
 
 				// Virtual order, with virtual disabled
@@ -464,7 +465,7 @@ function init_xmoney_payments_gateway_class() {
 		}
 	}
 }
-add_action( 'plugins_loaded', 'init_xmoney_payments_gateway_class' );
+add_action( 'plugins_loaded', 'xmoney_payments_init_gateway_class' );
 
 
 /**
@@ -473,14 +474,14 @@ add_action( 'plugins_loaded', 'init_xmoney_payments_gateway_class' );
  * @param array $methods Existing payment methods.
  * @return array
  */
-function add_xmoney_payments_gateway_class( $methods ): array {
+function xmoney_payments_add_gateway_class( $methods ): array {
 	if ( class_exists( 'WooCommerce' ) ) {
 		$methods[] = 'WC_Gateway_Xmoney_Payments_Gateway';
 		return $methods;
 	}
 	return array();
 }
-add_filter( 'woocommerce_payment_gateways', 'add_xmoney_payments_gateway_class' );
+add_filter( 'woocommerce_payment_gateways', 'xmoney_payments_add_gateway_class' );
 
 
 /**
@@ -541,10 +542,10 @@ function xmoney_payments_unhook_woo_order_emails( $email_class ) {
 // Get configuration from database
 global $wpdb;
 // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-$suppress_email = $wpdb->get_row( 'SELECT suppress_email FROM ' . $wpdb->prefix . 'xmoney_payments_configuration' );
+$xmoney_payments_suppress_email = $wpdb->get_row( 'SELECT suppress_email FROM ' . $wpdb->prefix . 'xmoney_payments_configuration' );
 
-if ( $suppress_email ) {
-	if ( '1' === $suppress_email->suppress_email ) {
+if ($xmoney_payments_suppress_email ) {
+	if ( '1' === $xmoney_payments_suppress_email->suppress_email ) {
 		add_action( 'woocommerce_email', 'xmoney_payments_unhook_woo_order_emails' );
 	}
 }
@@ -556,7 +557,7 @@ if ( $suppress_email ) {
  * @param WC_Subscription $subscription Subscription object.
  * @return void
  */
-function subscription_terminated( $subscription ) {
+function xmoney_payments_subscription_terminated( $subscription ) {
 	/* Get configuration from database. */
 	global $wpdb;
 	$api_key = '';
@@ -602,5 +603,5 @@ function subscription_terminated( $subscription ) {
 		Xmoney_Payments_Logger::xmoney_payments_log( esc_html__( '[RESPONSE-ERROR]: Failed to set server status for order ID: ', 'xmoney-payments' ) . esc_html( $subscription->get_parent_id() ) );
 	}
 }
-add_action( 'woocommerce_subscription_status_cancelled', 'subscription_terminated' );
-add_action( 'woocommerce_subscription_status_expired', 'subscription_terminated' );
+add_action( 'woocommerce_subscription_status_cancelled', 'xmoney_payments_subscription_terminated' );
+add_action( 'woocommerce_subscription_status_expired', 'xmoney_payments_subscription_terminated' );

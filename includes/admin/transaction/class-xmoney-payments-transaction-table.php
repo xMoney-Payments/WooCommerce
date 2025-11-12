@@ -110,7 +110,7 @@ class Xmoney_Payments_Transaction_Table extends Xmoney_Payments_List_Table {
 		$table_name = $wpdb->prefix . 'xmoney_payments_transactions';
 
 		$table_name = esc_sql( $table_name );
-        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is known and safe.
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Table name is fixed and not user input.
 		$wpdb->get_results( "SELECT id_tw_transactions FROM {$table_name}" );
 
 		return $wpdb->num_rows;
@@ -321,7 +321,7 @@ class Xmoney_Payments_Transaction_Table extends Xmoney_Payments_List_Table {
 		 * Execute query safely.
 		 * Direct query is acceptable here because we are performing a read with full escaping.
 		 */
-        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared -- Query manually built with fully escaped table names and safe values.
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Query manually built with fully escaped table names and safe values.
 		$data = $wpdb->get_results( $query, ARRAY_A );
 
 		// Set pagination to page.

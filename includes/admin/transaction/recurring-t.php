@@ -15,10 +15,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Load languages
-$lang = explode( '-', get_bloginfo( 'language' ) );
-$lang = $lang[0];
-if ( file_exists( XMONEY_PAYMENTS_PLUGIN_DIR . 'lang/' . $lang . '/lang.php' ) ) {
-	require XMONEY_PAYMENTS_PLUGIN_DIR . 'lang/' . $lang . '/lang.php';
+$xmoney_payments_lang = explode( '-', get_bloginfo( 'language' ) );
+$xmoney_payments_lang = $xmoney_payments_lang[0];
+if ( file_exists( XMONEY_PAYMENTS_PLUGIN_DIR . 'lang/' . $xmoney_payments_lang . '/lang.php' ) ) {
+	require XMONEY_PAYMENTS_PLUGIN_DIR . 'lang/' . $xmoney_payments_lang . '/lang.php';
 } else {
 	require XMONEY_PAYMENTS_PLUGIN_DIR . 'lang/en/lang.php';
 }
@@ -30,16 +30,16 @@ if ( file_exists( XMONEY_PAYMENTS_PLUGIN_DIR . 'lang/' . $lang . '/lang.php' ) )
 
 	<!-- Get all payment order ID from the $_GET parameters (only if nonce is valid) -->
 	<?php
-		$list_nonce = isset( $_GET['xmoney_payments_transactions_nonce'] ) ? sanitize_text_field( wp_unslash( $_GET['xmoney_payments_transactions_nonce'] ) ) : '';
+		$xmoney_payments_list_nonce = isset( $_GET['xmoney_payments_transactions_nonce'] ) ? sanitize_text_field( wp_unslash( $_GET['xmoney_payments_transactions_nonce'] ) ) : '';
 	if (
-			! empty( $list_nonce ) &&
-			wp_verify_nonce( $list_nonce, 'xmoney_payments_transactions_action' ) &&
+			! empty($xmoney_payments_list_nonce ) &&
+			wp_verify_nonce($xmoney_payments_list_nonce, 'xmoney_payments_transactions_action' ) &&
 			isset( $_GET['order_ad'] ) &&
 			sanitize_text_field( wp_unslash( $_GET['order_ad'] ) )
 		) {
-		$ids_raw = sanitize_text_field( wp_unslash( $_GET['order_ad'] ) );
-		foreach ( explode( ',', $ids_raw ) as $key => $a_id ) {
-			echo '<p>ID: #' . esc_html( $a_id ) . '</p>';
+		$xmoney_payments_ids_raw = sanitize_text_field( wp_unslash( $_GET['order_ad'] ) );
+		foreach ( explode( ',', $xmoney_payments_ids_raw ) as $xmoney_payments_key => $xmoney_payments_a_id ) {
+			echo '<p>ID: #' . esc_html($xmoney_payments_a_id ) . '</p>';
 		}
 	}
 	?>

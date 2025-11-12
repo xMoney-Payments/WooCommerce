@@ -14,9 +14,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /* Load languages */
-$lang = explode( '-', get_bloginfo( 'language' ) )[0];
-if ( file_exists( XMONEY_PAYMENTS_PLUGIN_DIR . 'lang/' . $lang . '/lang.php' ) ) {
-	require XMONEY_PAYMENTS_PLUGIN_DIR . 'lang/' . $lang . '/lang.php';
+$xmoney_payments_lang = explode( '-', get_bloginfo( 'language' ) )[0];
+if ( file_exists( XMONEY_PAYMENTS_PLUGIN_DIR . 'lang/' . $xmoney_payments_lang . '/lang.php' ) ) {
+	require XMONEY_PAYMENTS_PLUGIN_DIR . 'lang/' . $xmoney_payments_lang . '/lang.php';
 } else {
 	require XMONEY_PAYMENTS_PLUGIN_DIR . 'lang/en/lang.php';
 }
@@ -57,15 +57,15 @@ if ( ! class_exists( 'WooCommerce' ) ) {
 /* Get configuration from database. */
 global $wpdb;
 // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-$configuration = $wpdb->get_row( 'SELECT * FROM ' . $wpdb->prefix . 'xmoney_payments_configuration' );
+$xmoney_payments_configuration = $wpdb->get_row( 'SELECT * FROM ' . $wpdb->prefix . 'xmoney_payments_configuration' );
 
 
-$secret_key = '';
-if ( $configuration ) {
-	if ( '1' === $configuration->live_mode ) {
-		$secret_key = $configuration->live_key;
-	} elseif ( '0' === $configuration->live_mode ) {
-		$secret_key = $configuration->staging_key;
+$xmoney_payments_secret_key = '';
+if ($xmoney_payments_configuration ) {
+	if ( '1' === $xmoney_payments_configuration->live_mode ) {
+        $xmoney_payments_secret_key = $xmoney_payments_configuration->live_key;
+	} elseif ( '0' === $xmoney_payments_configuration->live_mode ) {
+        $xmoney_payments_secret_key = $xmoney_payments_configuration->staging_key;
 	} else {
 		// Load process css & js files
 		wp_enqueue_style( 'ma-payment-confirmation-css', XMONEY_PAYMENTS_PLUGIN_URL . 'assets/css/payment-confirmation.css', array(), XMONEY_PAYMENTS_VERSION, true );
@@ -81,13 +81,13 @@ Check if the POST is corrupted: Doesn't contain the 'opensslResult' and the 'res
 /*
 Check if the 'backUrl' is corrupted: Doesn't contain the 'secure_key' field or nonce. */
 // Verify nonce from either POST or GET without relying on $_REQUEST
-$received_nonce = '';
+$xmoney_payments_received_nonce = '';
 if ( isset( $_POST['_wpnonce'] ) ) {
-	$received_nonce = sanitize_text_field( wp_unslash( $_POST['_wpnonce'] ) );
+    $xmoney_payments_received_nonce = sanitize_text_field( wp_unslash( $_POST['_wpnonce'] ) );
 } elseif ( isset( $_GET['_wpnonce'] ) ) {
-	$received_nonce = sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) );
+    $xmoney_payments_received_nonce = sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) );
 }
-if ( empty( $received_nonce ) || ! wp_verify_nonce( $received_nonce, 'xmoney_payments_process' ) ) {
+if ( empty( $received_nonce ) || ! wp_verify_nonce($xmoney_payments_received_nonce, 'xmoney_payments_process' ) ) {
 	if ( ( ( false === isset( $_POST['opensslResult'] ) ) && ( false === isset( $_POST['result'] ) ) ) || ( false === isset( $_GET['secure_key'] ) ) ) {
 		Xmoney_Payments_Logger::xmoney_payments_log( esc_html__( '[RESPONSE-ERROR]: Received empty response.', 'xmoney-payments' ) );
 		?>
@@ -101,7 +101,7 @@ if ( empty( $received_nonce ) || ! wp_verify_nonce( $received_nonce, 'xmoney_pay
 					<?php echo esc_html__( ' try again', 'xmoney-payments' ); ?>
 				</a>
 
-				<?php if ( '0' === $configuration->contact_email ) { ?>
+				<?php if ( '0' === $xmoney_payments_configuration->contact_email ) { ?>
 					<?php
 					printf(
 						'%s %s %s',
@@ -113,7 +113,7 @@ if ( empty( $received_nonce ) || ! wp_verify_nonce( $received_nonce, 'xmoney_pay
 				<?php } else { ?>
 					<?php echo esc_html__( ' or', 'xmoney-payments' ); ?>
 
-					<a href="<?php echo esc_url( 'mailto:' . sanitize_email( $configuration->contact_email ) ); ?>">
+					<a href="<?php echo esc_url( 'mailto:' . sanitize_email($xmoney_payments_configuration->contact_email ) ); ?>">
 						<?php echo esc_html__( ' contact', 'xmoney-payments' ); ?>
 					</a>
 
@@ -128,7 +128,7 @@ if ( empty( $received_nonce ) || ! wp_verify_nonce( $received_nonce, 'xmoney_pay
 }
 
 /* Check if there is NO secret key. */
-if ( '' === $secret_key ) {
+if ( '' === $xmoney_payments_secret_key ) {
 	Xmoney_Payments_Logger::xmoney_payments_log( esc_html__( '[RESPONSE-ERROR]: Private key is not valid.', 'xmoney-payments' ) );
 	?>
 	<div class="error notice" style="margin-top: 20px;">
@@ -143,7 +143,7 @@ if ( '' === $secret_key ) {
 				<?php echo esc_html__( ' try again', 'xmoney-payments' ); ?>
 			</a>
 
-			<?php if ( '0' === $configuration->contact_email ) { ?>
+			<?php if ( '0' === $xmoney_payments_configuration->contact_email ) { ?>
 				<?php
 				printf(
 					'%s %s %s',
@@ -155,7 +155,7 @@ if ( '' === $secret_key ) {
 			<?php } else { ?>
 				<?php echo esc_html__( ' or', 'xmoney-payments' ); ?>
 
-				<a href="<?php echo esc_url( 'mailto:' . sanitize_email( $configuration->contact_email ) ); ?>">
+				<a href="<?php echo esc_url( 'mailto:' . sanitize_email($xmoney_payments_configuration->contact_email ) ); ?>">
 					<?php echo esc_html__( ' contact', 'xmoney-payments' ); ?>
 				</a>
 
@@ -170,10 +170,10 @@ if ( '' === $secret_key ) {
 
 
 /* Extract the server response and decrypt it. */
-$decrypted = Xmoney_Payments_Helper_Response::xmoney_payments_decrypt_message( /*tw_encryptedResponse*/( isset( $_POST['opensslResult'] ) ) ? ( esc_html( sanitize_text_field( wp_unslash( $_POST['opensslResult'] ) ) ) ) : ( esc_html( sanitize_text_field( wp_unslash( $_POST['result'] ) ) ) ), $secret_key );
+$xmoney_payments_decrypted = Xmoney_Payments_Helper_Response::xmoney_payments_decrypt_message( /*tw_encryptedResponse*/( isset( $_POST['opensslResult'] ) ) ? ( esc_html( sanitize_text_field( wp_unslash( $_POST['opensslResult'] ) ) ) ) : ( esc_html( sanitize_text_field( wp_unslash( $_POST['result'] ) ) ) ), $xmoney_payments_secret_key );
 
 /* Check if decryption failed.  */
-if ( false === $decrypted ) {
+if ( false === $xmoney_payments_decrypted ) {
 	Xmoney_Payments_Logger::xmoney_payments_log( esc_html__( '[RESPONSE-ERROR]: Decryption failed.', 'xmoney-payments' ) );
 	?>
 	<div class="error notice" style="margin-top: 20px;">
@@ -186,7 +186,7 @@ if ( false === $decrypted ) {
 				<?php echo esc_html__( ' try again', 'xmoney-payments' ); ?>
 			</a>
 
-			<?php if ( '0' === $configuration->contact_email ) { ?>
+			<?php if ( '0' === $xmoney_payments_configuration->contact_email ) { ?>
 				<?php
 				printf(
 					'%s %s %s',
@@ -198,7 +198,7 @@ if ( false === $decrypted ) {
 			<?php } else { ?>
 				<?php echo esc_html__( ' or', 'xmoney-payments' ); ?>
 
-				<a href="<?php echo esc_url( 'mailto:' . sanitize_email( $configuration->contact_email ) ); ?>">
+				<a href="<?php echo esc_url( 'mailto:' . sanitize_email($xmoney_payments_configuration->contact_email ) ); ?>">
 					<?php echo esc_html__( ' contact', 'xmoney-payments' ); ?>
 				</a>
 
@@ -214,10 +214,10 @@ if ( false === $decrypted ) {
 }
 
 /* Validate the decrypted response. */
-$order_validation = Xmoney_Payments_Helper_Response::xmoney_payments_check_validation( $decrypted );
+$xmoney_payments_order_validation = Xmoney_Payments_Helper_Response::xmoney_payments_check_validation($xmoney_payments_decrypted );
 
 /* Check if server response validation failed.  */
-if ( true !== $order_validation ) {
+if ( true !== $xmoney_payments_order_validation ) {
 	Xmoney_Payments_Logger::xmoney_payments_log( esc_html__( '[RESPONSE-ERROR]: Validation failed.', 'xmoney-payments' ) );
 	?>
 	<div class="error notice" style="margin-top: 20px;">
@@ -230,7 +230,7 @@ if ( true !== $order_validation ) {
 				<?php echo esc_html__( ' try again', 'xmoney-payments' ); ?>
 			</a>
 
-			<?php if ( '0' === $configuration->contact_email ) { ?>
+			<?php if ( '0' === $xmoney_payments_configuration->contact_email ) { ?>
 				<?php
 				printf(
 					'%s %s %s',
@@ -242,7 +242,7 @@ if ( true !== $order_validation ) {
 			<?php } else { ?>
 				<?php echo esc_html__( ' or', 'xmoney-payments' ); ?>
 
-				<a href="<?php echo esc_url( 'mailto:' . sanitize_email( $configuration->contact_email ) ); ?>">
+				<a href="<?php echo esc_url( 'mailto:' . sanitize_email($xmoney_payments_configuration->contact_email ) ); ?>">
 					<?php echo esc_html__( ' contact', 'xmoney-payments' ); ?>
 				</a>
 
@@ -257,8 +257,8 @@ if ( true !== $order_validation ) {
 
 
 /* Extract the WooCommerce order. */
-$order_id              = explode( '_', $decrypted['externalOrderId'] )[0];
-$xmoney_payments_order = wc_get_order( $order_id );
+$xmoney_payments_order_id  = explode( '_', $xmoney_payments_decrypted['externalOrderId'] )[0];
+$xmoney_payments_order     = wc_get_order($xmoney_payments_order_id );
 
 /* Check if the WooCommerce order extraction failed. */
 if ( false === $xmoney_payments_order ) {
@@ -276,7 +276,7 @@ if ( false === $xmoney_payments_order ) {
 				<?php echo esc_html__( ' try again', 'xmoney-payments' ); ?>
 			</a>
 
-			<?php if ( '0' === $configuration->contact_email ) { ?>
+			<?php if ( '0' === $xmoney_payments_configuration->contact_email ) { ?>
 				<?php
 				printf(
 					'%s %s %s',
@@ -288,7 +288,7 @@ if ( false === $xmoney_payments_order ) {
 			<?php } else { ?>
 				<?php echo esc_html__( ' or', 'xmoney-payments' ); ?>
 
-				<a href="<?php echo esc_url( 'mailto:' . sanitize_email( $configuration->contact_email ) ); ?>">
+				<a href="<?php echo esc_url( 'mailto:' . sanitize_email($xmoney_payments_configuration->contact_email ) ); ?>">
 					<?php echo esc_html__( ' contact', 'xmoney-payments' ); ?>
 				</a>
 
@@ -302,9 +302,9 @@ if ( false === $xmoney_payments_order ) {
 }
 
 /* Check if the WooCommerce order cart hash does NOT MATCH the one sent to the server. */
-$secure_key_raw = isset( $_GET['secure_key'] ) ? sanitize_text_field( wp_unslash( $_GET['secure_key'] ) ) : '';
+$xmoney_payments_secure_key_raw = isset( $_GET['secure_key'] ) ? sanitize_text_field( wp_unslash( $_GET['secure_key'] ) ) : '';
 // Accept only hex characters and reasonable length to avoid passing arbitrary values onward.
-if ( empty( $secure_key_raw ) || ! preg_match( '/^[A-Fa-f0-9]{16,64}$/', $secure_key_raw ) || $secure_key_raw !== $xmoney_payments_order->get_data()['cart_hash'] ) {
+if ( empty($xmoney_payments_secure_key_raw ) || ! preg_match( '/^[A-Fa-f0-9]{16,64}$/', $xmoney_payments_secure_key_raw ) || $xmoney_payments_secure_key_raw !== $xmoney_payments_order->get_data()['cart_hash'] ) {
 	Xmoney_Payments_Logger::xmoney_payments_log( esc_html__( '[RESPONSE-ERROR]: Invalid order identification key.', 'xmoney-payments' ) );
 	?>
 	<div class="error notice" style="margin-top: 20px;">
@@ -319,7 +319,7 @@ if ( empty( $secure_key_raw ) || ! preg_match( '/^[A-Fa-f0-9]{16,64}$/', $secure
 				<?php echo esc_html__( ' try again', 'xmoney-payments' ); ?>
 			</a>
 
-			<?php if ( '0' === $configuration->contact_email ) { ?>
+			<?php if ( '0' === $xmoney_payments_configuration->contact_email ) { ?>
 				<?php
 				printf(
 					'%s %s %s',
@@ -331,7 +331,7 @@ if ( empty( $secure_key_raw ) || ! preg_match( '/^[A-Fa-f0-9]{16,64}$/', $secure
 			<?php } else { ?>
 				<?php echo esc_html__( ' or', 'xmoney-payments' ); ?>
 
-				<a href="<?php echo esc_url( 'mailto:' . sanitize_email( $configuration->contact_email ) ); ?>">
+				<a href="<?php echo esc_url( 'mailto:' . sanitize_email($xmoney_payments_configuration->contact_email ) ); ?>">
 					<?php echo esc_html__( ' contact', 'xmoney-payments' ); ?>
 				</a>
 
@@ -345,6 +345,6 @@ if ( empty( $secure_key_raw ) || ! preg_match( '/^[A-Fa-f0-9]{16,64}$/', $secure
 }
 
 /* Reconstruct the checkout URL to use it to allow client to try again in case of error. */
-$checkout_url = esc_url( wc_get_checkout_url() . 'order-pay/' . $order_id . '/?pay_for_order=true&key=' . $xmoney_payments_order->get_data()['order_key'] );
+$xmoney_payments_checkout_url = esc_url( wc_get_checkout_url() . 'order-pay/' . $xmoney_payments_order_id . '/?pay_for_order=true&key=' . $xmoney_payments_order->get_data()['order_key'] );
 
-Xmoney_Payments_Status_Updater::update_status_back_url( $order_id, $decrypted['transactionStatus'], $checkout_url, $configuration );
+Xmoney_Payments_Status_Updater::update_status_back_url($xmoney_payments_order_id, $xmoney_payments_decrypted['transactionStatus'], $xmoney_payments_checkout_url, $xmoney_payments_configuration );
