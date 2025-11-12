@@ -1,12 +1,12 @@
 <?php
 /**
- * Twispay Views
+ * Xmoney Payments Views
  *
  * Render specific views template
  *
- * @package  Twispay/Front
+ * @package  Xmoney/Front
  * @category Front
- * @author   Twispay
+ * @author   Xmoney Payments
  */
 
 // Exit if the file is accessed directly
@@ -15,14 +15,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Security class check
-if ( ! class_exists( 'Twispay_TW_Views' ) ) :
+if ( ! class_exists( 'Xmoney_Payments_Views' ) ) :
 
 	/**
-	 * Twispay Views Class
+	 * Xmoney Payments Views Class
 	 */
-	class Twispay_TW_Views {
+	class Xmoney_Payments_Views {
 		/**
-		 * Twispay_TW_Views Constructor
+		 * Xmoney_Payments_Views Constructor
 		 *
 		 * @public
 		 * @return void
@@ -31,13 +31,13 @@ if ( ! class_exists( 'Twispay_TW_Views' ) ) :
 		}
 
 		/**
-		 * Render the Front Twispay View
+		 * Render the Front Xmoney Payments View
 		 *
 		 * @param string $slug The view slug filename (without ".php").
 		 * @return void
 		 */
-		public function twispay_tw_render_view( $slug ) {
-				include TWISPAY_PLUGIN_DIR . 'views/' . $slug . '.php';
+		public function xmoney_payments_render_view( $slug ) {
+				include XMONEY_PAYMENTS_PLUGIN_DIR . 'views/' . $slug . '.php';
 		}
 	}
 

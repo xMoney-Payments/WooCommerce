@@ -1,10 +1,10 @@
 <?php
 /**
- * Twispay Helper Processor
+ * Xmoney Payments Helper Processor
  *
- * Provides shared helper utilities used throughout the Twispay integration.
+ * Provides shared helper utilities used throughout the Xmoney Payments integration.
  *
- * @package Twispay/Helpers
+ * @package Xmoney/Helpers
  */
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -13,7 +13,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Helper class for retrieving configuration and formatting request data.
  */
-class Twispay_TW_Helper_Processor {
+class Xmoney_Payments_Helper_Processor {
 	const LIVE_URL  = 'https://secure.xmoney.com';
 	const STAGE_URL = 'https://secure-stage.xmoney.com';
 
@@ -82,7 +82,7 @@ class Twispay_TW_Helper_Processor {
 	private static function query_configuration() {
 		global $wpdb;
 
-		$table_name = esc_sql( $wpdb->prefix . 'twispay_tw_configuration' );
+		$table_name = esc_sql( $wpdb->prefix . 'xmoney_payments_configuration' );
 
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table names are escaped manually and safe.
 		return $wpdb->get_row( "SELECT * FROM {$table_name}" );

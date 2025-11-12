@@ -1,12 +1,12 @@
 <?php
 /**
- * Twispay Payment Confirmation View
+ * Xmoney Payments Payment Confirmation View
  *
  * Html Payment Confirmation View
  *
- * @package  Twispay/Front
+ * @package  Xmoney/Front
  * @category Front
- * @author   Twispay
+ * @author   Xmoney Payments
  */
 /* Exit if the file is accessed directly. */
 if ( ! defined( 'ABSPATH' ) ) {
@@ -15,20 +15,20 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 /* Load languages */
 $lang = explode( '-', get_bloginfo( 'language' ) )[0];
-if ( file_exists( TWISPAY_PLUGIN_DIR . 'lang/' . $lang . '/lang.php' ) ) {
-	require TWISPAY_PLUGIN_DIR . 'lang/' . $lang . '/lang.php';
+if ( file_exists( XMONEY_PAYMENTS_PLUGIN_DIR . 'lang/' . $lang . '/lang.php' ) ) {
+	require XMONEY_PAYMENTS_PLUGIN_DIR . 'lang/' . $lang . '/lang.php';
 } else {
-	require TWISPAY_PLUGIN_DIR . 'lang/en/lang.php';
+	require XMONEY_PAYMENTS_PLUGIN_DIR . 'lang/en/lang.php';
 }
 
-/* Require the "Twispay_TW_Logger" class. */
-require_once TWISPAY_PLUGIN_DIR . DIRECTORY_SEPARATOR . 'helpers' . DIRECTORY_SEPARATOR . 'class-twispay-tw-logger.php';
-/* Require the "Twispay_TW_Helper_Response" class. */
-require_once TWISPAY_PLUGIN_DIR . DIRECTORY_SEPARATOR . 'helpers' . DIRECTORY_SEPARATOR . 'class-twispay-tw-helper-response.php';
-/* Require the "Twispay_TW_Status_Updater" class. */
-require_once TWISPAY_PLUGIN_DIR . DIRECTORY_SEPARATOR . 'helpers' . DIRECTORY_SEPARATOR . 'class-twispay-tw-status-updater.php';
-/* Require the "Twispay_TW_Default_Thankyou" class. */
-require_once TWISPAY_PLUGIN_DIR . DIRECTORY_SEPARATOR . 'helpers' . DIRECTORY_SEPARATOR . 'class-twispay-tw-default-thankyou.php';
+/* Require the "Xmoney_Payments_Logger" class. */
+require_once XMONEY_PAYMENTS_PLUGIN_DIR . DIRECTORY_SEPARATOR . 'helpers' . DIRECTORY_SEPARATOR . 'class-xmoney-payments-logger.php';
+/* Require the "Xmoney_Payments_Helper_Response" class. */
+require_once XMONEY_PAYMENTS_PLUGIN_DIR . DIRECTORY_SEPARATOR . 'helpers' . DIRECTORY_SEPARATOR . 'class-xmoney-payments-helper-response.php';
+/* Require the "Xmoney_Payments_Status_Updater" class. */
+require_once XMONEY_PAYMENTS_PLUGIN_DIR . DIRECTORY_SEPARATOR . 'helpers' . DIRECTORY_SEPARATOR . 'class-xmoney-payments-status-updater.php';
+/* Require the "Xmoney_Payments_Default_Thankyou" class. */
+require_once XMONEY_PAYMENTS_PLUGIN_DIR . DIRECTORY_SEPARATOR . 'helpers' . DIRECTORY_SEPARATOR . 'class-xmoney-payments-default-thankyou.php';
 
 
 /* Validate if 'WooCommerce' is NOT installed. */
@@ -57,7 +57,7 @@ if ( ! class_exists( 'WooCommerce' ) ) {
 /* Get configuration from database. */
 global $wpdb;
 // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-$configuration = $wpdb->get_row( 'SELECT * FROM ' . $wpdb->prefix . 'twispay_tw_configuration' );
+$configuration = $wpdb->get_row( 'SELECT * FROM ' . $wpdb->prefix . 'xmoney_payments_configuration' );
 
 
 $secret_key = '';
@@ -68,7 +68,7 @@ if ( $configuration ) {
 		$secret_key = $configuration->staging_key;
 	} else {
 		// Load process css & js files
-		wp_enqueue_style( 'ma-payment-confirmation-css', TWISPAY_PLUGIN_URL . 'assets/css/payment-confirmation.css', array(), TWISPAY_VERSION, true );
+		wp_enqueue_style( 'ma-payment-confirmation-css', XMONEY_PAYMENTS_PLUGIN_URL . 'assets/css/payment-confirmation.css', array(), XMONEY_PAYMENTS_VERSION, true );
 		die( esc_html__( 'Missing configuration for plugin.', 'xmoney-payments' ) );
 	}
 }
@@ -87,9 +87,9 @@ if ( isset( $_POST['_wpnonce'] ) ) {
 } elseif ( isset( $_GET['_wpnonce'] ) ) {
 	$received_nonce = sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) );
 }
-if ( empty( $received_nonce ) || ! wp_verify_nonce( $received_nonce, 'twispay_process' ) ) {
+if ( empty( $received_nonce ) || ! wp_verify_nonce( $received_nonce, 'xmoney_payments_process' ) ) {
 	if ( ( ( false === isset( $_POST['opensslResult'] ) ) && ( false === isset( $_POST['result'] ) ) ) || ( false === isset( $_GET['secure_key'] ) ) ) {
-		Twispay_TW_Logger::twispay_tw_log( esc_html__( '[RESPONSE-ERROR]: Received empty response.', 'xmoney-payments' ) );
+		Xmoney_Payments_Logger::xmoney_payments_log( esc_html__( '[RESPONSE-ERROR]: Received empty response.', 'xmoney-payments' ) );
 		?>
 		<div class="error notice" style="margin-top: 20px;">
 			<h3><?php echo esc_html__( 'An error occurred:', 'xmoney-payments' ); ?></h3>
@@ -129,7 +129,7 @@ if ( empty( $received_nonce ) || ! wp_verify_nonce( $received_nonce, 'twispay_pr
 
 /* Check if there is NO secret key. */
 if ( '' === $secret_key ) {
-	Twispay_TW_Logger::twispay_tw_log( esc_html__( '[RESPONSE-ERROR]: Private key is not valid.', 'xmoney-payments' ) );
+	Xmoney_Payments_Logger::xmoney_payments_log( esc_html__( '[RESPONSE-ERROR]: Private key is not valid.', 'xmoney-payments' ) );
 	?>
 	<div class="error notice" style="margin-top: 20px;">
 		<h3><?php echo esc_html__( 'An error occurred:', 'xmoney-payments' ); ?></h3>
@@ -170,11 +170,11 @@ if ( '' === $secret_key ) {
 
 
 /* Extract the server response and decrypt it. */
-$decrypted = Twispay_TW_Helper_Response::twispay_tw_decrypt_message( /*tw_encryptedResponse*/( isset( $_POST['opensslResult'] ) ) ? ( esc_html( sanitize_text_field( wp_unslash( $_POST['opensslResult'] ) ) ) ) : ( esc_html( sanitize_text_field( wp_unslash( $_POST['result'] ) ) ) ), $secret_key );
+$decrypted = Xmoney_Payments_Helper_Response::xmoney_payments_decrypt_message( /*tw_encryptedResponse*/( isset( $_POST['opensslResult'] ) ) ? ( esc_html( sanitize_text_field( wp_unslash( $_POST['opensslResult'] ) ) ) ) : ( esc_html( sanitize_text_field( wp_unslash( $_POST['result'] ) ) ) ), $secret_key );
 
 /* Check if decryption failed.  */
 if ( false === $decrypted ) {
-	Twispay_TW_Logger::twispay_tw_log( esc_html__( '[RESPONSE-ERROR]: Decryption failed.', 'xmoney-payments' ) );
+	Xmoney_Payments_Logger::xmoney_payments_log( esc_html__( '[RESPONSE-ERROR]: Decryption failed.', 'xmoney-payments' ) );
 	?>
 	<div class="error notice" style="margin-top: 20px;">
 		<h3><?php echo esc_html__( 'An error occurred:', 'xmoney-payments' ); ?></h3>
@@ -210,15 +210,15 @@ if ( false === $decrypted ) {
 
 	die();
 } else {
-	Twispay_TW_Logger::twispay_tw_log( esc_html__( '[RESPONSE]: Decryption successfully performed.', 'xmoney-payments' ) );
+	Xmoney_Payments_Logger::xmoney_payments_log( esc_html__( '[RESPONSE]: Decryption successfully performed.', 'xmoney-payments' ) );
 }
 
 /* Validate the decrypted response. */
-$order_validation = Twispay_TW_Helper_Response::twispay_tw_check_validation( $decrypted );
+$order_validation = Xmoney_Payments_Helper_Response::xmoney_payments_check_validation( $decrypted );
 
 /* Check if server response validation failed.  */
 if ( true !== $order_validation ) {
-	Twispay_TW_Logger::twispay_tw_log( esc_html__( '[RESPONSE-ERROR]: Validation failed.', 'xmoney-payments' ) );
+	Xmoney_Payments_Logger::xmoney_payments_log( esc_html__( '[RESPONSE-ERROR]: Validation failed.', 'xmoney-payments' ) );
 	?>
 	<div class="error notice" style="margin-top: 20px;">
 		<h3><?php echo esc_html__( 'An error occurred:', 'xmoney-payments' ); ?></h3>
@@ -257,12 +257,12 @@ if ( true !== $order_validation ) {
 
 
 /* Extract the WooCommerce order. */
-$order_id = explode( '_', $decrypted['externalOrderId'] )[0];
-$tw_order = wc_get_order( $order_id );
+$order_id        = explode( '_', $decrypted['externalOrderId'] )[0];
+$xmoney_payments_order = wc_get_order( $order_id );
 
 /* Check if the WooCommerce order extraction failed. */
-if ( false === $tw_order ) {
-	Twispay_TW_Logger::twispay_tw_log( esc_html__( '[RESPONSE-ERROR]: Order does not exist.', 'xmoney-payments' ) );
+if ( false === $xmoney_payments_order ) {
+	Xmoney_Payments_Logger::xmoney_payments_log( esc_html__( '[RESPONSE-ERROR]: Order does not exist.', 'xmoney-payments' ) );
 	?>
 	<div class="error notice" style="margin-top: 20px;">
 		<h3><?php echo esc_html__( 'An error occurred:', 'xmoney-payments' ); ?></h3>
@@ -304,8 +304,8 @@ if ( false === $tw_order ) {
 /* Check if the WooCommerce order cart hash does NOT MATCH the one sent to the server. */
 $secure_key_raw = isset( $_GET['secure_key'] ) ? sanitize_text_field( wp_unslash( $_GET['secure_key'] ) ) : '';
 // Accept only hex characters and reasonable length to avoid passing arbitrary values onward.
-if ( empty( $secure_key_raw ) || ! preg_match( '/^[A-Fa-f0-9]{16,64}$/', $secure_key_raw ) || $secure_key_raw !== $tw_order->get_data()['cart_hash'] ) {
-	Twispay_TW_Logger::twispay_tw_log( esc_html__( '[RESPONSE-ERROR]: Invalid order identification key.', 'xmoney-payments' ) );
+if ( empty( $secure_key_raw ) || ! preg_match( '/^[A-Fa-f0-9]{16,64}$/', $secure_key_raw ) || $secure_key_raw !== $xmoney_payments_order->get_data()['cart_hash'] ) {
+	Xmoney_Payments_Logger::xmoney_payments_log( esc_html__( '[RESPONSE-ERROR]: Invalid order identification key.', 'xmoney-payments' ) );
 	?>
 	<div class="error notice" style="margin-top: 20px;">
 		<h3><?php echo esc_html__( 'An error occurred:', 'xmoney-payments' ); ?></h3>
@@ -345,6 +345,6 @@ if ( empty( $secure_key_raw ) || ! preg_match( '/^[A-Fa-f0-9]{16,64}$/', $secure
 }
 
 /* Reconstruct the checkout URL to use it to allow client to try again in case of error. */
-$checkout_url = esc_url( wc_get_checkout_url() . 'order-pay/' . $order_id . '/?pay_for_order=true&key=' . $tw_order->get_data()['order_key'] );
+$checkout_url = esc_url( wc_get_checkout_url() . 'order-pay/' . $order_id . '/?pay_for_order=true&key=' . $xmoney_payments_order->get_data()['order_key'] );
 
-Twispay_TW_Status_Updater::update_status_back_url( $order_id, $decrypted['transactionStatus'], $checkout_url, $configuration );
+Xmoney_Payments_Status_Updater::update_status_back_url( $order_id, $decrypted['transactionStatus'], $checkout_url, $configuration );

@@ -12,7 +12,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Internal copy of WP_List_Table adapted for Twispay admin pages.
+ * Internal copy of WP_List_Table adapted for Xmoney Payments admin pages.
  *
  * Provides table layout, pagination, bulk actions, row rendering, and
  * view switching used inside the xMoney Payments plugin.
@@ -20,8 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @since 1.0.0
  */
 /* phpcs:disable PSR2.Classes.PropertyDeclaration.Underscore */
-
-abstract class Twispay_Tw_List_Table {
+abstract class Xmoney_Payments_List_Table {
 	/**
 	 * The current list of items.
 	 *
@@ -297,7 +296,7 @@ abstract class Twispay_Tw_List_Table {
 		}
 
 		// Redirect if page number is invalid and headers are not already sent.
-		if ( ! headers_sent() && ! wp_doing_ajax() && $args['total_pages'] > 0 && $this->get_twispay_pagenum() > $args['total_pages'] ) {
+		if ( ! headers_sent() && ! wp_doing_ajax() && $args['total_pages'] > 0 && $this->get_xmoney_payments_pagenum() > $args['total_pages'] ) {
 			wp_safe_redirect( esc_url( add_query_arg( 'paged', $args['total_pages'] ) ) );
 			exit;
 		}
@@ -316,7 +315,7 @@ abstract class Twispay_Tw_List_Table {
 	 */
 	public function get_pagination_arg( string $key ): int {
 		if ( 'page' === $key ) {
-			$number = $this->get_twispay_pagenum();
+			$number = $this->get_xmoney_payments_pagenum();
 		}
 
 		if ( isset( $this->_pagination_args[ $key ] ) ) {
@@ -434,7 +433,7 @@ abstract class Twispay_Tw_List_Table {
 		foreach ( $views as $class => $view ) {
 			$views[ $class ] = "\t<li class='$class'>$view";
 		}
-		echo wp_kses( implode( " |</li>\n", $views ), twispay_allowed_tags() ) . "</li>\n";
+		echo wp_kses( implode( " |</li>\n", $views ), xmoney_payments_allowed_tags() ) . "</li>\n";
 		echo '</ul>';
 	}
 
@@ -489,7 +488,7 @@ abstract class Twispay_Tw_List_Table {
 		foreach ( $this->_actions as $name => $title ) {
 			$class = 'edit' === $name ? ' class="hide-if-no-js"' : '';
 
-			echo "\t" . '<option value="' . esc_attr( $name ) . '"' . wp_kses( $class, twispay_allowed_tags() ) . '>' . esc_html( $title ) . "</option>\n";
+			echo "\t" . '<option value="' . esc_attr( $name ) . '"' . wp_kses( $class, xmoney_payments_allowed_tags() ) . '>' . esc_html( $title ) . "</option>\n";
 		}
 
 		echo "</select>\n";
@@ -645,7 +644,7 @@ abstract class Twispay_Tw_List_Table {
 					$classes[] = 'current';
 				}
 				printf(
-					wp_kses( "<a href='%s' class='%s' id='view-switch-$mode'><span class='screen-reader-text'>%s</span></a>\n", twispay_allowed_tags() ),
+					wp_kses( "<a href='%s' class='%s' id='view-switch-$mode'><span class='screen-reader-text'>%s</span></a>\n", xmoney_payments_allowed_tags() ),
 					esc_url( add_query_arg( 'mode', $mode ) ),
 					esc_attr( implode( ' ', $classes ) ),
 					esc_html( $title )
@@ -738,7 +737,7 @@ abstract class Twispay_Tw_List_Table {
 	 * @since 3.1.0
 	 * @access public
 	 */
-	public function get_twispay_pagenum(): int {
+	public function get_xmoney_payments_pagenum(): int {
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only pagination parameter.
 		$pagenum = isset( $_GET['paged'] ) ? absint( sanitize_text_field( wp_unslash( $_GET['paged'] ) ) ) : 0;
 
@@ -805,7 +804,7 @@ abstract class Twispay_Tw_List_Table {
 		/* translators: 1: Singular number items, 2: Plural number of items. */
 		$output = '<span class="displaying-num">' . sprintf( _n( '%s item', '%s items', esc_attr( $total_items ), 'xmoney-payments' ), number_format_i18n( $total_items ) ) . '</span>';
 
-		$current              = $this->get_twispay_pagenum();
+		$current              = $this->get_xmoney_payments_pagenum();
 		$removable_query_args = wp_removable_query_args();
 
 		if ( isset( $_SERVER['HTTP_HOST'] ) && isset( $_SERVER['REQUEST_URI'] ) ) {
@@ -876,7 +875,7 @@ abstract class Twispay_Tw_List_Table {
 		}
 		$html_total_pages = sprintf( "<span class='total-pages'>%s</span>", number_format_i18n( $total_pages ) );
 		/* translators: 1: Current page, 2: Max pages. */
-		$page_links[] = wp_kses( $total_pages_before, twispay_allowed_tags() ) . sprintf( _x( '%1$s of %2$s', 'paging', 'xmoney-payments' ), wp_kses( $html_current_page, twispay_allowed_tags() ), wp_kses( $html_total_pages, twispay_allowed_tags() ) ) . wp_kses( $total_pages_after, twispay_allowed_tags() );
+		$page_links[] = wp_kses( $total_pages_before, xmoney_payments_allowed_tags() ) . sprintf( _x( '%1$s of %2$s', 'paging', 'xmoney-payments' ), wp_kses( $html_current_page, xmoney_payments_allowed_tags() ), wp_kses( $html_total_pages, xmoney_payments_allowed_tags() ) ) . wp_kses( $total_pages_after, xmoney_payments_allowed_tags() );
 
 		if ( $disable_next ) {
 			$page_links[] = '<span class="tablenav-pages-navspan" aria-hidden="true">&rsaquo;</span>';
@@ -911,9 +910,9 @@ abstract class Twispay_Tw_List_Table {
 		} else {
 			$page_class = ' no-pages';
 		}
-		$this->_pagination = '<div class="tablenav-pages' . sanitize_html_class( $page_class ) . '">' . wp_kses( $output, twispay_allowed_tags() ) . '</div>';
+		$this->_pagination = '<div class="tablenav-pages' . sanitize_html_class( $page_class ) . '">' . wp_kses( $output, xmoney_payments_allowed_tags() ) . '</div>';
 
-		echo wp_kses( $this->_pagination, twispay_allowed_tags() );
+		echo wp_kses( $this->_pagination, xmoney_payments_allowed_tags() );
 	}
 
 	/**
@@ -1169,7 +1168,7 @@ abstract class Twispay_Tw_List_Table {
 				$class = "class='" . join( ' ', $class ) . "'";
 			}
 
-			echo wp_kses( "<$tag $scope $id $class>$column_display_name</$tag>", twispay_allowed_tags() );
+			echo wp_kses( "<$tag $scope $id $class>$column_display_name</$tag>", xmoney_payments_allowed_tags() );
 		}
 	}
 
@@ -1342,7 +1341,7 @@ abstract class Twispay_Tw_List_Table {
 			$attributes = "class='$classes' $data";
 			if ( 'cb' === $column_name ) {
 				echo '<th scope="row" class="check-column">';
-				echo wp_kses( $this->column_cb( $item ), twispay_allowed_tags() );
+				echo wp_kses( $this->column_cb( $item ), xmoney_payments_allowed_tags() );
 				echo '</th>';
 			} elseif ( method_exists( $this, '_column_' . $column_name ) ) {
 				echo esc_attr(
@@ -1355,14 +1354,14 @@ abstract class Twispay_Tw_List_Table {
 					)
 				);
 			} elseif ( method_exists( $this, 'column_' . $column_name ) ) {
-				echo wp_kses( "<td $attributes>", twispay_allowed_tags() );
+				echo wp_kses( "<td $attributes>", xmoney_payments_allowed_tags() );
 				echo esc_attr( call_user_func( array( $this, 'column_' . $column_name ), $item ) );
-				echo wp_kses( $this->handle_row_actions( $item, $column_name, $primary ), twispay_allowed_tags() );
+				echo wp_kses( $this->handle_row_actions( $item, $column_name, $primary ), xmoney_payments_allowed_tags() );
 				echo '</td>';
 			} else {
-				echo wp_kses( "<td $attributes>", twispay_allowed_tags() );
-				echo wp_kses( $this->column_default( $item, $column_name ), twispay_allowed_tags() );
-				echo wp_kses( $this->handle_row_actions( $item, $column_name, $primary ), twispay_allowed_tags() );
+				echo wp_kses( "<td $attributes>", xmoney_payments_allowed_tags() );
+				echo wp_kses( $this->column_default( $item, $column_name ), xmoney_payments_allowed_tags() );
+				echo wp_kses( $this->handle_row_actions( $item, $column_name, $primary ), xmoney_payments_allowed_tags() );
 				echo '</td>';
 			}
 		}

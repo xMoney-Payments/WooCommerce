@@ -1,30 +1,30 @@
 <?php
 /**
- * Twispay Scripts Page
+ * Xmoney Payments Scripts Page
  *
  * Add the js and css files for administrator pages and for non-administrator pages
  *
- * @package  Twispay/Admin
+ * @package  Xmoney/Admin
  * @category Admin
- * @author   Twispay
+ * @author   Xmoney Payments
  */
 /* Exit if the file is accessed directly. */
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-/* Require the "Twispay_TW_Logger" class. */
-require_once TWISPAY_PLUGIN_DIR . DIRECTORY_SEPARATOR . 'helpers' . DIRECTORY_SEPARATOR . 'class-twispay-tw-logger.php';
+/* Require the "Xmoney_Payments_Logger" class. */
+require_once XMONEY_PAYMENTS_PLUGIN_DIR . DIRECTORY_SEPARATOR . 'helpers' . DIRECTORY_SEPARATOR . 'class-xmoney-payments-logger.php';
 
 /**
- * Twispay Admin Checker
+ * Xmoney Payments Admin Checker
  *
- * Check if the current page is an Twispay Admin Page or not
+ * Check if the current page is an Xmoney Payments Admin Page or not
  *
  * @public
  * @return bool True if is an admin page, false otherwise
  */
-function twispay_tw_check_if_is_admin(): bool {
+function xmoney_payments_check_if_is_admin(): bool {
 	// Early exit if not in admin.
 	if ( ! is_admin() ) {
 		return false;
@@ -38,85 +38,85 @@ function twispay_tw_check_if_is_admin(): bool {
 	}
 
 	// Whitelist screen IDs for this plugin (top-level + subpages).
-	$tw_screen_ids = array(
+	$xmoney_payments_screen_ids = array(
 		'toplevel_page_xmoney-payments',
 		'xmoney-payments_page_xmoney-payments',
-		'xmoney-payments_page_tw-transaction',
-		'xmoney-payments_page_tw-transaction-log',
+		'xmoney-payments_page_xmoney-payments-transaction',
+		'xmoney-payments_page_xmoney-payments-transaction-log',
 	);
 
-	return in_array( $screen->id, $tw_screen_ids, true );
+	return in_array( $screen->id, $xmoney_payments_screen_ids, true );
 }
 
 
 /**
- * Twispay Add Admin Js
+ * Xmoney Payments Add Admin Js
  *
- * This function will add all js script ONLY for Twispay Pages
+ * This function will add all js script ONLY for Xmoney Payments Pages
  *
  * @public
  * @return void
  */
-function twispay_tw_add_admin_js() {
-	// Check if current page is an Twispay Admin Page
-	if ( ! twispay_tw_check_if_is_admin() ) {
+function xmoney_payments_add_admin_js() {
+	// Check if current page is an Xmoney Payments Admin Page
+	if ( ! xmoney_payments_check_if_is_admin() ) {
 		return;
 	}
 
 	// Load all admin js files for Administrator Pages
-	wp_enqueue_script( 'ma-admin', TWISPAY_PLUGIN_URL . 'assets/js/admin.js', array(), 1, array( 'in_footer' => false ) );
+	wp_enqueue_script( 'ma-admin', XMONEY_PAYMENTS_PLUGIN_URL . 'assets/js/admin.js', array(), 1, array( 'in_footer' => false ) );
 }
-add_action( 'admin_enqueue_scripts', 'twispay_tw_add_admin_js' );
+add_action( 'admin_enqueue_scripts', 'xmoney_payments_add_admin_js' );
 
 
 /**
- * Twispay Add Admin Css
+ * Xmoney Payments Add Admin Css
  *
- * This function will add all css files ONLY for Twispay Pages
+ * This function will add all css files ONLY for Xmoney Payments Pages
  *
  * @public
  * @return void
  */
-function twispay_tw_add_admin_css() {
+function xmoney_payments_add_admin_css() {
 	// Check if current page is an xMoney Payments Admin Page
-	if ( ! twispay_tw_check_if_is_admin() ) {
+	if ( ! xmoney_payments_check_if_is_admin() ) {
 		return;
 	}
 
 	// Load all admin css files for Administrator Pages
-	wp_enqueue_style( 'ma-admin', TWISPAY_PLUGIN_URL . 'assets/css/admin.css', array(), TWISPAY_VERSION, true );
+	wp_enqueue_style( 'ma-admin', XMONEY_PAYMENTS_PLUGIN_URL . 'assets/css/admin.css', array(), XMONEY_PAYMENTS_VERSION, true );
 }
-add_action( 'admin_enqueue_scripts', 'twispay_tw_add_admin_css' );
+add_action( 'admin_enqueue_scripts', 'xmoney_payments_add_admin_css' );
 
 
 /**
- * Twispay Add Front Css
+ * Xmoney Payments Add Front Css
  *
  * This function will add all front css files
  *
  * @public
  * @return void
  */
-function twispay_tw_add_front_css() {
+function xmoney_payments_add_front_css() {
 	// Load all front css files
-	wp_enqueue_style( 'ma-front', TWISPAY_PLUGIN_URL . 'assets/css/front.css', array(), TWISPAY_VERSION, true );
+	wp_enqueue_style( 'ma-front', XMONEY_PAYMENTS_PLUGIN_URL . 'assets/css/front.css', array(), XMONEY_PAYMENTS_VERSION, true );
 }
-add_action( 'wp_enqueue_scripts', 'twispay_tw_add_front_css' );
+add_action( 'wp_enqueue_scripts', 'xmoney_payments_add_front_css' );
 
 
 /**
- * Twispay init the Payment Gateway
+ * Xmoney Payments init the Payment Gateway
  *
  * This function will load the payment gateway class
  *
  * @public
  */
-function init_twispay_gateway_class() {
+function init_xmoney_payments_gateway_class() {
 	if ( class_exists( 'WooCommerce' ) ) {
 		/**
 		 *  WooCommerce Gateway implementation for xMoney Payments.
 		 */
-		class WC_Gateway_Twispay_Gateway extends WC_Payment_Gateway {
+		class WC_Gateway_Xmoney_Payments_Gateway extends WC_Payment_Gateway {
 			/**
 			 * Enabled shipping methods.
 			 *
@@ -130,7 +130,7 @@ function init_twispay_gateway_class() {
 			 */
 			private $enable_for_virtual;
 			/**
-			 * Twispay Gateway Constructor
+			 * Xmoney Payments Gateway Constructor
 			 *
 			 * @public
 			 * @return void
@@ -138,14 +138,14 @@ function init_twispay_gateway_class() {
 			public function __construct() {
 				/* Load languages */
 				$lang = explode( '-', get_bloginfo( 'language' ) )[0];
-				if ( file_exists( TWISPAY_PLUGIN_DIR . 'lang/' . $lang . '/lang.php' ) ) {
-					require TWISPAY_PLUGIN_DIR . 'lang/' . $lang . '/lang.php';
+				if ( file_exists( XMONEY_PAYMENTS_PLUGIN_DIR . 'lang/' . $lang . '/lang.php' ) ) {
+					require XMONEY_PAYMENTS_PLUGIN_DIR . 'lang/' . $lang . '/lang.php';
 				} else {
-					require TWISPAY_PLUGIN_DIR . 'lang/en/lang.php';
+					require XMONEY_PAYMENTS_PLUGIN_DIR . 'lang/en/lang.php';
 				}
 
 				$this->id                 = 'xmoney-payments';
-				$this->icon               = TWISPAY_PLUGIN_URL . 'logo.png';
+				$this->icon               = XMONEY_PAYMENTS_PLUGIN_URL . 'logo.png';
 				$this->has_fields         = true;
 				$this->method_title       = esc_html__( 'xMoney Payments', 'xmoney-payments' );
 				$this->method_description = esc_html__( 'Have your customers pay with xMoney payment gateway.', 'xmoney-payments' );
@@ -229,24 +229,24 @@ function init_twispay_gateway_class() {
 			}
 
 			/**
-			 * Check if the Twispay Gateway is available for use
+			 * Check if the Xmoney Payments Gateway is available for use
 			 *
 			 * @return bool
 			 */
 			public function is_available(): bool {
-				$tw_order       = null;
-				$needs_shipping = false;
+				$xmoney_payments_order = null;
+				$needs_shipping  = false;
 
 				// Test if shipping is needed first
 				if ( WC()->cart && WC()->cart->needs_shipping() ) {
 					$needs_shipping = true;
 				} elseif ( is_page( wc_get_page_id( 'checkout' ) ) && 0 < get_query_var( 'order-pay' ) ) {
-					$order_id = absint( get_query_var( 'order-pay' ) );
-					$tw_order = wc_get_order( $order_id );
+					$order_id        = absint( get_query_var( 'order-pay' ) );
+					$xmoney_payments_order = wc_get_order( $order_id );
 
 					// Test if order needs shipping.
-					if ( 0 < count( $tw_order->get_items() ) ) {
-						foreach ( $tw_order->get_items() as $item ) {
+					if ( 0 < count( $xmoney_payments_order->get_items() ) ) {
+						foreach ( $xmoney_payments_order->get_items() as $item ) {
 							$_product = $item->get_product();
 							if ( $_product && $_product->needs_shipping() ) {
 								$needs_shipping = true;
@@ -276,9 +276,9 @@ function init_twispay_gateway_class() {
 
 					$check_method = false;
 
-					if ( is_object( $tw_order ) ) {
-						if ( $tw_order->shipping_method ) {
-							$check_method = $tw_order->shipping_method;
+					if ( is_object( $xmoney_payments_order ) ) {
+						if ( $xmoney_payments_order->shipping_method ) {
+							$check_method = $xmoney_payments_order->shipping_method;
 						}
 					} elseif ( empty( $chosen_shipping_methods ) || count( $chosen_shipping_methods ) > 1 ) {
 						$check_method = false;
@@ -349,7 +349,7 @@ function init_twispay_gateway_class() {
 					// Include a nonce so the subscription processor can verify the request.
 					$args = array(
 						'order_id' => $order_id . '_sub',
-						'_wpnonce' => wp_create_nonce( 'twispay_process' ),
+						'_wpnonce' => wp_create_nonce( 'xmoney_payments_process' ),
 					);
 
 					return array(
@@ -376,7 +376,7 @@ function init_twispay_gateway_class() {
 					// Include a nonce so the main processor can verify the request.
 					$args = array(
 						'order_id' => $order_id,
-						'_wpnonce' => wp_create_nonce( 'twispay_process' ),
+						'_wpnonce' => wp_create_nonce( 'xmoney_payments_process' ),
 					);
 
 					return array(
@@ -405,7 +405,7 @@ function init_twispay_gateway_class() {
                 // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 				$transaction_id = $wpdb->get_var(
 					$wpdb->prepare(
-						'SELECT transactionId FROM ' . $wpdb->prefix . 'twispay_tw_transactions WHERE id_cart = %d',
+						'SELECT transactionId FROM ' . $wpdb->prefix . 'xmoney_payments_transactions WHERE id_cart = %d',
 						$order_id
 					)
 				);
@@ -416,7 +416,7 @@ function init_twispay_gateway_class() {
 				/*
 				Get configuration from database. */
                 // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-				$configuration = $wpdb->get_row( 'SELECT * FROM ' . $wpdb->prefix . 'twispay_tw_configuration' );
+				$configuration = $wpdb->get_row( 'SELECT * FROM ' . $wpdb->prefix . 'xmoney_payments_configuration' );
 				if ( ! $configuration ) {
 					return new WP_Error( 'error', 'Missing configuration' );
 				}
@@ -458,61 +458,61 @@ function init_twispay_gateway_class() {
 					return new WP_Error( 'error', "TWISPAY API error: $code - $msg" );
 				}
 
-				Twispay_TW_Logger::twispay_tw_update_transaction_status( $order_id, Twispay_TW_Status_Updater::$result_statuses['REFUND_OK'] );
+				Xmoney_Payments_Logger::xmoney_payments_update_transaction_status( $order_id, Xmoney_Payments_Status_Updater::$result_statuses['REFUND_OK'] );
 				return true;
 			}
 		}
 	}
 }
-add_action( 'plugins_loaded', 'init_twispay_gateway_class' );
+add_action( 'plugins_loaded', 'init_xmoney_payments_gateway_class' );
 
 
 /**
- * Add the Twispay gateway class.
+ * Add the Xmoney Payments gateway class.
  *
  * @param array $methods Existing payment methods.
  * @return array
  */
-function add_twispay_gateway_class( $methods ): array {
+function add_xmoney_payments_gateway_class( $methods ): array {
 	if ( class_exists( 'WooCommerce' ) ) {
-		$methods[] = 'WC_Gateway_Twispay_Gateway';
+		$methods[] = 'WC_Gateway_Xmoney_Payments_Gateway';
 		return $methods;
 	}
 	return array();
 }
-add_filter( 'woocommerce_payment_gateways', 'add_twispay_gateway_class' );
+add_filter( 'woocommerce_payment_gateways', 'add_xmoney_payments_gateway_class' );
 
 
 /**
- * Twispay Prepare buffer functions
+ * Xmoney Payments Prepare buffer functions
  *
  * This function will prepare the buffer in order to use wp_redirect properly
  *
  * @public
  * @return void
  */
-function twispay_tw_start_buffer_output() {
+function xmoney_payments_start_buffer_output() {
 	ob_start();
 }
-add_action( 'init', 'twispay_tw_start_buffer_output' );
+add_action( 'init', 'xmoney_payments_start_buffer_output' );
 
 
 /**
  * Custom text on the receipt page.
  */
-function twispay_tw_isa_order_received_text(): string {
+function xmoney_payments_isa_order_received_text(): string {
 	// Load languages
 	$lang = explode( '-', get_bloginfo( 'language' ) );
 	$lang = $lang[0];
-	if ( file_exists( TWISPAY_PLUGIN_DIR . 'lang/' . $lang . '/lang.php' ) ) {
-		require TWISPAY_PLUGIN_DIR . 'lang/' . $lang . '/lang.php';
+	if ( file_exists( XMONEY_PAYMENTS_PLUGIN_DIR . 'lang/' . $lang . '/lang.php' ) ) {
+		require XMONEY_PAYMENTS_PLUGIN_DIR . 'lang/' . $lang . '/lang.php';
 	} else {
-		require TWISPAY_PLUGIN_DIR . 'lang/en/lang.php';
+		require XMONEY_PAYMENTS_PLUGIN_DIR . 'lang/en/lang.php';
 	}
 
 	return esc_html__( 'Thank you. Your transaction is approved.', 'xmoney-payments' );
 }
-add_filter( 'woocommerce_thankyou_order_received_text', 'twispay_tw_isa_order_received_text', 10, 2 );
+add_filter( 'woocommerce_thankyou_order_received_text', 'xmoney_payments_isa_order_received_text', 10, 2 );
 
 
 /**
@@ -521,7 +521,7 @@ add_filter( 'woocommerce_thankyou_order_received_text', 'twispay_tw_isa_order_re
  * @param WC_Emails $email_class Email class instance.
  * @return void
  */
-function twispay_tw_unhook_woo_order_emails( $email_class ) {
+function xmoney_payments_unhook_woo_order_emails( $email_class ) {
 	// New order emails
 	remove_action( 'woocommerce_order_status_pending_to_processing_notification', array( $email_class->emails['WC_Email_New_Order'], 'trigger' ) );
 	remove_action( 'woocommerce_order_status_pending_to_completed_notification', array( $email_class->emails['WC_Email_New_Order'], 'trigger' ) );
@@ -541,11 +541,11 @@ function twispay_tw_unhook_woo_order_emails( $email_class ) {
 // Get configuration from database
 global $wpdb;
 // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-$suppress_email = $wpdb->get_row( 'SELECT suppress_email FROM ' . $wpdb->prefix . 'twispay_tw_configuration' );
+$suppress_email = $wpdb->get_row( 'SELECT suppress_email FROM ' . $wpdb->prefix . 'xmoney_payments_configuration' );
 
 if ( $suppress_email ) {
 	if ( '1' === $suppress_email->suppress_email ) {
-		add_action( 'woocommerce_email', 'twispay_tw_unhook_woo_order_emails' );
+		add_action( 'woocommerce_email', 'xmoney_payments_unhook_woo_order_emails' );
 	}
 }
 
@@ -561,11 +561,11 @@ function subscription_terminated( $subscription ) {
 	global $wpdb;
 	$api_key = '';
     // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-	$configuration = $wpdb->get_row( 'SELECT * FROM ' . $wpdb->prefix . 'twispay_tw_configuration' );
+	$configuration = $wpdb->get_row( 'SELECT * FROM ' . $wpdb->prefix . 'xmoney_payments_configuration' );
     // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 	$server_order_id = $wpdb->get_var(
 		$wpdb->prepare(
-			'SELECT orderId FROM ' . $wpdb->prefix . 'twispay_tw_transactions WHERE id_cart = %d',
+			'SELECT orderId FROM ' . $wpdb->prefix . 'xmoney_payments_transactions WHERE id_cart = %d',
 			$subscription->get_parent_id()
 		)
 	);
@@ -581,10 +581,10 @@ function subscription_terminated( $subscription ) {
 
 	/* Load languages */
 	$lang = explode( '-', get_bloginfo( 'language' ) )[0];
-	if ( file_exists( TWISPAY_PLUGIN_DIR . 'lang/' . $lang . '/lang.php' ) ) {
-		require TWISPAY_PLUGIN_DIR . 'lang/' . $lang . '/lang.php';
+	if ( file_exists( XMONEY_PAYMENTS_PLUGIN_DIR . 'lang/' . $lang . '/lang.php' ) ) {
+		require XMONEY_PAYMENTS_PLUGIN_DIR . 'lang/' . $lang . '/lang.php';
 	} else {
-		require TWISPAY_PLUGIN_DIR . 'lang/en/lang.php';
+		require XMONEY_PAYMENTS_PLUGIN_DIR . 'lang/en/lang.php';
 	}
 
 	$args     = array(
@@ -597,9 +597,9 @@ function subscription_terminated( $subscription ) {
 	$response = wp_remote_request( $url, $args );
 
 	if ( 'OK' === $response['response']['message'] ) {
-		Twispay_TW_Logger::twispay_tw_log( esc_html__( '[RESPONSE]: Server status set for order ID: ', 'xmoney-payments' ) . esc_html( $subscription->get_parent_id() ) );
+		Xmoney_Payments_Logger::xmoney_payments_log( esc_html__( '[RESPONSE]: Server status set for order ID: ', 'xmoney-payments' ) . esc_html( $subscription->get_parent_id() ) );
 	} else {
-		Twispay_TW_Logger::twispay_tw_log( esc_html__( '[RESPONSE-ERROR]: Failed to set server status for order ID: ', 'xmoney-payments' ) . esc_html( $subscription->get_parent_id() ) );
+		Xmoney_Payments_Logger::xmoney_payments_log( esc_html__( '[RESPONSE-ERROR]: Failed to set server status for order ID: ', 'xmoney-payments' ) . esc_html( $subscription->get_parent_id() ) );
 	}
 }
 add_action( 'woocommerce_subscription_status_cancelled', 'subscription_terminated' );

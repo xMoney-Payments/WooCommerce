@@ -1,12 +1,12 @@
 <?php
 /**
- * Twispay Transaction List Admin Page
+ * Xmoney Payments Transaction List Admin Page
  *
- * Twispay transaction list page on the Administrator dashboard
+ * Xmoney Payments transaction list page on the Administrator dashboard
  *
- * @package  Twispay/Admin
+ * @package  Xmoney/Admin
  * @category Admin
- * @author   Twispay
+ * @author   Xmoney Payments
  */
 
 // Exit if the file is accessed directly
@@ -15,24 +15,24 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Import the table class
-require_once TWISPAY_PLUGIN_DIR . 'includes/admin/transaction/class-twispay-transaction-table.php';
+require_once XMONEY_PAYMENTS_PLUGIN_DIR . 'includes/admin/transaction/class-xmoney-payments-transaction-table.php';
 
 /**
- * Render the Twispay transaction admin page in the WordPress dashboard.
+ * Render the Xmoney Payments transaction admin page in the WordPress dashboard.
  *
  * Loads language strings, verifies WooCommerce is active, handles action routing,
  * and displays the transaction list table.
  *
  * @return void
  */
-function twispay_tw_transaction_administrator() {
+function xmoney_payments_transaction_administrator() {
 	/* Load languages */
 	$lang = explode( '-', get_bloginfo( 'language' ) );
 	$lang = $lang[0];
-	if ( file_exists( TWISPAY_PLUGIN_DIR . 'lang/' . $lang . '/lang.php' ) ) {
-		require TWISPAY_PLUGIN_DIR . 'lang/' . $lang . '/lang.php';
+	if ( file_exists( XMONEY_PAYMENTS_PLUGIN_DIR . 'lang/' . $lang . '/lang.php' ) ) {
+		require XMONEY_PAYMENTS_PLUGIN_DIR . 'lang/' . $lang . '/lang.php';
 	} else {
-		require TWISPAY_PLUGIN_DIR . 'lang/en/lang.php';
+		require XMONEY_PAYMENTS_PLUGIN_DIR . 'lang/en/lang.php';
 	}
 
 	if ( ! class_exists( 'WooCommerce' ) ) {
@@ -54,10 +54,10 @@ function twispay_tw_transaction_administrator() {
 
 		switch ( $action ) {
 			case 'refund_payment':
-				include TWISPAY_PLUGIN_DIR . 'includes/admin/transaction/refund-t.php';
+				include XMONEY_PAYMENTS_PLUGIN_DIR . 'includes/admin/transaction/refund-t.php';
 				break;
 			case 'recurring_payment':
-				include TWISPAY_PLUGIN_DIR . 'includes/admin/transaction/recurring-t.php';
+				include XMONEY_PAYMENTS_PLUGIN_DIR . 'includes/admin/transaction/recurring-t.php';
 				break;
 		}
 	} else {
@@ -71,8 +71,8 @@ function twispay_tw_transaction_administrator() {
 							<tr class="form-field" id="contact_email_o">
 								<th scope="row"><label><?php echo esc_html__( 'Synchronize subscriptions', 'xmoney-payments' ); ?></span></label></th>
 								<td>
-									<input type="hidden" name="tw_general_action" value="synchronize_subscriptions" />
-									<?php wp_nonce_field( 'twispay_general_action', 'twispay_general_nonce' ); ?>
+									<input type="hidden" name="xmoney_payments_general_action" value="synchronize_subscriptions" />
+									<?php wp_nonce_field( 'xmoney_payments_general_action', 'xmoney_payments_general_nonce' ); ?>
 									<?php submit_button( esc_attr__( 'Synchronize the local status of all subscriptions with the server status.', 'xmoney-payments' ), 'primary', 'createuser', true, array( 'id' => 'synchronizesubscriptions' ) ); ?>
 									<p class="description"><?php echo esc_html__( 'Synchronize the local status of all subscriptions with the server status.', 'xmoney-payments' ); ?></p>
 								</td>
@@ -141,7 +141,7 @@ function twispay_tw_transaction_administrator() {
 				}
 
 					// Create the Payment Methods object and build the Table
-					$transaction_table = new Twispay_Transaction_Table();
+					$transaction_table = new Xmoney_Payments_Transaction_Table();
 					$transaction_table->views();
 				?>
 
@@ -153,7 +153,7 @@ function twispay_tw_transaction_administrator() {
 						echo ( isset( $_GET['page'] ) ? esc_attr( sanitize_text_field( wp_unslash( $_GET['page'] ) ) ) : '' )
 					?>
 						" />
-					<?php wp_nonce_field( 'twispay_transactions_action', 'twispay_transactions_nonce' ); ?>
+					<?php wp_nonce_field( 'xmoney_payments_transactions_action', 'xmoney_payments_transactions_nonce' ); ?>
 					<?php $transaction_table->search_box( esc_html__( 'Search Order', 'xmoney-payments' ), 'search-query' ); ?>
 				</form>
 				<form method="post">
@@ -161,7 +161,7 @@ function twispay_tw_transaction_administrator() {
 						$transaction_table->prepare_items();
 						$transaction_table->display();
 					?>
-					<?php wp_nonce_field( 'twispay_transactions_action', 'twispay_transactions_nonce' ); ?>
+					<?php wp_nonce_field( 'xmoney_payments_transactions_action', 'xmoney_payments_transactions_nonce' ); ?>
 				</form>
 			</div>
 		<?php

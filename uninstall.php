@@ -1,12 +1,12 @@
 <?php
 /**
- * Twispay Uninstall
+ * Xmoney Payments Uninstall
  *
- * Uninstalling Twispay deletes user pages, tables, and options.
+ * Uninstalling Xmoney Payments deletes user pages, tables, and options.
  *
- * @package  Twispay/Uninstall
+ * @package  Xmoney/Uninstall
  * @category Core
- * @author   Twispay
+ * @author   Xmoney Payments
  */
 /* Exit if the file is accessed directly. */
 if ( ! defined( 'ABSPATH' ) ) {
@@ -18,18 +18,18 @@ if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
 	exit;
 }
 
-delete_option( 'twispay_tw_installed' );
+delete_option( 'xmoney_payments_installed' );
 
-// Delete All TW Twispay Pages
-$tw_page = get_page_by_path( 'xmoney-payments-confirmation' );
-if ( $tw_page ) {
-	wp_delete_post( $tw_page->ID, true );
+// Delete All Xmoney Payments Pages
+$xmoney_payments_page = get_page_by_path( 'xmoney-payments-confirmation' );
+if ( $xmoney_payments_page ) {
+	wp_delete_post( $xmoney_payments_page->ID, true );
 }
 
 // Remove All Tables
 global $wpdb;
 
 // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
-$wpdb->query( 'DROP TABLE IF EXISTS ' . $wpdb->prefix . 'twispay_tw_configuration' );
+$wpdb->query( 'DROP TABLE IF EXISTS ' . $wpdb->prefix . 'xmoney_payments_configuration' );
 // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
-$wpdb->query( 'DROP TABLE IF EXISTS ' . $wpdb->prefix . 'twispay_tw_transactions' );
+$wpdb->query( 'DROP TABLE IF EXISTS ' . $wpdb->prefix . 'xmoney_payments_configuration' );

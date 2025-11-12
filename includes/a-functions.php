@@ -1,12 +1,12 @@
 <?php
 /**
- * Twispay Custom Functions
+ * Xmoney Payments Custom Functions
  *
- * Here stand all Twispay Functions
+ * Here stand all Xmoney Payments Functions
  *
- * @package  Twispay/Admin
+ * @package  Xmoney/Admin
  * @category Admin
- * @author   Twispay
+ * @author   Xmoney_Payments
  */
 /* Exit if the file is accessed directly. */
 if ( ! defined( 'ABSPATH' ) ) {
@@ -19,11 +19,11 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @public
  * @return string Html with all Live Mode options
  */
-function twispay_tw_get_live_mode(): string {
+function xmoney_payments_get_live_mode(): string {
 	// WordPress database reference
 	global $wpdb;
 	$html       = '';
-	$table_name = esc_sql( $wpdb->prefix . 'twispay_tw_configuration' );
+	$table_name = esc_sql( $wpdb->prefix . 'xmoney_payments_configuration' );
 
     // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table names are escaped manually and safe.
 	$live_mode = $wpdb->get_results( "SELECT live_mode FROM {$table_name}" );
@@ -69,7 +69,7 @@ function twispay_tw_get_live_mode(): string {
  * @public
  * @return array Array with all the allowed tags
  */
-function twispay_allowed_tags(): array {
+function xmoney_payments_allowed_tags(): array {
 	return array(
 		'div'    => array(
 			'class' => array(),
@@ -128,11 +128,11 @@ function twispay_allowed_tags(): array {
  * @public
  * @return string Html with all Suppress Email options
  */
-function twispay_tw_get_suppress_email(): string {
+function xmoney_payments_get_suppress_email(): string {
 	// WordPress database reference
 	global $wpdb;
 	$html       = '';
-	$table_name = esc_sql( $wpdb->prefix . 'twispay_tw_configuration' );
+	$table_name = esc_sql( $wpdb->prefix . 'xmoney_payments_configuration' );
 
     // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table names are escaped manually and safe.
 	$suppress_email = $wpdb->get_results( "SELECT suppress_email FROM {$table_name}" );
@@ -162,11 +162,11 @@ function twispay_tw_get_suppress_email(): string {
  * @public
  * @return string Html with all WordPress Pages options
  */
-function twispay_tw_get_wp_pages(): string {
+function xmoney_payments_get_wp_pages(): string {
 	// WordPress database reference
 	global $wpdb;
 	$html             = '';
-	$table_name       = esc_sql( $wpdb->prefix . 'twispay_tw_configuration' );
+	$table_name       = esc_sql( $wpdb->prefix . 'xmoney_payments_configuration' );
 	$posts_table_name = esc_sql( $wpdb->posts );
 
     // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table names are escaped manually and safe.
@@ -179,7 +179,7 @@ function twispay_tw_get_wp_pages(): string {
 		$html .= '<option value="0">' . esc_html__( 'Default', 'xmoney-payments' ) . '</option>';
 
 		foreach ( $wp_pages as $e_p ) {
-			if ( 'Twispay confirmation' !== $e_p->post_title ) {
+			if ( 'Xmoney Payments confirmation' !== $e_p->post_title ) {
 				if ( $configuration ) {
 					foreach ( $configuration as $e_c ) {
 						$html .= '<option value="' . esc_attr( $e_p->guid ) . '"' . selected( $e_c->thankyou_page, $e_p->guid, false ) . ' >' . esc_html( $e_p->post_title ) . '</option>';
@@ -201,10 +201,10 @@ function twispay_tw_get_wp_pages(): string {
  * @public
  * @return string contact_email
  */
-function twispay_tw_get_contact_email_o(): string {
+function xmoney_payments_get_contact_email_o(): string {
 	// WordPress database reference
 	global $wpdb;
-	$table_name = esc_sql( $wpdb->prefix . 'twispay_tw_configuration' );
+	$table_name = esc_sql( $wpdb->prefix . 'xmoney_payments_configuration' );
 
     // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table names are escaped manually and safe.
 	$contact_email = $wpdb->get_results( "SELECT contact_email FROM {$table_name}" );
@@ -222,10 +222,10 @@ function twispay_tw_get_contact_email_o(): string {
  * @public
  * @return string staging_id
  */
-function twispay_tw_get_staging_site_id(): string {
+function xmoney_payments_get_staging_site_id(): string {
 	// WordPress database reference
 	global $wpdb;
-	$table_name = esc_sql( $wpdb->prefix . 'twispay_tw_configuration' );
+	$table_name = esc_sql( $wpdb->prefix . 'xmoney_payments_configuration' );
 
     // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table names are escaped manually and safe.
 	$staging_id = $wpdb->get_results( "SELECT staging_id FROM {$table_name}" );
@@ -243,10 +243,10 @@ function twispay_tw_get_staging_site_id(): string {
  * @public
  * @return string staging_key
  */
-function twispay_tw_get_staging_private_key(): string {
+function xmoney_payments_get_staging_private_key(): string {
 	// WordPress database refference
 	global $wpdb;
-	$table_name = esc_sql( $wpdb->prefix . 'twispay_tw_configuration' );
+	$table_name = esc_sql( $wpdb->prefix . 'xmoney_payments_configuration' );
 
     // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table names are escaped manually and safe.
 	$staging_key = $wpdb->get_results( "SELECT staging_key FROM {$table_name}" );
@@ -264,10 +264,10 @@ function twispay_tw_get_staging_private_key(): string {
  * @public
  * @return string live_id
  */
-function twispay_tw_get_live_site_id(): string {
+function xmoney_payments_get_live_site_id(): string {
 	// WordPress database refference
 	global $wpdb;
-	$table_name = esc_sql( $wpdb->prefix . 'twispay_tw_configuration' );
+	$table_name = esc_sql( $wpdb->prefix . 'xmoney_payments_configuration' );
 
     // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table names are escaped manually and safe.
 	$live_id = $wpdb->get_results( "SELECT live_id FROM {$table_name}" );
@@ -285,10 +285,10 @@ function twispay_tw_get_live_site_id(): string {
  * @public
  * @return string live_key
  */
-function twispay_tw_get_live_private_key(): string {
+function xmoney_payments_get_live_private_key(): string {
 	// WordPress database refference
 	global $wpdb;
-	$table_name = esc_sql( $wpdb->prefix . 'twispay_tw_configuration' );
+	$table_name = esc_sql( $wpdb->prefix . 'xmoney_payments_configuration' );
 
     // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table names are escaped manually and safe.
 	$live_key = $wpdb->get_results( "SELECT live_key FROM {$table_name}" );

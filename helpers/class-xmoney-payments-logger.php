@@ -1,12 +1,12 @@
 <?php
 /**
- * Twispay Helpers
+ * Xmoney Payments Helpers
  *
  * Logs messages and transactions.
  *
- * @package  Twispay/Front
+ * @package  Xmoney/Front
  * @category Front
- * @author   Twispay
+ * @author   Xmoney Payments
  */
 
 /* Exit if the file is accessed directly. */
@@ -14,39 +14,39 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; }
 
 /* Security class check */
-if ( ! class_exists( 'Twispay_TW_Logger' ) ) :
+if ( ! class_exists( 'Xmoney_Payments_Logger' ) ) :
 	/**
-	 * Twispay Helper Class
+	 * Xmoney Payments Helper Class
 	 *
 	 * Class that implements methods to log
 	 * messages and transactions.
 	 */
-	class Twispay_TW_Logger {
+	class Xmoney_Payments_Logger {
 		/**
 		 * Log a transaction to the database.
 		 *
 		 * @param array $data Array containing the transaction data.
 		 * @return void
 		 */
-		public static function twispay_tw_log_transaction( array $data ) {
+		public static function xmoney_payments_log_transaction( array $data ) {
 			global $wpdb;
 
 			/* Extract the WooCommerce order. */
-			$tw_order = wc_get_order( $data['id_cart'] );
+			$xmoney_payments_order = wc_get_order( $data['id_cart'] );
 
             // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-			$already = $wpdb->get_row( $wpdb->prepare( 'SELECT * FROM ' . $wpdb->prefix . 'twispay_tw_transactions WHERE transactionId = %s', $data['transactionId'] ) );
+			$already = $wpdb->get_row( $wpdb->prepare( 'SELECT * FROM ' . $wpdb->prefix . 'xmoney_payments_transactions WHERE transactionId = %s', $data['transactionId'] ) );
 			if ( $already ) {
 				/*
 				Update the DB with the transaction data. */
                 // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-				$wpdb->query( $wpdb->prepare( 'UPDATE ' . $wpdb->prefix . 'twispay_tw_transactions SET status = %s WHERE transactionId = %d', $data['status'], $data['transactionId'] ) );
+				$wpdb->query( $wpdb->prepare( 'UPDATE ' . $wpdb->prefix . 'xmoney_payments_transactions SET status = %s WHERE transactionId = %d', $data['status'], $data['transactionId'] ) );
 			} else {
 
-				$checkout_url = ( ( false !== $tw_order ) && ( true !== $tw_order ) ) ? ( esc_url( wc_get_checkout_url() . 'order-pay/' . explode( '_', $data['id_cart'] )[0] . '/?pay_for_order=true&key=' . $tw_order->get_data()['order_key'] ) ) : ( '' );
+				$checkout_url = ( ( false !== $xmoney_payments_order ) && ( true !== $xmoney_payments_order ) ) ? ( esc_url( wc_get_checkout_url() . 'order-pay/' . explode( '_', $data['id_cart'] )[0] . '/?pay_for_order=true&key=' . $xmoney_payments_order->get_data()['order_key'] ) ) : ( '' );
 
                 // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-				$wpdb->get_results( $wpdb->prepare( 'INSERT INTO `' . $wpdb->prefix . 'twispay_tw_transactions` (`status`, `id_cart`, `identifier`, `orderId`, `transactionId`, `customerId`, `cardId`, `checkout_url`) VALUES (%s, %s, %s, %d, %d, %d, %d, %s);', $data['status'], $data['id_cart'], $data['identifier'], $data['orderId'], $data['transactionId'], $data['customerId'], $data['cardId'], $checkout_url ) );
+				$wpdb->get_results( $wpdb->prepare( 'INSERT INTO `' . $wpdb->prefix . 'xmoney_payments_transactions` (`status`, `id_cart`, `identifier`, `orderId`, `transactionId`, `customerId`, `cardId`, `checkout_url`) VALUES (%s, %s, %s, %d, %d, %d, %d, %s);', $data['status'], $data['id_cart'], $data['identifier'], $data['orderId'], $data['transactionId'], $data['customerId'], $data['cardId'], $checkout_url ) );
 			}
 		}
 
@@ -58,28 +58,28 @@ if ( ! class_exists( 'Twispay_TW_Logger' ) ) :
 		 * @param string $status The new transaction status.
 		 * @return void
 		 */
-		public static function twispay_tw_update_transaction_status( $id, $status ) {
+		public static function xmoney_payments_update_transaction_status( $id, $status ) {
 			global $wpdb;
 
             // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-			$already = $wpdb->get_row( $wpdb->prepare( 'SELECT * FROM ' . $wpdb->prefix . 'twispay_tw_transactions WHERE id_cart = %d', $id ) );
+			$already = $wpdb->get_row( $wpdb->prepare( 'SELECT * FROM ' . $wpdb->prefix . 'xmoney_payments_transactions WHERE id_cart = %d', $id ) );
 
 			if ( $already ) {
 				/*
 				Update the DB with the transaction data. */
                 // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-				$wpdb->query( $wpdb->prepare( 'UPDATE ' . $wpdb->prefix . 'twispay_tw_transactions SET status = %s WHERE id_cart = %d', $status, $id ) );
+				$wpdb->query( $wpdb->prepare( 'UPDATE ' . $wpdb->prefix . 'xmoney_payments_transactions SET status = %s WHERE id_cart = %d', $status, $id ) );
 			}
 		}
 
 
 		/**
-		 * Log a message to the Twispay log file.
+		 * Log a message to the Xmoney Payments log file.
 		 *
 		 * @param string|array|bool $message The message to log. Arrays will be JSON encoded.
 		 * @return void
 		 */
-		public static function twispay_tw_log( $message = false ) {
+		public static function xmoney_payments_log( $message = false ) {
 			// Resolve uploads directory and ensure plugin subfolder exists: /uploads/xmoney-payments/logs/
 			$uploads = wp_upload_dir();
 			if ( ! empty( $uploads['error'] ) ) {
@@ -109,7 +109,7 @@ if ( ! class_exists( 'Twispay_TW_Logger' ) ) :
 				$wp_filesystem->put_contents( $index_file, "<?php\n// Silence is golden.\n", FS_CHMOD_FILE );
 			}
 
-			$log_file = trailingslashit( $log_dir ) . 'twispay-log.txt';
+			$log_file = trailingslashit( $log_dir ) . 'xmoney-payments-log.txt';
 
 			// Build log line; no browser output, so no esc_* needed.
 			$line = ( ! $message )
