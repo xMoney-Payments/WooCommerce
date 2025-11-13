@@ -244,11 +244,11 @@ class Xmoney_Payments_Transaction_Table extends Xmoney_Payments_List_Table {
 		global $wpdb;
 
 		// Sanitize GET values (read-only, no nonce required)
-        // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- All GET accesses are for read-only listing controls.
 		$s = isset( $_GET['s'] ) ? sanitize_text_field( wp_unslash( $_GET['s'] ) ) : 'all';
-        // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only sort key.
 		$order_by = isset( $_GET['orderby'] ) ? sanitize_text_field( wp_unslash( $_GET['orderby'] ) ) : '';
-        // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only sort direction.
 		$order_how = isset( $_GET['order'] ) ? sanitize_text_field( wp_unslash( $_GET['order'] ) ) : 'asc';
 
 		// Table name – safe and prefixed
