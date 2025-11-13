@@ -80,7 +80,7 @@ class Xmoney_Payments_Subscription_Processor {
 		} catch ( Exception $e ) {
 			wc_add_notice( $e->getMessage(), 'error' );
 			wp_safe_redirect( wc_get_cart_url() );
-			return;
+			exit;
 		}
 		?>
 

@@ -52,7 +52,7 @@ function xmoney_payments_refund_payment_transaction() {
 		// Enforce strict numeric transaction id to prevent path manipulation/credential leakage.
 		if ( ! preg_match( '/^[0-9]+$/', $transaction_id_raw ) ) {
 			wp_safe_redirect( admin_url( 'admin.php?page=xmoney-payments-transaction&notice=error_refund' ) );
-			return;
+			exit;
 		}
 		$transaction_id = $transaction_id_raw;
 
@@ -87,13 +87,16 @@ function xmoney_payments_refund_payment_transaction() {
 		if ( 'OK' === $response['response']['message'] ) {
 			/* Redirect to the Transaction list Page with success. */
 			wp_safe_redirect( admin_url( 'admin.php?page=xmoney-payments-transaction&notice=success_refund' ) );
+			exit;
 		} else {
 			/* Redirect to the Transaction list Page with error. */
 			wp_safe_redirect( admin_url( 'admin.php?page=xmoney-payments-transaction&notice=errorp_refund&emessage=' . rawurlencode( $response['body'] ) ) );
+			exit;
 		}
 	} else {
 		/* Redirect to the Transaction list Page with error. */
 		wp_safe_redirect( admin_url( 'admin.php?page=xmoney-payments-transaction&notice=error_refund' ) );
+		exit;
 	}
 }
 add_action( 'xmoney_payments_refund_payment_transaction', 'xmoney_payments_refund_payment_transaction' );
@@ -131,7 +134,7 @@ function xmoney_payments_recurring_order() {
 		// Order IDs are numeric; enforce to avoid unintended API target manipulation.
 		if ( ! preg_match( '/^[0-9]+$/', $order_ad_raw ) ) {
 			wp_safe_redirect( admin_url( 'admin.php?page=xmoney-payments-transaction&notice=error_recurring' ) );
-			return;
+			exit;
 		}
 		$order_ad = (int) $order_ad_raw;
 
@@ -163,13 +166,16 @@ function xmoney_payments_recurring_order() {
 		if ( 'OK' === $response['response']['message'] ) {
 			/* Redirect to the Transaction list Page with success. */
 			wp_safe_redirect( admin_url( 'admin.php?page=xmoney-payments-transaction&notice=success_recurring' ) );
+			exit;
 		} else {
 			/* Redirect to the Transaction list Page with error. */
 			wp_safe_redirect( admin_url( 'admin.php?page=xmoney-payments-transaction&notice=errorp_refund&emessage=' . rawurlencode( $response['body'] ) ) );
+			exit;
 		}
 	} else {
 		/* Redirect to the Transaction list Page with error. */
 		wp_safe_redirect( admin_url( 'admin.php?page=xmoney-payments-transaction&notice=error_recurring' ) );
+		exit;
 	}
 }
 add_action( 'xmoney_payments_recurring_order', 'xmoney_payments_recurring_order' );
@@ -256,6 +262,7 @@ function xmoney_payments_synchronize_subscriptions() {
 
 				/* Redirect to the Transaction list Page with success. */
 				wp_safe_redirect( admin_url( 'admin.php?page=xmoney-payments-transaction&notice=success_recurring' ) );
+				exit;
 			} else {
 				Xmoney_Payments_Logger::xmoney_payments_log( esc_html__( '[RESPONSE-ERROR]: Failed to set server status for order ID: ', 'xmoney-payments' ) . $subscription->get_parent_id() );
 			}
@@ -263,5 +270,6 @@ function xmoney_payments_synchronize_subscriptions() {
 	}
 	/* Redirect to the Transaction list Page with message. */
 	wp_safe_redirect( admin_url( 'admin.php?page=xmoney-payments-transaction&notice=sync_finished' ) );
+	exit;
 }
 add_action( 'xmoney_payments_synchronize_subscriptions', 'xmoney_payments_synchronize_subscriptions' );
