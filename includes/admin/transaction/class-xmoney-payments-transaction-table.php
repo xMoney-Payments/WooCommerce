@@ -47,8 +47,6 @@ class Xmoney_Payments_Transaction_Table extends Xmoney_Payments_List_Table {
 	 *                            Default null.
 	 */
 	public function __construct() {
-		global $status, $page;
-
 		parent::__construct(
 			array(
 				'singular' => 'notification',
@@ -160,8 +158,6 @@ class Xmoney_Payments_Transaction_Table extends Xmoney_Payments_List_Table {
 	 * @return string
 	 */
 	public function column_default( array $item, string $column_name ) {
-		global $woocommerce;
-
 		$column = '';
 
 		switch ( $column_name ) {
@@ -247,88 +243,94 @@ class Xmoney_Payments_Transaction_Table extends Xmoney_Payments_List_Table {
 	public function prepare_items() {
 		global $wpdb;
 
-		/**
-		 * Sanitize request variables safely (no nonce check needed for viewing data).
-		 */
-        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- All GET accesses are for read-only listing controls.
+		// Sanitize GET values (read-only, no nonce required)
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		$s = isset( $_GET['s'] ) ? sanitize_text_field( wp_unslash( $_GET['s'] ) ) : 'all';
-        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only sort key.
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		$order_by = isset( $_GET['orderby'] ) ? sanitize_text_field( wp_unslash( $_GET['orderby'] ) ) : '';
-        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only sort direction.
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		$order_how = isset( $_GET['order'] ) ? sanitize_text_field( wp_unslash( $_GET['order'] ) ) : 'asc';
 
-		/**
-		 * Safely define table names. esc_sql() used because $wpdb->prepare() cannot handle identifiers.
-		 */
+		// Table name – safe and prefixed
 		$transaction_table = esc_sql( $wpdb->prefix . 'xmoney_payments_transactions' );
-		$users_table       = esc_sql( $wpdb->users );
 
 		$per_page  = 10;
 		$where_sql = '';
 
-		/**
-		 * Build WHERE clause safely using prepare().
-		 */
+		// WHERE clause
 		if ( 'all' !== $s ) {
 			$search_like = '%' . $wpdb->esc_like( $s ) . '%';
 			$where_sql   = $wpdb->prepare( 'WHERE tr.id_cart LIKE %s', $search_like );
 		}
 
-		/**
-		 * Whitelist allowed columns for ORDER BY and sanitize direction.
-		 */
-		$allowed_orderby = array( 'id_tw_transactions', 'customer_name', 'transactionId', 'status' );
+		// Allowed ordering fields
+		$allowed_orderby = array( 'id_tw_transactions', 'transactionId', 'status', 'id_cart' );
 
 		if ( in_array( $order_by, $allowed_orderby, true ) ) {
-			$order_how = ( strtolower( $order_how ) === 'desc' ) ? 'DESC' : 'ASC';
-			// Safe: $order_by is whitelisted, $order_how is restricted to ASC/DESC.
+			$order_how = strtolower( $order_how ) === 'desc' ? 'DESC' : 'ASC';
 			$order_sql = "ORDER BY tr.{$order_by} {$order_how}";
 		} else {
+			// Default sorting
 			$order_sql = 'ORDER BY tr.id_tw_transactions DESC';
 		}
 
-		$columns  = $this->get_columns();
-		$hidden   = array();
-		$sortable = $this->get_sortable_columns();
-
+		$columns               = $this->get_columns();
+		$hidden                = array();
+		$sortable              = $this->get_sortable_columns();
 		$this->_column_headers = array( $columns, $hidden, $sortable );
+
 		$this->process_bulk_action();
 
-		/**
-		 * Assemble final query.
-		 * Table names are escaped and known safe.
-		 */
-        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table names escaped manually and known safe.
+		// Select transactions ONLY (no user table)
 		$query = "
-            SELECT
-                tr.id_tw_transactions,
-                tr.id_cart,
-                (
-                    SELECT display_name
-                    FROM {$users_table}
-                    WHERE ID = REPLACE( tr.identifier, '_', '' )
-                ) AS customer_name,
-                tr.transactionId,
-                tr.orderId,
-                tr.status,
-                tr.checkout_url
-            FROM {$transaction_table} tr
-            {$where_sql}
-            {$order_sql}
-        ";
+        SELECT
+            tr.id_tw_transactions,
+            tr.id_cart,
+            tr.identifier,
+            tr.transactionId,
+            tr.orderId,
+            tr.status,
+            tr.checkout_url
+        FROM {$transaction_table} tr
+        {$where_sql}
+        {$order_sql}
+    ";
 
-		/**
-		 * Execute query safely.
-		 * Direct query is acceptable here because we are performing a read with full escaping.
-		 */
-        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Query manually built with fully escaped table names and safe values.
-		$data = $wpdb->get_results( $query, ARRAY_A );
+        // phpcs:disable PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$rows = $wpdb->get_results(
+        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+            $query, // Safe dynamic SQL
+            ARRAY_A
+		);
+        // phpcs:enable
 
-		// Set pagination to page.
-		$current_page = $this->get_xmoney_payments_pagenum();
+		// Add customer names safely (VIP-friendly)
+		$data = array();
+
+		foreach ( $rows as $row ) {
+			$customer_id = 0;
+
+			// Example identifier: "site123_user_55"
+			if ( ! empty( $row['identifier'] ) ) {
+				preg_match( '/_user_([0-9]+)/', $row['identifier'], $matches );
+				if ( ! empty( $matches[1] ) ) {
+					$customer_id = (int) $matches[1];
+				}
+			}
+
+			// Load user safely
+			$user = $customer_id ? get_user_by( 'ID', $customer_id ) : false;
+
+			$row['customer_name'] = $user ? $user->display_name : __( 'Guest', 'xmoney-payments' );
+
+			$data[] = $row;
+		}
+
+		// Pagination
+		$current_page = $this->get_pagenum();
 		$total_items  = count( $data );
-		$data         = array_slice( $data, ( ( $current_page - 1 ) * $per_page ), $per_page );
-		$this->items  = $data;
+
+		$this->items = array_slice( $data, ( $current_page - 1 ) * $per_page, $per_page );
 
 		$this->set_pagination_args(
 			array(

@@ -31,6 +31,7 @@ if ( ! class_exists( 'Xmoney_Payments_Default_Thankyou' ) ) :
 		 */
 		public function __construct( $xmoney_payments_order ) {
 			wp_safe_redirect( esc_url( $this->get_return_url( $xmoney_payments_order ) ) );
+			exit;
 		}
 	}
 endif; /* End if class_exists. */

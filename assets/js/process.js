@@ -1,1 +1,1 @@
-document.getElementById("xmoney_payments_payment_form").submit();
+document.getElementById( "xmoney_payments_payment_form" ).submit();
