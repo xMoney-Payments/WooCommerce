@@ -20,7 +20,7 @@ msgstr ""
 #: includes/admin/configuration/configuration.php:30
 #: includes/admin/transaction-log/transaction-log.php:30
 #: includes/admin/transaction/transaction.php:33
-#: twispay.php:170
+#: class-xmoney-payments.php:200
 #: views/payment-confirmation.php:37
 msgid "xMoney Payments requires WooCommerce plugin to work normally. Please activate it or install it from"
 msgstr ""
@@ -29,7 +29,7 @@ msgstr ""
 #: includes/admin/configuration/configuration.php
 #: includes/admin/transaction-log/transaction-log.php:30
 #: includes/admin/transaction/transaction.php:33
-#: twispay.php:170
+#: class-xmoney-payments.php:200
 #: views/payment-confirmation.php:42
 msgid "here"
 msgstr ""
@@ -372,137 +372,137 @@ msgstr ""
 msgid "Thank you. Your transaction is approved."
 msgstr ""
 
-#: Twispay Processor( Redirect page to xMoney Payments )
+#: Xmoney Payments Processor( Redirect page to xMoney Payments )
 #: includes/processors/class-main-processor.php:93
 #: includes/processors/class-subscription-processor.php
 msgid "You are not allowed to access this file."
 msgstr ""
 
-#: Twispay Processor( Redirect page to xMoney Payments )
+#: Xmoney Payments Processor( Redirect page to xMoney Payments )
 #: includes/processors/class-subscription-processor.php:99
 msgid "The order has no items."
 msgstr ""
 
-#: Twispay Processor( Redirect page to xMoney Payments )
+#: Xmoney Payments Processor( Redirect page to xMoney Payments )
 #: includes/processors/class-subscription-processor.php:103
 msgid "Orders with subscriptions cannot have other products too."
 msgstr ""
 
-#: Twispay Processor( Redirect page to xMoney Payments )
+#: Xmoney Payments Processor( Redirect page to xMoney Payments )
 #: includes/processors/class-main-processor.php:99
 #: includes/processors/class-subscription-processor.php:109
 #: views/payment-confirmation.php:66
 msgid "Missing includes/admin/configuration/configuration for plugin."
 msgstr ""
 
-#: Twispay_TW_Helper_Processor
-#: helpers/Twispay_TW_Helper_Processor.php:39
+#: Xmoney_Payments_Helper_Processor
+#: helpers/Xmoney_Payments_Helper_Processor.php:39
 msgid "xMoney API request error: "
 msgstr ""
 
-#: Twispay_TW_Helper_Processor
-#: helpers/Twispay_TW_Helper_Processor.php:56
+#: Xmoney_Payments_Helper_Processor
+#: helpers/Xmoney_Payments_Helper_Processor.php:56
 msgid "xMoney API returned HTTP %1$d => %2$s"
 msgstr ""
 
-#: Twispay_TW_Helper_Processor
-#: helpers/Twispay_TW_Helper_Processor.php:72
+#: Xmoney_Payments_Helper_Processor
+#: helpers/Xmoney_Payments_Helper_Processor.php:72
 msgid "xMoney API invalid JSON: "
 msgstr ""
 
-#: Twispay_TW_Helper_Processor
-#: helpers/Twispay_TW_Helper_Processor.php:91
+#: Xmoney_Payments_Helper_Processor
+#: helpers/Xmoney_Payments_Helper_Processor.php:91
 msgid "xMoney API response missing token field: "
 msgstr ""
 
 #: Validation LOG insertor
-#: includes/class-tw-server-to-server.php:57
+#: includes/class-xmoney-payments-server-to-server.php:57
 #: views/payment-confirmation.php:195
 msgid "[RESPONSE]: Decryption successfully performed."
 msgstr ""
 
 #: Validation LOG insertor
-#: helpers/Twispay_TW_Helper_Response.php:178
+#: helpers/Xmoney_Payments_Helper_Response.php:178
 msgid "[RESPONSE]: Data: "
 msgstr ""
 
 #: Validation LOG insertor
-#: helpers/Twispay_TW_Status_Updater.php
+#: helpers/Xmoney_Payments_Status_Updater.php
 msgid "[RESPONSE]: Status complete-ok for order ID: "
 msgstr ""
 
 #: Validation LOG insertor
-#: helpers/Twispay_TW_Status_Updater.php:240
+#: helpers/Xmoney_Payments_Status_Updater.php:240
 msgid "[RESPONSE]: Status refund-ok for order ID: "
 msgstr ""
 
 #: Validation LOG insertor
-#: helpers/Twispay_TW_Status_Updater.php
+#: helpers/Xmoney_Payments_Status_Updater.php
 msgid "[RESPONSE]: Status failed for order ID: "
 msgstr ""
 
 #: Validation LOG insertor
-#: helpers/Twispay_TW_Status_Updater.php
+#: helpers/Xmoney_Payments_Status_Updater.php
 msgid "[RESPONSE]: Status on-hold for order ID: "
 msgstr ""
 
 #: Validation LOG insertor
-#: helpers/Twispay_TW_Helper_Response.php:188
+#: helpers/Xmoney_Payments_Helper_Response.php:188
 msgid "[RESPONSE]: Validating completed for order ID: "
 msgstr ""
 
 #: Validation LOG insertor
-#: includes/class-tw-server-to-server.php
+#: includes/class-xmoney-payments-server-to-server.php
 #: views/payment-confirmation.php:203
 msgid "[RESPONSE-ERROR]: Validation failed."
 msgstr ""
 
 #: Validation LOG insertor
-#: includes/class-tw-server-to-server.php
+#: includes/class-xmoney-payments-server-to-server.php
 #: views/payment-confirmation.php:159
 msgid "[RESPONSE-ERROR]: Decryption failed."
 msgstr ""
 
 #: Validation LOG insertor
-#: includes/class-tw-server-to-server.php
+#: includes/class-xmoney-payments-server-to-server.php
 #: views/payment-confirmation.php:247
 msgid "[RESPONSE-ERROR]: Order does not exist."
 msgstr ""
 
 #: Validation LOG insertor
-#: helpers/Twispay_TW_Helper_Response.php:181
-#: helpers/Twispay_TW_Status_Updater.php
+#: helpers/Xmoney_Payments_Helper_Response.php:181
+#: helpers/Xmoney_Payments_Status_Updater.php
 msgid "[RESPONSE-ERROR]: Wrong status: "
 msgstr ""
 
 #: Validation LOG insertor
-#: helpers/Twispay_TW_Helper_Response.php:148
+#: helpers/Xmoney_Payments_Helper_Response.php:148
 msgid "[RESPONSE-ERROR]: Empty status"
 msgstr ""
 
 #: Validation LOG insertor
-#: helpers/Twispay_TW_Helper_Response.php:152
+#: helpers/Xmoney_Payments_Helper_Response.php:152
 msgid "[RESPONSE-ERROR]: Empty identifier"
 msgstr ""
 
 #: Validation LOG insertor
-#: helpers/Twispay_TW_Helper_Response.php:156
+#: helpers/Xmoney_Payments_Helper_Response.php:156
 msgid "[RESPONSE-ERROR]: Empty externalOrderId"
 msgstr ""
 
 #: Validation LOG insertor
-#: helpers/Twispay_TW_Helper_Response.php:160
+#: helpers/Xmoney_Payments_Helper_Response.php:160
 msgid "[RESPONSE-ERROR]: Empty transactionId"
 msgstr ""
 
 #: Validation LOG insertor
-#: includes/class-tw-server-to-server.php
+#: includes/class-xmoney-payments-server-to-server.php
 #: views/payment-confirmation.php:75
 msgid "[RESPONSE-ERROR]: Received empty response."
 msgstr ""
 
 #: Validation LOG insertor
-#: includes/class-tw-server-to-server.php
+#: includes/class-xmoney-payments-server-to-server.php
 #: views/payment-confirmation.php:114
 msgid "[RESPONSE-ERROR]: Private key is not valid."
 msgstr ""
@@ -513,7 +513,7 @@ msgid "[RESPONSE-ERROR]: Invalid order identification key."
 msgstr ""
 
 #: Validation LOG insertor
-#: includes/class-tw-server-to-server.php:52
+#: includes/class-xmoney-payments-server-to-server.php:52
 msgid "[RESPONSE-ERROR]: opensslResult: "
 msgstr ""
 
@@ -553,39 +553,39 @@ msgid "Security check failed. Please reload the page and try again."
 msgstr ""
 
 #: Wordpress Administrator Order Notice
-#: helpers/Twispay_TW_Status_Updater.php
+#: helpers/Xmoney_Payments_Status_Updater.php
 msgid "xMoney Payments payment finalised successfully"
 msgstr ""
 
 #: Wordpress Administrator Order Notice
-#: helpers/Twispay_TW_Status_Updater.php:234
+#: helpers/Xmoney_Payments_Status_Updater.php:234
 msgid "Website manager pressed on refund button successfully"
 msgstr ""
 
 #: Wordpress Administrator Order Notice
-#: helpers/Twispay_TW_Status_Updater.php
+#: helpers/Xmoney_Payments_Status_Updater.php
 msgid "xMoney Payments payment failed"
 msgstr ""
 
 #: Wordpress Administrator Order Notice
-#: helpers/Twispay_TW_Status_Updater.php
+#: helpers/Xmoney_Payments_Status_Updater.php
 msgid "xMoney Payments payment is on hold"
 msgstr ""
 
 #: Others
-#: helpers/Twispay_TW_Status_Updater.php
+#: helpers/Xmoney_Payments_Status_Updater.php
 #: views/payment-confirmation.php
 msgid "An error occurred:"
 msgstr ""
 
 #: Others
-#: helpers/Twispay_TW_Status_Updater.php
+#: helpers/Xmoney_Payments_Status_Updater.php
 #: views/payment-confirmation.php
 msgid "The payment could not be processed. Please"
 msgstr ""
 
 #: Others
-#: helpers/Twispay_TW_Status_Updater.php
+#: helpers/Xmoney_Payments_Status_Updater.php
 #: views/payment-confirmation.php
 msgid " try again"
 msgstr ""

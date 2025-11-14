@@ -1,17 +1,23 @@
 <?php
-/* Exit if the file is accessed directly. */
-if (!defined('ABSPATH')) {
-    exit;
+/**
+ * Xmoney Payments Helper Processor
+ *
+ * Provides shared helper utilities used throughout the Xmoney Payments integration.
+ *
+ * @package Xmoney/Helpers
+ */
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
 }
 
-    if (!defined('ABSPATH')) {
-        exit;
-    }
-
-class Twispay_TW_Helper_Processor {
-
-    const LIVE_URL = 'https://api.xmoney.com';
-    const STAGE_URL = 'https://api-stage.xmoney.com';
+/**
+ * Helper class for retrieving configuration and formatting request data.
+ */
+class Xmoney_Payments_Helper_Processor {
+	const LIVE_URL  = 'https://secure.xmoney.com';
+	const STAGE_URL = 'https://secure-stage.xmoney.com';
+    const INLINE_LIVE_URL = 'https://api.xmoney.com';
+    const INLINE_STAGE_URL = 'https://api-stage.xmoney.com';
     const LIVE_URL_JS = 'https://secure.xmoney.com';
     const STAGE_URL_JS = 'https://secure-stage.xmoney.com';
 
@@ -24,7 +30,11 @@ class Twispay_TW_Helper_Processor {
      */
     public static function get_session_token($is_live, $secret_key)
     {
-        $url = ($is_live ? self::LIVE_URL : self::STAGE_URL) . '/auth/jwt-token';
+        if (function_exists('xmoney_payments_is_inline_enabled') && xmoney_payments_is_inline_enabled()) {
+            $url = ($is_live ? self::INLINE_LIVE_URL : self::INLINE_STAGE_URL) . '/auth/jwt-token';
+        }else{
+            $url = ($is_live ? self::LIVE_URL : self::STAGE_URL) . '/auth/jwt-token';
+        }
 
         $args = [
             'headers' => [
@@ -109,10 +119,10 @@ class Twispay_TW_Helper_Processor {
             return [];
         }
 
-        $config = Twispay_TW_Helper_Processor::get_configuration();
+        $config = Xmoney_Payments_Helper_Processor::get_configuration();
         $is_live = !empty($config['is_live']);
 
-        $url = ($is_live ? self::LIVE_URL : self::STAGE_URL) . '/card?customerId=' . urlencode($customer_id);
+        $url = ($is_live ? self::INLINE_LIVE_URL : self::INLINE_STAGE_URL) . '/card?customerId=' . urlencode($customer_id);
 
         $response = wp_remote_get($url, [
             'headers' => [
@@ -124,7 +134,6 @@ class Twispay_TW_Helper_Processor {
         ]);
 
 
-
         if (is_wp_error($response)) {
             return [];
         }
@@ -133,64 +142,120 @@ class Twispay_TW_Helper_Processor {
 
         $response = [];
 
-        if(is_array($body) && isset($body['data'])){
+        if (is_array($body) && isset($body['data'])) {
             $response = $body['data'];
         }
 
         return $response;
     }
 
-    public static function get_current_language(): string
+    public static function delete_cards($customer_id, $secret_key)
     {
-        return explode('-', get_bloginfo('language'))[0];
+        $config = Xmoney_Payments_Helper_Processor::get_configuration();
+        $is_live = !empty($config['is_live']);
+            $url = ($is_live ? Xmoney_Payments_Helper_Processor::INLINE_LIVE_URL : Xmoney_Payments_Helper_Processor::INLINE_STAGE_URL) . "/card?customerId=". $customer_id;
+
+            $cards = wp_remote_get(
+                esc_url($url),
+                [
+                    'headers' => [
+                        'Authorization' => 'Bearer ' . sanitize_text_field($secret_key),
+                        'Content-Type' => 'application/json',
+                    ],
+                    'timeout' => 30,
+                ]
+            );
+
+            foreach (json_decode($cards['body'],1)['data'] as $id){
+                $url = ($is_live ? Xmoney_Payments_Helper_Processor::INLINE_LIVE_URL : Xmoney_Payments_Helper_Processor::INLINE_STAGE_URL) . "/card/". $id['id'];
+                $args = [
+                    'method' => 'DELETE',
+                    'headers' => [
+                        'Authorization' => 'Bearer ' . sanitize_text_field($secret_key),
+                        'Content-Type' => 'application/json',
+                    ],
+                    'timeout' => 30,
+                ];
+
+                $response = wp_remote_get(
+                    esc_url($url),
+                    $args
+                );
+            }
+
+            var_dump($cards);
+            exit;
     }
 
-    public static function format_phone($phone): string
-    {
-        $output = '';
+	/**
+	 * Get the current site language short code (e.g. "en", "fr").
+	 *
+	 * @return string Language code.
+	 */
+	public static function get_current_language(): string {
+		return explode( '-', get_bloginfo( 'language' ) )[0];
+	}
 
-        if (empty($phone)) {
-            return $output;
-        }
+	/**
+	 * Format a phone number by removing non-digit characters and prefixing "+" if needed.
+	 *
+	 * @param string $phone Input phone number.
+	 * @return string Normalized phone number.
+	 */
+	public static function format_phone( $phone ): string {
+		$output = '';
 
-        $output = $phone[0] ? '+' : '';
+		if ( empty( $phone ) ) {
+			return $output;
+		}
 
-        return $output . preg_replace('/([^0-9]*)+/', '', $phone);
-    }
+		$output = $phone[0] ? '+' : '';
 
-    public static function get_configuration(): array
-    {
-        $configuration = self::query_configuration();
-        $result = [];
+		return $output . preg_replace( '/([^0-9]*)+/', '', $phone );
+	}
 
-        if ($configuration->live_mode === null) {
-            return $result;
-        }
+	/**
+	 * Retrieve processed plugin configuration values (site ID, key, mode).
+	 *
+	 * @return array Configuration data structured for gateway interaction.
+	 */
+	public static function get_configuration(): array {
+		$configuration = self::query_configuration();
+		$result        = array();
 
-        $is_live = $configuration->live_mode === '1';
-        $is_inline = $configuration->inline_checkout === '1';
+		if ( null === $configuration->live_mode ) {
+			return $result;
+		}
 
-        if ($is_live) {
-            $result['is_live'] = true;
-            $result['site_id'] = ($is_inline ? 'pk_live_' : '' ) . $configuration->live_id;
-            $result['secret_key'] = $configuration->live_key;
+		$is_live = '1' === $configuration->live_mode;
+        $is_inline = '1' === $configuration->inline_checkout;
 
-            return $result;
-        }
+		if ( $is_live ) {
+			$result['is_live']    = true;
+            $result['site_id']    = ($is_inline ? 'pk_live_' : '') . $configuration->live_id;
+			$result['secret_key'] = $configuration->live_key;
 
-        $result['is_live'] = false;
-        $result['site_id'] = ($is_inline ? 'pk_test_' : '') . $configuration->staging_id;
-        $result['secret_key'] = $configuration->staging_key;
+			return $result;
+		}
 
-        return $result;
-    }
+		$result['is_live']    = false;
+        $result['site_id']    = ($is_inline ? 'pk_test_' : '') . $configuration->staging_id;
+		$result['secret_key'] = $configuration->staging_key;
 
-    private static function query_configuration() {
-        global $wpdb;
+		return $result;
+	}
 
-        $table_name = esc_sql($wpdb->prefix . 'twispay_tw_configuration');
+	/**
+	 * Query raw configuration row from database.
+	 *
+	 * @return object|null Database row or null if not found.
+	 */
+	private static function query_configuration() {
+		global $wpdb;
+
+		$table_name = esc_sql( $wpdb->prefix . 'xmoney_payments_configuration' );
 
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table names are escaped manually and safe.
-        return $wpdb->get_row("SELECT * FROM {$table_name}");
-    }
+		return $wpdb->get_row( "SELECT * FROM {$table_name}" );
+	}
 }

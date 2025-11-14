@@ -1,4 +1,4 @@
-.payment_box.payment_method_twispay {
+.payment_box.payment_method_xmoney-payments {
     padding: 0;
 }
 
@@ -6,26 +6,26 @@
     float: right;
 }
 
-.wc_payment_method.payment_method_twispay > label {
+.wc_payment_method.payment_method_xmoney-payments > label {
     font-weight: bold;
 }
 
-.wc_payment_method.payment_method_twispay > label:first-of-type img {
+.wc_payment_method.payment_method_xmoney-payments > label:first-of-type img {
     max-height: 75px;
     max-width: 100%;
 /*  margin-top: -16px;*/
 }
 
-.wc_payment_method.payment_method_twispay > label:first-of-type {
+.wc_payment_method.payment_method_xmoney-payments > label:first-of-type {
     margin: 23px 0;
 }
 
 body {
     height: 100%;
-    overflow: hidden !important;
 }
 
 .wrapper-loader {
+    display: none;
     background-color: #fff;
     height: 100%;
     left: 0;
@@ -36,6 +36,7 @@ body {
 }
 
 .loader {
+    display: none;
     margin: 15% auto 0;
     border: 14px solid #f3f3f3;
     border-top: 14px solid #3498db;
