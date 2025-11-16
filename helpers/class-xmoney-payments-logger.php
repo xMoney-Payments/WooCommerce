@@ -72,27 +72,26 @@ if ( ! class_exists( 'Xmoney_Payments_Logger' ) ) :
 			}
 		}
 
-        /**
-         * Update a transaction's transactionId in the database.
-         *
-         * @param int $id The parent WooCommerce order ID.
-         * @param int $transaction_id The new transactionId.
-         * @return void
-         */
-        public static function xmoney_payments_update_transaction_id($id, $transaction_id)
-        {
-            global $wpdb;
+		/**
+		 * Update a transaction's transactionId in the database.
+		 *
+		 * @param int $id The parent WooCommerce order ID.
+		 * @param int $transaction_id The new transactionId.
+		 * @return void
+		 */
+		public static function xmoney_payments_update_transaction_id( $id, $transaction_id ) {
+			global $wpdb;
 
             // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-            $already = $wpdb->get_row($wpdb->prepare('SELECT * FROM ' . $wpdb->prefix . 'xmoney_payments_transactions WHERE orderId = %d', $id));
+			$already = $wpdb->get_row( $wpdb->prepare( 'SELECT * FROM ' . $wpdb->prefix . 'xmoney_payments_transactions WHERE orderId = %d', $id ) );
 
-            if ($already) {
-                /*
-                Update the DB with the transaction data. */
+			if ( $already ) {
+				/*
+				Update the DB with the transaction data. */
                 // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-                $wpdb->query($wpdb->prepare('UPDATE ' . $wpdb->prefix . 'xmoney_payments_transactions SET transactionId = %d WHERE orderId = %d', $transaction_id, $id));
-            }
-        }
+				$wpdb->query( $wpdb->prepare( 'UPDATE ' . $wpdb->prefix . 'xmoney_payments_transactions SET transactionId = %d WHERE orderId = %d', $transaction_id, $id ) );
+			}
+		}
 
 
 		/**

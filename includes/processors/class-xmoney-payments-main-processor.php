@@ -62,12 +62,6 @@ class Xmoney_Payments_Main_Processor {
 	 */
 	public function process() {
 
-
-
-
-
-
-
 		// Verify request integrity.
 		$raw_nonce = '';
 		if ( isset( $_POST['_wpnonce'] ) ) {
@@ -87,96 +81,111 @@ class Xmoney_Payments_Main_Processor {
 		// Load process css & js files
 		wp_enqueue_style( 'ma-process-css', XMONEY_PAYMENTS_PLUGIN_URL . 'assets/css/process.css', array(), XMONEY_PAYMENTS_VERSION, true );
 
-        // Use inline checkout if enabled.
-        if (function_exists('xmoney_payments_is_inline_enabled') && xmoney_payments_is_inline_enabled()) {
-            $order = wc_get_order($this->order_id);
-            if (!$order) {
-                return;
-            }
-            $config = Xmoney_Payments_Helper_Processor::get_configuration();
-            $is_live = !empty($config['is_live']);
-            $public_key = $config['site_id'];
-            $secret_key = $config['secret_key'];
+		// Use inline checkout if enabled.
+		error_log( '[XMoney Debug] Checking inline enabled: ' . ( function_exists( 'xmoney_payments_is_inline_enabled' ) ? ( xmoney_payments_is_inline_enabled() ? 'YES' : 'NO' ) : 'FUNCTION NOT EXISTS' ) );
+		if ( function_exists( 'xmoney_payments_is_inline_enabled' ) && xmoney_payments_is_inline_enabled() ) {
+			error_log( '[XMoney Debug] Inline checkout enabled, order_id: ' . $this->order_id );
+			$order = wc_get_order( $this->order_id );
+			if ( ! $order ) {
+				error_log( '[XMoney Debug] Order not found, returning early' );
+				return;
+			}
+			error_log( '[XMoney Debug] Order found, proceeding with inline checkout' );
 
+			$config     = Xmoney_Payments_Helper_Processor::get_configuration();
+			$is_live    = ! empty( $config['is_live'] );
+			$public_key = $config['site_id'];
+			$secret_key = $config['secret_key'];
 
-//            Xmoney_Payments_Helper_Processor::delete_cards(62613,$secret_key);
+			// Xmoney_Payments_Helper_Processor::delete_cards(62613,$secret_key);
 
-            $request = $this->prepare_request_data();
+			$request = $this->prepare_request_data();
 
-            $session_token = Xmoney_Payments_Helper_Processor::get_session_token($is_live, $secret_key);
-            if (!$session_token && function_exists('wc_get_logger')) {
-                $logger = wc_get_logger();
+			$session_token = Xmoney_Payments_Helper_Processor::get_session_token( $is_live, $secret_key );
+			if ( ! $session_token && function_exists( 'wc_get_logger' ) ) {
+				$logger = wc_get_logger();
                 // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-                $logger->warning('[xMoney] Inline: session token not retrieved for environment ' . ($is_live ? 'live' : 'stage'), ['source' => 'xmoney-payments']);
-            }
+				$logger->warning( '[xMoney] Inline: session token not retrieved for environment ' . ( $is_live ? 'live' : 'stage' ), array( 'source' => 'xmoney-payments' ) );
+			}
 
-            $sdk_url = $is_live ? (Xmoney_Payments_Helper_Processor::LIVE_URL_JS . '/sdk/0.0.19.alpha.2/xmoney.js')
-                : (Xmoney_Payments_Helper_Processor::STAGE_URL_JS . '/sdk/0.0.19.alpha.2/xmoney.js');
+			$sdk_url = $is_live ? ( Xmoney_Payments_Helper_Processor::LIVE_URL_JS . '/sdk/0.0.18/xmoney.js' )
+				: ( Xmoney_Payments_Helper_Processor::STAGE_URL_JS . '/sdk/0.0.18/xmoney.js' );
 
-            // Enqueue the xMoney SDK script properly.
-            wp_enqueue_script(
-                'xmoney-inline-sdk',
-                $sdk_url,
-                array(),
-                XMONEY_PAYMENTS_VERSION,
-                true
-            );
+			// Enqueue the xMoney SDK script properly.
+			wp_enqueue_script(
+				'xmoney-inline-sdk',
+				$sdk_url,
+				array(),
+				XMONEY_PAYMENTS_VERSION,
+				true
+			);
 
-            wp_register_script(
-                'xmoney-inline-js',
-                XMONEY_PAYMENTS_PLUGIN_URL . 'assets/js/inline.js',
-                array('jquery'),
-                XMONEY_PAYMENTS_VERSION,
-                true
-            );
+			wp_register_script(
+				'xmoney-inline-js',
+				XMONEY_PAYMENTS_PLUGIN_URL . 'assets/js/inline.js',
+				array( 'jquery', 'xmoney-inline-sdk' ),
+				XMONEY_PAYMENTS_VERSION,
+				true
+			);
 
-            $user_id = get_current_user_id();
+			$user_id = get_current_user_id();
 
-            $saved_card = $user_id ? get_user_meta($user_id, '_xmoney_saved_card', true) : null;
+			$saved_card = $user_id ? get_user_meta( $user_id, '_xmoney_saved_card', true ) : null;
 
-            $params = [
-                    'payload' => $request['data'],
-                    'checksum' => $request['checksum'],
-                    'publicKey' => $public_key,
-                    'orderId' => $this->order_id,
-                    'confirmUrl' => esc_url_raw(rest_url('xmoney/v1/inline/confirm')),
-                    'restNonce' => wp_create_nonce('wp_rest'),
-                    'options' => [],
-            ];
+			$params = array(
+				'payload'    => $request['data'],
+				'checksum'   => $request['checksum'],
+				'publicKey'  => $public_key,
+				'orderId'    => $this->order_id,
+				'confirmUrl' => esc_url_raw( rest_url( 'xmoney/v1/inline/confirm' ) ),
+				'restNonce'  => wp_create_nonce( 'wp_rest' ),
+				'options'    => array(),
+			);
 
-            if ($session_token) {
-                $params['sessionToken'] = $session_token;
-            }
+			if ( $session_token ) {
+				$params['sessionToken'] = $session_token;
+			}
 
-            $params['options']['displaySaveCardOption'] = true;
+			$params['options']['displaySaveCardOption'] = true;
 
-            if (!$user_id) {
-                // Decide whether to show save card option for logged-in users; keep false to minimize SDK branches
-                $params['options']['displaySaveCardOption'] = false;
-            }
+			if ( ! $user_id ) {
+				// Decide whether to show save card option for logged-in users; keep false to minimize SDK branches
+				$params['options']['displaySaveCardOption'] = false;
+			}
 
-            if ($session_token && $saved_card) {
-                $params['options']['displayCardHolderName'] = true;
-                $params['options']['enableSavedCards'] = true;
-                $params['userId'] = $saved_card['customer_id'];
+            $params['options']['displayCardHolderName'] = true;
+            if ( $session_token && $saved_card ) {
+				$params['options']['enableSavedCards']      = true;
+				$params['userId']                           = $saved_card['customer_id'];
 
-                array_merge(['id' => $saved_card['customer_id']], $params);
-            } else {
-                $params['options']['enableSavedCards'] = false;
-            }
+				array_merge( array( 'id' => $saved_card['customer_id'] ), $params );
+			} else {
+				$params['options']['enableSavedCards'] = false;
+			}
 
+			error_log( '[XMoney Debug] About to localize script and output HTML' );
+			error_log( '[XMoney Debug] Params: ' . print_r( $params, true ) );
 
-            wp_localize_script('xmoney-inline-js', 'xmoneyData', $params);
-            wp_enqueue_script('xmoney-inline-js');
-            ?>
+			wp_localize_script( 'xmoney-inline-js', 'xmoneyData', $params );
+			wp_enqueue_script( 'xmoney-inline-js' );
 
-            <div class="wrapper-loader">
-                <div class="loader"></div>
-            </div>
+			// Also output data inline as fallback
+			?>
+			<script type="text/javascript">
+				console.log('[XMoney Processor] Outputting xmoneyData inline');
+				window.xmoneyData = <?php echo wp_json_encode( $params ); ?>;
+				console.log('[XMoney Processor] xmoneyData set:', window.xmoneyData);
+			</script>
 
-            <?php
-            return;
-        }
+			<div id="xmoney-checkout-container" style="min-height: 400px;"></div>
+
+			<div class="wrapper-loader">
+				<div class="loader"></div>
+			</div>
+
+			<?php
+			return;
+		}
 
 		try {
 			$request_data = $this->prepare_request_data();
@@ -201,7 +210,7 @@ class Xmoney_Payments_Main_Processor {
 		</form>
 
 		<?php
-        wp_enqueue_script('ma-process-js', XMONEY_PAYMENTS_PLUGIN_URL . 'assets/js/process.js', array(), XMONEY_PAYMENTS_VERSION, true);
+		wp_enqueue_script( 'ma-process-js', XMONEY_PAYMENTS_PLUGIN_URL . 'assets/js/process.js', array(), XMONEY_PAYMENTS_VERSION, true );
 	}
 
 	/**
@@ -233,26 +242,26 @@ class Xmoney_Payments_Main_Processor {
 		$data  = $xmoney_payments_order->get_data();
 		$items = array();
 
-        $site_hash = substr(md5(get_site_url()), 0, 8);
-        $current_user_id = get_current_user_id();
+		$site_hash       = substr( md5( get_site_url() ), 0, 8 );
+		$current_user_id = get_current_user_id();
 
-        if ($current_user_id) {
-            $customer_identifier = sprintf('site%s_user_%d', $site_hash, $current_user_id);
-        } else {
-            $customer_identifier = sprintf('site%s_guest_%s', $site_hash, uniqid());
-        }
+		if ( $current_user_id ) {
+			$customer_identifier = sprintf( 'site%s_user_%d', $site_hash, $current_user_id );
+		} else {
+			$customer_identifier = sprintf( 'site%s_guest_%s', $site_hash, uniqid() );
+		}
 
 		$customer = array(
-//            'id' => 62613,
-            'identifier' => $customer_identifier,
-			'firstName'  => ! empty( $data['billing']['first_name'] ) ? $data['billing']['first_name'] : '',
-			'lastName'   => ! empty( $data['billing']['last_name'] ) ? $data['billing']['last_name'] : '',
-			'country'    => ! empty( $data['billing']['country'] ) ? $data['billing']['country'] : '',
-			'city'       => ! empty( $data['billing']['city'] ) ? $data['billing']['city'] : $data['shipping']['city'],
-			'address'    => ! empty( $data['billing']['address_1'] ) ? $data['billing']['address_1'] : '',
-			'zipCode'    => ! empty( $data['billing']['postcode'] ) ? $data['billing']['postcode'] : $data['shipping']['postcode'],
-			'phone'      => Xmoney_Payments_Helper_Processor::format_phone( $data['billing']['phone'] ),
-			'email'      => $data['billing']['email'],
+			// 'id' => 62613,
+				'identifier' => $customer_identifier,
+			'firstName'      => ! empty( $data['billing']['first_name'] ) ? $data['billing']['first_name'] : '',
+			'lastName'       => ! empty( $data['billing']['last_name'] ) ? $data['billing']['last_name'] : '',
+			'country'        => ! empty( $data['billing']['country'] ) ? $data['billing']['country'] : '',
+			'city'           => ! empty( $data['billing']['city'] ) ? $data['billing']['city'] : $data['shipping']['city'],
+			'address'        => ! empty( $data['billing']['address_1'] ) ? $data['billing']['address_1'] : '',
+			'zipCode'        => ! empty( $data['billing']['postcode'] ) ? $data['billing']['postcode'] : $data['shipping']['postcode'],
+			'phone'          => Xmoney_Payments_Helper_Processor::format_phone( $data['billing']['phone'] ),
+			'email'          => $data['billing']['email'],
 		);
 
 		foreach ( $xmoney_payments_order->get_items() as $item ) {
@@ -297,21 +306,20 @@ class Xmoney_Payments_Main_Processor {
 			'backUrl'             => $back_url,
 		);
 
-        $live_url = Xmoney_Payments_Helper_Processor::LIVE_URL;
-        $stage_url = Xmoney_Payments_Helper_Processor::STAGE_URL;
+		$live_url  = Xmoney_Payments_Helper_Processor::LIVE_URL;
+		$stage_url = Xmoney_Payments_Helper_Processor::STAGE_URL;
 
-        if (function_exists('xmoney_payments_is_inline_enabled') && xmoney_payments_is_inline_enabled()) {
-            $order_data['publicKey'] = $configuration['site_id'];
+		if ( function_exists( 'xmoney_payments_is_inline_enabled' ) && xmoney_payments_is_inline_enabled() ) {
+			$order_data['publicKey'] = $configuration['site_id'];
 
-            $live_url = Xmoney_Payments_Helper_Processor::INLINE_LIVE_URL;
-            $stage_url = Xmoney_Payments_Helper_Processor::INLINE_STAGE_URL;
-        }
-
+			$live_url  = Xmoney_Payments_Helper_Processor::INLINE_LIVE_URL;
+			$stage_url = Xmoney_Payments_Helper_Processor::INLINE_STAGE_URL;
+		}
 
 		$request_data = Xmoney_Payments_Helper_Notify::get_base64_json_request( $order_data );
 		$checksum     = Xmoney_Payments_Helper_Notify::get_base64_checksum( $order_data, $configuration['secret_key'] );
 
-		$host_name    = add_query_arg(
+		$host_name = add_query_arg(
 			array( 'lang' => $this->language ),
 			$configuration['is_live'] ? $live_url : $stage_url
 		);

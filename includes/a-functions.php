@@ -303,25 +303,25 @@ function xmoney_payments_get_live_private_key(): string {
 
 /** Get Inline Checkout setting (Yes/No) */
 function xmoney_payments_get_inline_checkout() {
-    global $wpdb;
-    $table_name = esc_sql($wpdb->prefix . 'xmoney_payments_configuration');
+	global $wpdb;
+	$table_name = esc_sql( $wpdb->prefix . 'xmoney_payments_configuration' );
     // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is escaped manually and safe.
-    $row = $wpdb->get_row( "SELECT inline_checkout FROM {$table_name} LIMIT 1", ARRAY_A );
-    $value = isset( $row['inline_checkout'] ) ? (int)$row['inline_checkout'] : 0;
+	$row   = $wpdb->get_row( "SELECT inline_checkout FROM {$table_name} LIMIT 1", ARRAY_A );
+	$value = isset( $row['inline_checkout'] ) ? (int) $row['inline_checkout'] : 0;
 
-    $html  = '<select name="inline_checkout" id="inline_checkout" class="regular-text">';
-    $html .= '<option value="1"' . selected( $value, 1, false ) . '>' . esc_html__( 'Yes','xmoney-payments' ) . '</option>';
-    $html .= '<option value="0"' . selected( $value, 0, false ) . '>' . esc_html__( 'No','xmoney-payments' ) . '</option>';
-    $html .= '</select>';
+	$html  = '<select name="inline_checkout" id="inline_checkout" class="regular-text">';
+	$html .= '<option value="1"' . selected( $value, 1, false ) . '>' . esc_html__( 'Yes', 'xmoney-payments' ) . '</option>';
+	$html .= '<option value="0"' . selected( $value, 0, false ) . '>' . esc_html__( 'No', 'xmoney-payments' ) . '</option>';
+	$html .= '</select>';
 
-    return $html;
+	return $html;
 }
 
 /** Convenience: check if inline is enabled */
 function xmoney_payments_is_inline_enabled() {
-    global $wpdb;
-    $table_name = esc_sql($wpdb->prefix . 'xmoney_payments_configuration');
+	global $wpdb;
+	$table_name = esc_sql( $wpdb->prefix . 'xmoney_payments_configuration' );
     // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is escaped manually and safe.
-    $val = $wpdb->get_var( "SELECT inline_checkout FROM {$table_name} LIMIT 1" );
-    return (int)$val === 1;
+	$val = $wpdb->get_var( "SELECT inline_checkout FROM {$table_name} LIMIT 1" );
+	return (int) $val === 1;
 }

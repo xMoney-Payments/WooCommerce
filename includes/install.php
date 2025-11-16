@@ -22,7 +22,7 @@ function xmoney_payments_wp_check_install() {
 	if ( ! get_option( 'xmoney_payments_installed' ) ) {
 		xmoney_payments_install();
 	}
-    update_xmoney_payments_configuration_columns();
+	update_xmoney_payments_configuration_columns();
 }
 add_action( 'admin_init', 'xmoney_payments_wp_check_install' );
 
@@ -73,7 +73,7 @@ function xmoney_payments_install() {
 	$charset_collate = $wpdb->get_charset_collate();
 
 	dbDelta( $sql_configuration );
-    update_xmoney_payments_configuration_columns();
+	update_xmoney_payments_configuration_columns();
 
 	$xmoney_payments_transactions = $wpdb->prefix . 'xmoney_payments_transactions';
 
@@ -96,15 +96,14 @@ function xmoney_payments_install() {
 	$wpdb->get_results( 'INSERT INTO `' . $wpdb->prefix . 'xmoney_payments_configuration` (`live_mode`) VALUES (0);' );
 }
 
-function update_xmoney_payments_configuration_columns()
-{
-    global $wpdb;
-    // Ensure inline_checkout column exists
+function update_xmoney_payments_configuration_columns() {
+	global $wpdb;
+	// Ensure inline_checkout column exists
     // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-    $col = $wpdb->get_results("SHOW COLUMNS FROM `" . $wpdb->prefix . "xmoney_payments_configuration` LIKE 'inline_checkout'");
-    if (empty($col)) {
+	$col = $wpdb->get_results( 'SHOW COLUMNS FROM `' . $wpdb->prefix . "xmoney_payments_configuration` LIKE 'inline_checkout'" );
+	if ( empty( $col ) ) {
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
-        $wpdb->query("ALTER TABLE `" . $wpdb->prefix . "xmoney_payments_configuration` ADD COLUMN inline_checkout TINYINT(1) NOT NULL DEFAULT 0");
-    }
+		$wpdb->query( 'ALTER TABLE `' . $wpdb->prefix . 'xmoney_payments_configuration` ADD COLUMN inline_checkout TINYINT(1) NOT NULL DEFAULT 0' );
+	}
 }
 register_activation_hook( XMONEY_PAYMENTS_PLUGIN_DIR, 'xmoney_payments_install' );

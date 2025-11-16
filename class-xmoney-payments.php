@@ -164,7 +164,7 @@ if ( ! class_exists( 'Xmoney_Payments' ) ) {
 			require_once XMONEY_PAYMENTS_PLUGIN_DIR . 'includes/processors/class-xmoney-payments-main-processor.php';
 			require_once XMONEY_PAYMENTS_PLUGIN_DIR . 'includes/processors/class-xmoney-payments-subscription-processor.php';
 			require_once XMONEY_PAYMENTS_PLUGIN_DIR . 'includes/class-xmoney-payments-server-to-server.php';
-            require_once XMONEY_PAYMENTS_PLUGIN_DIR . 'includes/class-xmoney-payments-inline-rest.php';
+			require_once XMONEY_PAYMENTS_PLUGIN_DIR . 'includes/class-xmoney-payments-inline-rest.php';
 		}
 
 		/**

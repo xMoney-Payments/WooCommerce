@@ -43,7 +43,7 @@ function xmoney_payments_edit_general_configuration( $request ) {
 	$thankyou_page       = sanitize_text_field( wp_unslash( $request['wp_pages'] ) );
 	$suppress_email      = sanitize_text_field( wp_unslash( $request['suppress_email'] ) );
 	$contact_email_o     = sanitize_email( wp_unslash( $request['contact_email_o'] ) );
-    $inline_checkout     = sanitize_text_field($request['inline_checkout']);
+	$inline_checkout     = sanitize_text_field( $request['inline_checkout'] );
 
 	if ( '' === $contact_email_o ) {
 		$contact_email_o = 0;
@@ -63,15 +63,15 @@ function xmoney_payments_edit_general_configuration( $request ) {
 		$wpdb->update(
 			$table_name,
 			array(
-				'live_mode'      => $live_mode,
-				'staging_id'     => $staging_site_id,
-				'staging_key'    => $staging_private_key,
-				'live_id'        => $live_site_id,
-				'live_key'       => $live_private_key,
-				'thankyou_page'  => $thankyou_page,
-				'suppress_email' => $suppress_email,
-				'contact_email'  => $contact_email_o,
-                'inline_checkout' => $inline_checkout
+				'live_mode'       => $live_mode,
+				'staging_id'      => $staging_site_id,
+				'staging_key'     => $staging_private_key,
+				'live_id'         => $live_site_id,
+				'live_key'        => $live_private_key,
+				'thankyou_page'   => $thankyou_page,
+				'suppress_email'  => $suppress_email,
+				'contact_email'   => $contact_email_o,
+				'inline_checkout' => $inline_checkout,
 			),
 			array(
 				'id_tw_configuration' => $configuration[0]->id_tw_configuration,
@@ -92,15 +92,15 @@ function xmoney_payments_edit_general_configuration( $request ) {
 		$wpdb->update(
 			$table_name,
 			array(
-				'live_mode'      => $live_mode,
-				'staging_id'     => $staging_site_id,
-				'staging_key'    => $staging_private_key,
-				'live_id'        => $live_site_id,
-				'live_key'       => $live_private_key,
-				'thankyou_page'  => $thankyou_page,
-				'suppress_email' => $suppress_email,
-				'contact_email'  => $contact_email_o,
-                'inline_checkout' => $inline_checkout
+				'live_mode'       => $live_mode,
+				'staging_id'      => $staging_site_id,
+				'staging_key'     => $staging_private_key,
+				'live_id'         => $live_site_id,
+				'live_key'        => $live_private_key,
+				'thankyou_page'   => $thankyou_page,
+				'suppress_email'  => $suppress_email,
+				'contact_email'   => $contact_email_o,
+				'inline_checkout' => $inline_checkout,
 			),
 			array(
 				'id_tw_configuration' => $wpdb->insert_id,

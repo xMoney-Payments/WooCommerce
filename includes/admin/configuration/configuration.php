@@ -62,7 +62,7 @@ function xmoney_payments_configuration() {
 					<?php echo esc_html__( 'This plugin sends order information to xMoney only for secure payment processing. No tracking or analytics data is collected.', 'xmoney-payments' ); ?>
 				</p>
 				<form method="post" id="general_configuration">
-                    <?php wp_nonce_field('xmoney_payments_config_nonce'); ?>
+					<?php wp_nonce_field( 'xmoney_payments_config_nonce' ); ?>
 					<table class="form-table">
 						<tr class="form-field form-required">
 							<th scope="row"><label for="live_mode"><?php echo esc_html__( 'Live mode', 'xmoney-payments' ); ?></label></th>
@@ -122,15 +122,30 @@ function xmoney_payments_configuration() {
 								<p class="description"><?php echo esc_html__( 'Option to suppress the communication sent by the ecommerce system, in order to configure it from xMoney Payments’s Merchant interface.', 'xmoney-payments' ); ?></p>
 							</td>
 						</tr>
-                        <tr class="form-field">
-                            <th scope="row">
-                                <label for="inline_checkout"><?php echo esc_html__('Enable xMoney Payments Inline Checkout', 'xmoney-payments'); ?></label>
-                            </th>
-                            <td>
-                                <?php echo wp_kses(xmoney_payments_get_inline_checkout(), array('select' => array('name' => true, 'id' => true, 'class' => true), 'option' => array('value' => true, 'selected' => true))); ?>
-                                <p class="description"><?php echo esc_html__('If set to "Yes", the payment form is embedded inline on your checkout.', 'xmoney-payments'); ?></p>
-                            </td>
-                        </tr>
+						<tr class="form-field">
+							<th scope="row">
+								<label for="inline_checkout"><?php echo esc_html__( 'Enable xMoney Payments Inline Checkout', 'xmoney-payments' ); ?></label>
+							</th>
+							<td>
+								<?php
+								echo wp_kses(
+									xmoney_payments_get_inline_checkout(),
+									array(
+										'select' => array(
+											'name'  => true,
+											'id'    => true,
+											'class' => true,
+										),
+										'option' => array(
+											'value'    => true,
+											'selected' => true,
+										),
+									)
+								);
+								?>
+								<p class="description"><?php echo esc_html__( 'If set to "Yes", the payment form is embedded inline on your checkout.', 'xmoney-payments' ); ?></p>
+							</td>
+						</tr>
 						<tr class="form-field" id="contact_email_o">
 							<th scope="row"><label for="contact_email_o"><?php echo esc_html__( 'Contact email(Optional)', 'xmoney-payments' ); ?></span></label></th>
 							<td>

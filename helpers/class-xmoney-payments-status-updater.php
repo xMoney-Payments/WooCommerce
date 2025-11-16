@@ -368,27 +368,26 @@ endif; /* End if class_exists. */
 /**
  * Updates order based on Inline response
  */
-function xmoney_payments_update_from_inline($order_id, $paymentResponse)
-{
-    $order = wc_get_order($order_id);
-    if (!$order) {
-        return new WP_Error('tw_inline_order', 'Order not found');
-    }
+function xmoney_payments_update_from_inline( $order_id, $paymentResponse ) {
+	$order = wc_get_order( $order_id );
+	if ( ! $order ) {
+		return new WP_Error( 'tw_inline_order', 'Order not found' );
+	}
 
-    $status = strtolower($paymentResponse['status'] ?? 'complete-ok');
-    $txid = $paymentResponse['id'] ?? ($paymentResponse['transactionId'] ?? '');
+	$status = strtolower( $paymentResponse['status'] ?? 'complete-ok' );
+	$txid   = $paymentResponse['id'] ?? ( $paymentResponse['transactionId'] ?? '' );
 
-    if (in_array($status, ['completeok', 'complete', 'success', 'paid', 'complete-ok'], true)) {
-        $order->payment_complete($txid);
-        $order->add_order_note(sprintf('xMoney Inline payment successful. TX: %s', $txid));
-        return true;
-    }
+	if ( in_array( $status, array( 'completeok', 'complete', 'success', 'paid', 'complete-ok' ), true ) ) {
+		$order->payment_complete( $txid );
+		$order->add_order_note( sprintf( 'xMoney Inline payment successful. TX: %s', $txid ) );
+		return true;
+	}
 
-    if (in_array($status, ['declined', 'failed', 'error', 'cancelled'], true)) {
-        $order->update_status('failed', 'xMoney Inline payment failed.');
-        return true;
-    }
+	if ( in_array( $status, array( 'declined', 'failed', 'error', 'cancelled' ), true ) ) {
+		$order->update_status( 'failed', 'xMoney Inline payment failed.' );
+		return true;
+	}
 
-    $order->update_status('on-hold', 'xMoney Inline payment pending.');
-    return true;
+	$order->update_status( 'on-hold', 'xMoney Inline payment pending.' );
+	return true;
 }
