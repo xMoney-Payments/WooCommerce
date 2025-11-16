@@ -108,8 +108,8 @@ class Xmoney_Payments_Main_Processor {
 				$logger->warning( '[xMoney] Inline: session token not retrieved for environment ' . ( $is_live ? 'live' : 'stage' ), array( 'source' => 'xmoney-payments' ) );
 			}
 
-			$sdk_url = $is_live ? ( Xmoney_Payments_Helper_Processor::LIVE_URL_JS . '/sdk/0.0.18/xmoney.js' )
-				: ( Xmoney_Payments_Helper_Processor::STAGE_URL_JS . '/sdk/0.0.18/xmoney.js' );
+			$sdk_url = $is_live ? ( Xmoney_Payments_Helper_Processor::LIVE_URL_JS . '/sdk/0.0.19.alpha.2/xmoney.js' )
+				: ( Xmoney_Payments_Helper_Processor::STAGE_URL_JS . '/sdk/0.0.19.alpha.2/xmoney.js' );
 
 			// Enqueue the xMoney SDK script properly.
 			wp_enqueue_script(

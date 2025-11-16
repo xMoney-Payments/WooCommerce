@@ -46,12 +46,16 @@
 
         const errorDiv = document.createElement('div');
         errorDiv.className = 'woocommerce-error';
+        errorDiv.setAttribute('role', 'alert');
         errorDiv.textContent = message || 'Payment error. Please try again.';
 
         const formEl = $('form.checkout')[0];
         if (formEl) {
-            formEl.prepend(errorDiv);
+            formEl.insertBefore(errorDiv, formEl.firstChild);
         }
+        
+        // Prevent error from triggering checkout refresh
+        return false;
     }
 
     function blockCheckout() {
@@ -96,6 +100,39 @@
             });
     }
 
+    function validateRequiredFields() {
+        const missingFields = [];
+
+        // Check WooCommerce required billing fields
+        $('.woocommerce-billing-fields .validate-required').each(function() {
+            const $wrapper = $(this);
+            const $field = $wrapper.find('input, select, textarea').not('[type="hidden"]');
+            
+            if ($field.length > 0 && $field.is(':visible')) {
+                const val = $field.val();
+                
+                if (!val || (typeof val === 'string' && val.trim() === '')) {
+                    const label = $wrapper.find('label').first().clone().children().remove().end().text().replace('*', '').trim();
+                    if (label) {
+                        missingFields.push(label);
+                    }
+                }
+            }
+        });
+
+        // Validate email format if email field exists and has value
+        const $emailField = $('#billing_email');
+        if ($emailField.length > 0) {
+            const email = $emailField.val();
+            if (email && email.trim() !== '' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                const emailLabel = $emailField.closest('.form-row').find('label').first().clone().children().remove().end().text().replace('*', '').trim();
+                missingFields.push((emailLabel || 'Email') + ' (invalid format)');
+            }
+        }
+
+        return missingFields;
+    }
+
     // -------------------------------------------------------------------------
     // Payment completion
     // -------------------------------------------------------------------------
@@ -131,16 +168,22 @@
                 return r.json();
             })
             .then(function (resp) {
-                unblockCheckout();
-
                 if (resp && resp.success) {
+                    unblockCheckout();
                     safeRedirect(resp.redirect);
                 } else {
+                    // Validation error - reset state and keep iframe
+                    xmoneyPaymentCompleted = false;
+                    unblockCheckout();
                     const msg = resp && resp.message ? resp.message : 'Payment failed.';
                     showCheckoutError(msg);
+                    $('html, body').animate({
+                        scrollTop: $('form.checkout').offset().top - 100
+                    }, 500);
                 }
             })
             .catch(function () {
+                xmoneyPaymentCompleted = false;
                 unblockCheckout();
                 showCheckoutError('Network error while confirming payment.');
             });
@@ -197,6 +240,9 @@
             displaySaveCardOption: false,
             enableSavedCards: false
         };
+        
+        // Hide SDK's submit button - we'll use Place Order button with submit()
+        options.displaySubmitButton = false;
 
         const formConfig = {
             container: 'xmoney-checkout-container',
@@ -312,7 +358,24 @@
         $.ajax({
             url: wc_checkout_params.ajax_url,
             type: 'POST',
-            data: payload
+            data: payload,
+            success: function(response) {
+                // If server returns new payload/checksum, update the SDK iframe
+                if (response && response.success && response.data && response.data.payload && response.data.checksum) {
+                    // Update stored data
+                    window.xmoneyData.payload = response.data.payload;
+                    window.xmoneyData.checksum = response.data.checksum;
+                    
+                    // Update the SDK iframe with new order data
+                    if (window.__xmoneyForm && typeof window.__xmoneyForm.updateOrder === 'function') {
+                        window.__xmoneyForm.updateOrder(response.data.payload, response.data.checksum);
+                    }
+                }
+            },
+            error: function(xhr, status, error) {
+                // Silently fail - don't disrupt user experience
+                // The order will still have the data from when it was created
+            }
         });
     }
 
@@ -326,14 +389,6 @@
         }
 
         if (window.xmoneyData && window.xmoneyData.orderId) {
-            return;
-        }
-
-        const email = $('#billing_email').val();
-        const firstName = $('#billing_first_name').val();
-        const lastName = $('#billing_last_name').val();
-
-        if (!email || !firstName || !lastName) {
             return;
         }
 
@@ -374,76 +429,63 @@
     // -------------------------------------------------------------------------
 
     function bindCheckoutSubmitInterceptor() {
-        $('form.checkout').on('checkout_place_order_xmoney-payments', function () {
-            const $form = $(this);
-
-            $.ajax({
-                type: 'POST',
-                url: wc_checkout_params.checkout_url,
-                data: $form.serialize(),
-                dataType: 'json',
-                beforeSend: function () {
-                    $form.addClass('processing').block({
-                        message: null,
-                        overlayCSS: {
-                            background: '#fff',
-                            opacity: 0.6
-                        }
-                    });
-                },
-                success: function (result) {
-                    $form.removeClass('processing').unblock();
-
-                    if (result && result.result === 'success' && result.xmoney_inline_data) {
-                        window.xmoneyData = result.xmoney_inline_data;
-                        if (!window.xmoneyData.options) {
-                            window.xmoneyData.options = {
-                                displaySaveCardOption: true,
-                                enableSavedCards: false,
-                                displayCardHolderName: false
-                            };
-                        }
-
-                        setTimeout(function () {
-                            initXMoneyForm();
-                        }, 300);
-                        return;
+        $('form.checkout').on('checkout_place_order', function () {
+            if (!xmoneyIsSelected()) {
+                return true; // Let other payment methods work normally
+            }
+            
+            // Check if required fields are filled
+            let hasErrors = false;
+            $('.woocommerce-billing-fields .validate-required').each(function() {
+                const $field = $(this).find('input, select, textarea').not('[type="hidden"]');
+                if ($field.length > 0 && $field.is(':visible')) {
+                    const val = $field.val();
+                    if (!val || (typeof val === 'string' && val.trim() === '')) {
+                        hasErrors = true;
+                        return false; // Break loop
                     }
-
-                    // Handle errors / redirects
-                    $('.woocommerce-error, .woocommerce-message').remove();
-
-                    if (result && result.messages) {
-                        const parser = new DOMParser();
-                        const doc = parser.parseFromString(result.messages, 'text/html');
-                        const nodes = Array.from(doc.body.children).filter(function (node) {
-                            return ['DIV', 'P', 'UL', 'LI'].indexOf(node.tagName) !== -1;
-                        });
-
-                        const checkoutForm = $('form.checkout')[0];
-
-                        nodes.forEach(function (node) {
-                            const wrapper = document.createElement('div');
-                            wrapper.className = 'woocommerce-error';
-                            wrapper.textContent = node.textContent;
-                            checkoutForm.prepend(wrapper);
-                        });
-                    }
-
-                    if (result && result.redirect) {
-                        safeRedirect(result.redirect);
-                    }
-
-                    if (result && result.reload) {
-                        window.location.reload();
-                    }
-                },
-                error: function () {
-                    $form.removeClass('processing').unblock();
                 }
             });
-
-            // Prevent default WooCommerce handling
+            
+            if (hasErrors) {
+                // Let WooCommerce show its validation errors
+                return true;
+            }
+            
+            // All required fields filled - update draft order with final billing info, then call SDK submit()
+            if (!window.__xmoneyForm || !xmoneyFormInitialized) {
+                showCheckoutError('Payment form is not ready. Please wait a moment and try again.');
+                return false;
+            }
+            
+            if (typeof window.__xmoneyForm.submit !== 'function') {
+                showCheckoutError('Payment SDK submit() method is not available. Please update the SDK.');
+                return false;
+            }
+            
+            // Update draft order with current billing info before submitting payment
+            blockCheckout();
+            
+            const payload = collectCheckoutPayload({
+                action: 'xmoney_update_draft_order',
+                order_id: window.xmoneyData.orderId,
+                nonce: $('input[name="woocommerce-process-checkout-nonce"]').val()
+            });
+            
+            $.ajax({
+                url: wc_checkout_params.ajax_url,
+                type: 'POST',
+                data: payload,
+                success: function(response) {
+                    // Order updated, now call SDK submit()
+                    window.__xmoneyForm.submit();
+                },
+                error: function() {
+                    unblockCheckout();
+                    showCheckoutError('Failed to update order. Please try again.');
+                }
+            });
+            
             return false;
         });
     }
@@ -454,7 +496,6 @@
 
     function bindFieldListeners() {
         const keyFields = '#billing_email, #billing_first_name, #billing_last_name';
-        const allFields = 'form.checkout input, form.checkout select, form.checkout textarea';
 
         $('body').on('change blur', keyFields, function () {
             if (!xmoneyIsSelected()) {
@@ -466,31 +507,18 @@
                 createDraftOrderAndInitialize();
             }, 500);
         });
-
-        $('body').on('change', allFields, function () {
-            if (!xmoneyIsSelected() || !window.xmoneyData || !window.xmoneyData.orderId) {
-                return;
-            }
-
-            clearTimeout(window.xmoneyAddressTimeout);
-            window.xmoneyAddressTimeout = setTimeout(function () {
-                updateDraftOrderAddress();
-            }, 1000);
-        });
     }
 
     function bindWooEvents() {
         $(document.body).on('updated_checkout payment_method_selected', function () {
             if (xmoneyIsSelected()) {
-                hidePlaceOrderButton();
+                // Always try to create draft order when payment method selected
+                createDraftOrderAndInitialize();
 
-                if (!window.xmoneyData || !window.xmoneyData.orderId) {
-                    createDraftOrderAndInitialize();
-                } else {
-                    updateDraftOrderAddress();
-                }
-            } else {
-                showPlaceOrderButton();
+                // Try to init iframe
+                setTimeout(function() {
+                    initXMoneyForm();
+                }, 300);
             }
         });
     }
@@ -500,10 +528,6 @@
     // -------------------------------------------------------------------------
 
     function bootstrapInline() {
-        if (xmoneyIsSelected()) {
-            hidePlaceOrderButton();
-        }
-
         initXMoneyForm();
     }
 

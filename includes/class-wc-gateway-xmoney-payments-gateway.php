@@ -569,8 +569,8 @@ function xmoney_payments_init_gateway_class() {
 				$is_live = ! empty( $config['is_live'] );
 
 				$sdk_url = $is_live
-					? ( Xmoney_Payments_Helper_Processor::LIVE_URL_JS . '/sdk/0.0.18/xmoney.js' )
-					: ( Xmoney_Payments_Helper_Processor::STAGE_URL_JS . '/sdk/0.0.18/xmoney.js' );
+					? ( Xmoney_Payments_Helper_Processor::LIVE_URL_JS . '/sdk/0.0.19.alpha.2/xmoney.js' )
+					: ( Xmoney_Payments_Helper_Processor::STAGE_URL_JS . '/sdk/0.0.19.alpha.2/xmoney.js' );
 
 				// Enqueue the xMoney SDK script
 				wp_enqueue_script(
@@ -930,15 +930,6 @@ function xmoney_payments_init_gateway_class() {
 					if ( WC()->cart->is_empty() ) {
 						wp_send_json_error( array( 'message' => 'Cart is empty' ), 400 );
 						return;
-					}
-
-					// Validate required billing fields are present
-					$required_fields = array( 'billing_email', 'billing_first_name', 'billing_last_name' );
-					foreach ( $required_fields as $field ) {
-						if ( empty( $_POST[ $field ] ) ) {
-							wp_send_json_error( array( 'message' => 'Please fill in all required billing fields first' ), 400 );
-							return;
-						}
 					}
 
 					// Check for existing draft order in session
