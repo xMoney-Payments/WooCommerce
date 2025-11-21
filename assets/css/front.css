@@ -6,17 +6,17 @@
     float: right;
 }
 
-.wc_payment_method.payment_method_xmoney-payments > label {
+.wc_payment_method.payment_method_xmoney-payments>label {
     font-weight: bold;
 }
 
-.wc_payment_method.payment_method_xmoney-payments > label:first-of-type img {
+.wc_payment_method.payment_method_xmoney-payments>label:first-of-type img {
     max-height: 75px;
     max-width: 100%;
-/*  margin-top: -16px;*/
+    /*  margin-top: -16px;*/
 }
 
-.wc_payment_method.payment_method_xmoney-payments > label:first-of-type {
+.wc_payment_method.payment_method_xmoney-payments>label:first-of-type {
     margin: 23px 0;
 }
 
@@ -54,6 +54,7 @@ body {
     0% {
         transform: rotate(0deg);
     }
+
     100% {
         transform: rotate(360deg);
     }

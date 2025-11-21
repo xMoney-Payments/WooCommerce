@@ -156,7 +156,7 @@ if ( ! class_exists( 'Xmoney_Payments' ) ) {
 			}
 
 			// Includes all non-admin classes
-			require_once XMONEY_PAYMENTS_PLUGIN_DIR . 'includes/class-wc-gateway-xmoney-payments-gateway.php';
+			require_once XMONEY_PAYMENTS_PLUGIN_DIR . 'includes/class-xmoney-payments-gateway.php';
 			require_once XMONEY_PAYMENTS_PLUGIN_DIR . 'includes/a-functions.php';
 			require_once XMONEY_PAYMENTS_PLUGIN_DIR . 'includes/class-xmoney-payments-shortcodes.php';
 			require_once XMONEY_PAYMENTS_PLUGIN_DIR . 'includes/class-xmoney-payments-payment-confirmation.php';

@@ -116,7 +116,7 @@ function xmoney_payments_init_gateway_class() {
 		/**
 		 *  WooCommerce Gateway implementation for xMoney Payments.
 		 */
-		class WC_Gateway_Xmoney_Payments_Gateway extends WC_Payment_Gateway {
+		class Xmoney_Payments_Gateway extends WC_Payment_Gateway {
 			/**
 			 * Enabled shipping methods.
 			 *
@@ -1203,7 +1203,7 @@ add_action( 'plugins_loaded', 'xmoney_payments_init_gateway_class' );
  */
 function xmoney_payments_add_gateway_class( $methods ): array {
 	if ( class_exists( 'WooCommerce' ) ) {
-		$methods[] = 'WC_Gateway_Xmoney_Payments_Gateway';
+		$methods[] = 'Xmoney_Payments_Gateway';
 		return $methods;
 	}
 	return array();

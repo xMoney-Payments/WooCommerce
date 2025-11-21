@@ -72,7 +72,7 @@ class Xmoney_Payments_Main_Processor {
 		if ( empty( $raw_nonce ) || ! wp_verify_nonce( $raw_nonce, $this->nonce_action ) ) {
 			wc_add_notice( esc_html__( 'Invalid request. Please try again.', 'xmoney-payments' ), 'error' );
 			wp_safe_redirect( wc_get_cart_url() );
-			return;
+			exit;
 		}
 		require_once XMONEY_PAYMENTS_PLUGIN_DIR . 'helpers/class-xmoney-payments-helper-notify.php';
 		require_once XMONEY_PAYMENTS_PLUGIN_DIR . 'helpers/class-xmoney-payments-helper-processor.php';
@@ -192,7 +192,7 @@ class Xmoney_Payments_Main_Processor {
 		} catch ( Exception $e ) {
 			wc_add_notice( $e->getMessage(), 'error' );
 			wp_safe_redirect( wc_get_cart_url() );
-			return;
+			exit;
 		}
 
 		?>

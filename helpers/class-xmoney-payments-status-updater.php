@@ -179,6 +179,7 @@ if ( ! class_exists( 'Xmoney_Payments_Status_Updater' ) ) :
 					/* Redirect to xMoney Payments "Thank you Page" if it is set, if not, redirect to default "Thank you Page" */
 					if ( $configuration->thankyou_page ) {
 						wp_safe_redirect( esc_url( $configuration->thankyou_page ) );
+						exit;
 					} else {
 						new Xmoney_Payments_Default_Thankyou( $xmoney_payments_order );
 					}
