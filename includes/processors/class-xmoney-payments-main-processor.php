@@ -82,15 +82,11 @@ class Xmoney_Payments_Main_Processor {
 		wp_enqueue_style( 'ma-process-css', XMONEY_PAYMENTS_PLUGIN_URL . 'assets/css/process.css', array(), XMONEY_PAYMENTS_VERSION, true );
 
 		// Use inline checkout if enabled.
-		error_log( '[XMoney Debug] Checking inline enabled: ' . ( function_exists( 'xmoney_payments_is_inline_enabled' ) ? ( xmoney_payments_is_inline_enabled() ? 'YES' : 'NO' ) : 'FUNCTION NOT EXISTS' ) );
 		if ( function_exists( 'xmoney_payments_is_inline_enabled' ) && xmoney_payments_is_inline_enabled() ) {
-			error_log( '[XMoney Debug] Inline checkout enabled, order_id: ' . $this->order_id );
 			$order = wc_get_order( $this->order_id );
 			if ( ! $order ) {
-				error_log( '[XMoney Debug] Order not found, returning early' );
 				return;
 			}
-			error_log( '[XMoney Debug] Order found, proceeding with inline checkout' );
 
 			$config     = Xmoney_Payments_Helper_Processor::get_configuration();
 			$is_live    = ! empty( $config['is_live'] );
@@ -162,9 +158,6 @@ class Xmoney_Payments_Main_Processor {
 			} else {
 				$params['options']['enableSavedCards'] = false;
 			}
-
-			error_log( '[XMoney Debug] About to localize script and output HTML' );
-			error_log( '[XMoney Debug] Params: ' . print_r( $params, true ) );
 
 			wp_localize_script( 'xmoney-inline-js', 'xmoneyData', $params );
 			wp_enqueue_script( 'xmoney-inline-js' );

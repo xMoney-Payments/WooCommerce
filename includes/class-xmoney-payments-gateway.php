@@ -939,7 +939,6 @@ function xmoney_payments_init_gateway_class() {
 						$existing_order = wc_get_order( $draft_order_id );
 						if ( $existing_order && $existing_order->has_status( array( 'pending', 'failed' ) ) ) {
 							// Always delete old draft orders to ensure fresh data
-							error_log( '[XMoney Draft] Deleting old draft order: ' . $draft_order_id );
 							wp_delete_post( $draft_order_id, true );
 						}
 						$draft_order_id = null;
@@ -1011,8 +1010,6 @@ function xmoney_payments_init_gateway_class() {
 
 						// Store in session
 						WC()->session->set( 'xmoney_draft_order_id', $draft_order_id );
-
-						error_log( '[XMoney Draft] Created new draft order: ' . $draft_order_id );
 					}
 
 					// Generate payment data for this order
@@ -1107,7 +1104,6 @@ function xmoney_payments_init_gateway_class() {
 					wp_send_json_success( $response );
 
 				} catch ( Exception $e ) {
-					error_log( '[XMoney Draft] Error: ' . $e->getMessage() );
 					wp_send_json_error( array( 'message' => $e->getMessage() ), 500 );
 				}
 			}
@@ -1176,8 +1172,6 @@ function xmoney_payments_init_gateway_class() {
 					$order->calculate_totals();
 					$order->save();
 
-					error_log( '[XMoney Draft] Silently updated order address: ' . $order_id );
-
 					wp_send_json_success(
 						array(
 							'message' => 'Order updated',
@@ -1185,7 +1179,6 @@ function xmoney_payments_init_gateway_class() {
 					);
 
 				} catch ( Exception $e ) {
-					error_log( '[XMoney Draft Update] Error: ' . $e->getMessage() );
 					wp_send_json_error( array( 'message' => $e->getMessage() ), 500 );
 				}
 			}

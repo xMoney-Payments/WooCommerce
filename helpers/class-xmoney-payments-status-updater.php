@@ -369,14 +369,14 @@ endif; /* End if class_exists. */
 /**
  * Updates order based on Inline response
  */
-function xmoney_payments_update_from_inline( $order_id, $paymentResponse ) {
+function xmoney_payments_update_from_inline( $order_id, $payment_response ) {
 	$order = wc_get_order( $order_id );
 	if ( ! $order ) {
 		return new WP_Error( 'tw_inline_order', 'Order not found' );
 	}
 
-	$status = strtolower( $paymentResponse['status'] ?? 'complete-ok' );
-	$txid   = $paymentResponse['id'] ?? ( $paymentResponse['transactionId'] ?? '' );
+	$status = strtolower( $payment_response['status'] ?? 'complete-ok' );
+	$txid   = $payment_response['id'] ?? ( $payment_response['transactionId'] ?? '' );
 
 	if ( in_array( $status, array( 'completeok', 'complete', 'success', 'paid', 'complete-ok' ), true ) ) {
 		$order->payment_complete( $txid );
