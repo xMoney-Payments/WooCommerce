@@ -182,8 +182,7 @@ class Xmoney_Payments_Helper_Processor {
 			);
 		}
 
-			var_dump( $cards );
-			exit;
+		exit;
 	}
 
 	/**

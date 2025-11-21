@@ -223,8 +223,6 @@ endif; /* End if class_exists. */
  * @param array $payload
  */
 function xmoney_payments_decrypt_inline_payload( $payload ) {
-	var_dump( $payload );
-	exit;
 	if ( empty( $payload['result'] ) ) {
 		return new WP_Error( 'tw_inline_decrypt', 'Empty inline result payload' );
 	}
