@@ -1093,11 +1093,11 @@ function xmoney_payments_init_gateway_class() {
 						),
 					);
 
-                    $response['options']['displayCardHolderName'] = true;
-                    // Add saved card data if available
-                    if ( $session_token && $saved_card && ! empty( $saved_card['customer_id'] ) ) {
-						$response['options']['enableSavedCards']      = true;
-						$response['userId']                           = $saved_card['customer_id'];
+					$response['options']['displayCardHolderName'] = true;
+					// Add saved card data if available
+					if ( $session_token && $saved_card && ! empty( $saved_card['customer_id'] ) ) {
+						$response['options']['enableSavedCards'] = true;
+						$response['userId']                      = $saved_card['customer_id'];
 					}
 
 					// Return payment data

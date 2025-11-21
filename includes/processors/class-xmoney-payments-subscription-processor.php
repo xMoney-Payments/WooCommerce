@@ -140,10 +140,10 @@ class Xmoney_Payments_Subscription_Processor {
 				$params['options']['displaySaveCardOption'] = false;
 			}
 
-            $params['options']['displayCardHolderName'] = true;
-            if ( $session_token && $saved_card ) {
-				$params['options']['enableSavedCards']      = true;
-				$params['userId']                           = $saved_card['customer_id'];
+			$params['options']['displayCardHolderName'] = true;
+			if ( $session_token && $saved_card ) {
+				$params['options']['enableSavedCards'] = true;
+				$params['userId']                      = $saved_card['customer_id'];
 
 				array_merge( array( 'id' => $saved_card['customer_id'] ), $params );
 			} else {
@@ -236,13 +236,13 @@ class Xmoney_Payments_Subscription_Processor {
 
 		$data = $subscription->get_data();
 
-		$site_hash = substr(md5(get_site_url()), 0, 8);
+		$site_hash       = substr( md5( get_site_url() ), 0, 8 );
 		$current_user_id = get_current_user_id();
 
-		if ($current_user_id) {
-			$customer_identifier = sprintf('site%s_user_%d', $site_hash, $current_user_id);
+		if ( $current_user_id ) {
+			$customer_identifier = sprintf( 'site%s_user_%d', $site_hash, $current_user_id );
 		} else {
-			$customer_identifier = sprintf('site%s_guest_%s', $site_hash, uniqid());
+			$customer_identifier = sprintf( 'site%s_guest_%s', $site_hash, uniqid() );
 		}
 
 		$customer = array(
@@ -321,13 +321,13 @@ class Xmoney_Payments_Subscription_Processor {
 			$order_data['order']['firstBillDate'] = $first_billing_date;
 		}
 
-		$live_url = Xmoney_Payments_Helper_Processor::LIVE_URL;
+		$live_url  = Xmoney_Payments_Helper_Processor::LIVE_URL;
 		$stage_url = Xmoney_Payments_Helper_Processor::STAGE_URL;
 
-		if (function_exists('xmoney_payments_is_inline_enabled') && xmoney_payments_is_inline_enabled()) {
+		if ( function_exists( 'xmoney_payments_is_inline_enabled' ) && xmoney_payments_is_inline_enabled() ) {
 			$order_data['publicKey'] = $configuration['site_id'];
 
-			$live_url = Xmoney_Payments_Helper_Processor::INLINE_LIVE_URL;
+			$live_url  = Xmoney_Payments_Helper_Processor::INLINE_LIVE_URL;
 			$stage_url = Xmoney_Payments_Helper_Processor::INLINE_STAGE_URL;
 		}
 

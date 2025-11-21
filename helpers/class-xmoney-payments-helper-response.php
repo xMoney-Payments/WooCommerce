@@ -227,11 +227,11 @@ function xmoney_payments_decrypt_inline_payload( $payload ) {
 		return new WP_Error( 'tw_inline_decrypt', 'Empty inline result payload' );
 	}
 	// Load keys
-	$conf      = Xmoney_Payments_Helper_Processor::get_configuration();
-	$is_live   = ! empty( $conf['is_live'] );
+	$conf       = Xmoney_Payments_Helper_Processor::get_configuration();
+	$is_live    = ! empty( $conf['is_live'] );
 	$secret_key = $is_live ? $conf['secret_key'] : $conf['secret_key'];
-	$lang      = Xmoney_Payments_Helper_Processor::get_current_language();
-	$decrypted = Xmoney_Payments_Helper_Response::xmoney_payments_decrypt_message( $payload['result'], $secret_key, $lang );
+	$lang       = Xmoney_Payments_Helper_Processor::get_current_language();
+	$decrypted  = Xmoney_Payments_Helper_Response::xmoney_payments_decrypt_message( $payload['result'], $secret_key, $lang );
 	if ( ! $decrypted ) {
 		return new WP_Error( 'tw_inline_decrypt', 'Unable to decrypt inline result' );
 	}

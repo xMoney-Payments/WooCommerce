@@ -12,7 +12,8 @@
 
 /* Exit if the file is accessed directly. */
 if ( ! defined( 'ABSPATH' ) ) {
-	exit; }
+	exit;
+}
 
 /* Security class check */
 if ( ! class_exists( 'Xmoney_Payments_Status_Updater' ) ) :
@@ -24,6 +25,7 @@ if ( ! class_exists( 'Xmoney_Payments_Status_Updater' ) ) :
 	 * from the server.
 	 */
 	class Xmoney_Payments_Status_Updater {
+
 		/**
 		 * Possible result statuses returned by the gateway.
 		 *
@@ -170,7 +172,7 @@ if ( ! class_exists( 'Xmoney_Payments_Status_Updater' ) ) :
 								WC_Subscriptions_Manager::activate_subscriptions_for_order( $xmoney_payments_order );
 							}
 						} elseif ( class_exists( 'WC_Subscriptions' ) ) {
-								WC_Subscriptions_Manager::process_subscription_payments_on_order( $xmoney_payments_order );
+							WC_Subscriptions_Manager::process_subscription_payments_on_order( $xmoney_payments_order );
 						}
 					}
 
@@ -294,7 +296,7 @@ if ( ! class_exists( 'Xmoney_Payments_Status_Updater' ) ) :
 								WC_Subscriptions_Manager::activate_subscriptions_for_order( $xmoney_payments_order );
 							}
 						} elseif ( class_exists( 'WC_Subscriptions' ) ) {
-								WC_Subscriptions_Manager::process_subscription_payments_on_order( $xmoney_payments_order );
+							WC_Subscriptions_Manager::process_subscription_payments_on_order( $xmoney_payments_order );
 						}
 					}
 

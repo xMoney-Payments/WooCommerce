@@ -299,8 +299,8 @@ class Xmoney_Payments_Transaction_Table extends Xmoney_Payments_List_Table {
         // phpcs:disable PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$rows = $wpdb->get_results(
         // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
-            $query, // Safe dynamic SQL
-            ARRAY_A
+			$query, // Safe dynamic SQL
+			ARRAY_A
 		);
         // phpcs:enable
 
