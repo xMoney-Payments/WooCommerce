@@ -1,0 +1,24 @@
+# Exclude Git and CI/CD files
+.git
+.idea
+.gitignore
+.github
+
+# Composer and dependencies
+composer.json
+composer.lock
+vendor/
+
+# Node / build stuff
+node_modules/
+package.json
+package-lock.json
+webpack.config.js
+
+# IDE / local files
+*.log
+*.md
+*.yml
+*.yaml
+*.sh
+*.zip
