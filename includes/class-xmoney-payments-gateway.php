@@ -226,14 +226,7 @@ function xmoney_payments_init_gateway_class() {
 				);
 
 				add_action( 'woocommerce_update_options_payment_gateways_' . $this->id, array( $this, 'process_admin_options' ) );
-				add_action( 'wp_ajax_xmoney_prepare_payment', array( $this, 'ajax_prepare_payment' ) );
-				add_action( 'wp_ajax_nopriv_xmoney_prepare_payment', array( $this, 'ajax_prepare_payment' ) );
-				add_action( 'wp_ajax_xmoney_create_order', array( $this, 'ajax_create_order' ) );
-				add_action( 'wp_ajax_nopriv_xmoney_create_order', array( $this, 'ajax_create_order' ) );
-				add_action( 'wp_ajax_xmoney_create_draft_order', array( $this, 'ajax_create_draft_order' ) );
-				add_action( 'wp_ajax_nopriv_xmoney_create_draft_order', array( $this, 'ajax_create_draft_order' ) );
-				add_action( 'wp_ajax_xmoney_update_draft_order', array( $this, 'ajax_update_draft_order' ) );
-				add_action( 'wp_ajax_nopriv_xmoney_update_draft_order', array( $this, 'ajax_update_draft_order' ) );
+				// Note: AJAX hooks are now registered at file level to ensure they work during AJAX requests
 			}
 
 			/**
@@ -385,7 +378,7 @@ function xmoney_payments_init_gateway_class() {
 
 					$request_data  = Xmoney_Payments_Helper_Notify::get_base64_json_request( $order_data );
 					$checksum      = Xmoney_Payments_Helper_Notify::get_base64_checksum( $order_data, $secret_key );
-					$session_token = Xmoney_Payments_Helper_Processor::get_session_token( $is_live, $secret_key );
+					// $session_token = Xmoney_Payments_Helper_Processor::get_session_token( $is_live, $secret_key );
 
 					// Return payment data to JavaScript
 					return array(
@@ -396,7 +389,6 @@ function xmoney_payments_init_gateway_class() {
 							'checksum'     => $checksum,
 							'publicKey'    => $public_key,
 							'orderId'      => $order_id,
-							'sessionToken' => $session_token,
 							'confirmUrl'   => esc_url_raw( rest_url( 'xmoney/v1/inline/confirm' ) ),
 							'restNonce'    => wp_create_nonce( 'wp_rest' ),
 						),
@@ -544,15 +536,24 @@ function xmoney_payments_init_gateway_class() {
 			}
 
 			public function payment_fields() {
-				// Enqueue inline scripts on checkout when payment method is displayed
-				if ( function_exists( 'xmoney_payments_is_inline_enabled' ) && xmoney_payments_is_inline_enabled() ) {
-					$this->enqueue_inline_scripts();
-				}
+				// Check if inline checkout is enabled
+				$inline_enabled = function_exists( 'xmoney_payments_is_inline_enabled' ) && xmoney_payments_is_inline_enabled();
 
-				// Inline iframe container (persistent!)
-				echo '<div id="tw-xmoney-inline-wrap" style="margin:16px 0;">
-                        <div id="xmoney-checkout-container"></div>
-                      </div>';
+				if ( $inline_enabled ) {
+					// Enqueue inline scripts on checkout when payment method is displayed
+					$this->enqueue_inline_scripts();
+
+					// Inline iframe container
+					echo '<div id="tw-xmoney-inline-wrap" style="margin:16px 0;">
+							<div id="xmoney-checkout-container"></div>
+						  </div>';
+				} else {
+					// Show description for redirect flow
+					if ( $this->description ) {
+						echo '<p>' . wp_kses_post( $this->description ) . '</p>';
+					}
+					echo '<p>' . esc_html__( 'You will be redirected to complete your payment securely.', 'xmoney-payments' ) . '</p>';
+				}
 			}
 
 			/**
@@ -569,8 +570,8 @@ function xmoney_payments_init_gateway_class() {
 				$is_live = ! empty( $config['is_live'] );
 
 				$sdk_url = $is_live
-					? ( Xmoney_Payments_Helper_Processor::LIVE_URL_JS . '/sdk/0.0.19.alpha.2/xmoney.js' )
-					: ( Xmoney_Payments_Helper_Processor::STAGE_URL_JS . '/sdk/0.0.19.alpha.2/xmoney.js' );
+					? ( Xmoney_Payments_Helper_Processor::LIVE_URL_JS . '/sdk/v1/xmoney.js' )
+					: ( Xmoney_Payments_Helper_Processor::STAGE_URL_JS . '/sdk/v1/xmoney.js' );
 
 				// Enqueue the xMoney SDK script
 				wp_enqueue_script(
@@ -716,22 +717,22 @@ function xmoney_payments_init_gateway_class() {
 
 				// Get session token if customer is logged in
 				$session_token = null;
-				$saved_cards   = array();
-				if ( $customer_id > 0 ) {
-					$token_data = Xmoney_Payments_Helper_Processor::get_session_token( $is_live, $secret_key );
-					if ( ! empty( $token_data ) && isset( $token_data['sessionToken'] ) ) {
-						$session_token = $token_data['sessionToken'];
-						$user_id       = isset( $token_data['userId'] ) ? $token_data['userId'] : null;
+				// $saved_cards   = array();
+				// if ( $customer_id > 0 ) {
+				// 	$token_data = Xmoney_Payments_Helper_Processor::get_session_token( $is_live, $secret_key );
+				// 	if ( ! empty( $token_data ) && isset( $token_data['sessionToken'] ) ) {
+				// 		$session_token = $token_data['sessionToken'];
+				// 		$user_id       = isset( $token_data['userId'] ) ? $token_data['userId'] : null;
 
-						// Get saved cards if session token is available
-						if ( $session_token && $user_id ) {
-							$saved_cards_data = Xmoney_Payments_Helper_Processor::get_saved_cards( $session_token, $user_id, $is_live );
-							if ( ! empty( $saved_cards_data ) ) {
-								$saved_cards = $saved_cards_data;
-							}
-						}
-					}
-				}
+				// 		// Get saved cards if session token is available
+				// 		if ( $session_token && $user_id ) {
+				// 			$saved_cards_data = Xmoney_Payments_Helper_Processor::get_saved_cards( $session_token, $user_id, $is_live );
+				// 			if ( ! empty( $saved_cards_data ) ) {
+				// 				$saved_cards = $saved_cards_data;
+				// 			}
+				// 		}
+				// 	}
+				// }
 
 				// Build response
 				$response = array(
@@ -921,14 +922,63 @@ function xmoney_payments_init_gateway_class() {
 			public function ajax_create_draft_order() {
 				try {
 					// Verify nonce
-					if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['nonce'] ) ), 'woocommerce-process_checkout' ) ) {
-						wp_send_json_error( array( 'message' => 'Invalid nonce' ), 403 );
+					$nonce = isset( $_POST['nonce'] ) ? sanitize_text_field( wp_unslash( $_POST['nonce'] ) ) : '';
+					if ( empty( $nonce ) || ! wp_verify_nonce( $nonce, 'woocommerce-process_checkout' ) ) {
+						wp_send_json_error( array( 
+							'message' => 'Invalid security token. Please refresh the page and try again.',
+							'debug' => 'Nonce verification failed. Received: ' . substr( $nonce, 0, 10 ) . '...'
+						), 403 );
 						return;
 					}
 
-					// Check if cart is empty
-					if ( WC()->cart->is_empty() ) {
-						wp_send_json_error( array( 'message' => 'Cart is empty' ), 400 );
+					// Ensure WooCommerce is loaded
+					if ( ! function_exists( 'WC' ) || ! WC() ) {
+						wp_send_json_error( array( 'message' => 'WooCommerce not available' ), 500 );
+						return;
+					}
+
+					// Force WooCommerce to initialize frontend for AJAX
+					if ( ! did_action( 'woocommerce_init' ) ) {
+						do_action( 'woocommerce_init' );
+					}
+
+					// Get cart contents count before any manipulation
+					$initial_count = WC()->cart ? WC()->cart->get_cart_contents_count() : -1;
+
+					// If cart is empty, try to initialize session properly
+					if ( $initial_count <= 0 ) {
+						// Initialize session if needed
+						if ( is_null( WC()->session ) || ! WC()->session->has_session() ) {
+							WC()->session = new WC_Session_Handler();
+							WC()->session->init();
+						}
+						
+						// Initialize cart if needed  
+						if ( is_null( WC()->cart ) ) {
+							WC()->cart = new WC_Cart();
+						}
+						
+						// Try to load cart from session
+						WC()->cart->get_cart_from_session();
+						
+						// Initialize customer if needed
+						if ( is_null( WC()->customer ) ) {
+							WC()->customer = new WC_Customer( get_current_user_id(), true );
+						}
+					}
+
+					$final_count = WC()->cart ? WC()->cart->get_cart_contents_count() : -1;
+
+					// Check if cart is still empty after loading from session
+					if ( ! WC()->cart || WC()->cart->is_empty() ) {
+						wp_send_json_error( array( 
+							'message' => 'Your cart appears to be empty. Please add items to your cart and try again.',
+							'debug' => 'Cart empty',
+							'initial_count' => $initial_count,
+							'final_count' => $final_count,
+							'has_session' => WC()->session ? WC()->session->has_session() : false,
+							'session_cookie' => isset( $_COOKIE['wp_woocommerce_session_' . COOKIEHASH] ) ? 'present' : 'missing'
+						), 400 );
 						return;
 					}
 
@@ -1073,6 +1123,15 @@ function xmoney_payments_init_gateway_class() {
 					$checksum      = Xmoney_Payments_Helper_Notify::get_base64_checksum( $order_data, $secret_key );
 					$session_token = Xmoney_Payments_Helper_Processor::get_session_token( $is_live, $secret_key );
 
+					// Check if session token was retrieved successfully
+					if ( empty( $session_token ) ) {
+						// Delete the draft order since we can't proceed
+						wp_delete_post( $draft_order_id, true );
+						WC()->session->set( 'xmoney_draft_order_id', null );
+						wp_send_json_error( array( 'message' => 'Failed to initialize payment session. Please check your xMoney credentials or try again later.' ), 500 );
+						return;
+					}
+
 					// Get saved card for logged-in users
 					$user_id    = get_current_user_id();
 					$saved_card = $user_id ? get_user_meta( $user_id, '_xmoney_saved_card', true ) : null;
@@ -1083,7 +1142,6 @@ function xmoney_payments_init_gateway_class() {
 						'payload'      => $request_data,
 						'checksum'     => $checksum,
 						'publicKey'    => $public_key,
-						'sessionToken' => $session_token,
 						'confirmUrl'   => esc_url_raw( rest_url( 'xmoney/v1/inline/confirm' ) ),
 						'restNonce'    => wp_create_nonce( 'wp_rest' ),
 						'options'      => array(
@@ -1325,3 +1383,80 @@ function xmoney_payments_subscription_terminated( $subscription ) {
 }
 add_action( 'woocommerce_subscription_status_cancelled', 'xmoney_payments_subscription_terminated' );
 add_action( 'woocommerce_subscription_status_expired', 'xmoney_payments_subscription_terminated' );
+
+/**
+ * Get or create the xMoney Payments Gateway instance for AJAX.
+ *
+ * @return Xmoney_Payments_Gateway|null
+ */
+function xmoney_payments_get_gateway_instance() {
+	static $gateway = null;
+
+	if ( null === $gateway && class_exists( 'Xmoney_Payments_Gateway' ) ) {
+		$gateway = new Xmoney_Payments_Gateway();
+	}
+
+	return $gateway;
+}
+
+/**
+ * AJAX handler for creating draft orders.
+ * Registered at file level to ensure it's available during AJAX requests.
+ */
+function xmoney_payments_ajax_create_draft_order() {
+	$gateway = xmoney_payments_get_gateway_instance();
+	if ( $gateway ) {
+		$gateway->ajax_create_draft_order();
+	} else {
+		wp_send_json_error( array( 'message' => 'Gateway not available' ), 500 );
+	}
+}
+
+/**
+ * AJAX handler for updating draft orders.
+ * Registered at file level to ensure it's available during AJAX requests.
+ */
+function xmoney_payments_ajax_update_draft_order() {
+	$gateway = xmoney_payments_get_gateway_instance();
+	if ( $gateway ) {
+		$gateway->ajax_update_draft_order();
+	} else {
+		wp_send_json_error( array( 'message' => 'Gateway not available' ), 500 );
+	}
+}
+
+/**
+ * AJAX handler for preparing payments.
+ * Registered at file level to ensure it's available during AJAX requests.
+ */
+function xmoney_payments_ajax_prepare_payment() {
+	$gateway = xmoney_payments_get_gateway_instance();
+	if ( $gateway ) {
+		$gateway->ajax_prepare_payment();
+	} else {
+		wp_send_json_error( array( 'message' => 'Gateway not available' ), 500 );
+	}
+}
+
+/**
+ * AJAX handler for creating orders.
+ * Registered at file level to ensure it's available during AJAX requests.
+ */
+function xmoney_payments_ajax_create_order() {
+	$gateway = xmoney_payments_get_gateway_instance();
+	if ( $gateway ) {
+		$gateway->ajax_create_order();
+	} else {
+		wp_send_json_error( array( 'message' => 'Gateway not available' ), 500 );
+	}
+}
+
+// Register AJAX hooks at file level to ensure they're available during AJAX requests
+add_action( 'wp_ajax_xmoney_create_draft_order', 'xmoney_payments_ajax_create_draft_order' );
+add_action( 'wp_ajax_nopriv_xmoney_create_draft_order', 'xmoney_payments_ajax_create_draft_order' );
+add_action( 'wp_ajax_xmoney_update_draft_order', 'xmoney_payments_ajax_update_draft_order' );
+add_action( 'wp_ajax_nopriv_xmoney_update_draft_order', 'xmoney_payments_ajax_update_draft_order' );
+add_action( 'wp_ajax_xmoney_prepare_payment', 'xmoney_payments_ajax_prepare_payment' );
+add_action( 'wp_ajax_nopriv_xmoney_prepare_payment', 'xmoney_payments_ajax_prepare_payment' );
+add_action( 'wp_ajax_xmoney_create_order', 'xmoney_payments_ajax_create_order' );
+add_action( 'wp_ajax_nopriv_xmoney_create_order', 'xmoney_payments_ajax_create_order' );

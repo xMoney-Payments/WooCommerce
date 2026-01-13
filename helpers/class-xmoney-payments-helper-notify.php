@@ -31,7 +31,7 @@ if ( ! class_exists( 'Xmoney_Payments_Helper_Notify' ) ) :
 		 * @return string
 		 */
 		public static function get_base64_json_request( array $order_data ): string {
-			return base64_encode( json_encode( $order_data ) );
+			return base64_encode( json_encode( $order_data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) );
 		}
 
 
@@ -44,7 +44,7 @@ if ( ! class_exists( 'Xmoney_Payments_Helper_Notify' ) ) :
 		 * @return string
 		 */
 		public static function get_base64_checksum( array $order_data, $secret_key ): string {
-			$hmac_sha512 = hash_hmac( /*algo*/'sha512', json_encode( $order_data ), $secret_key, /*raw_output*/true );
+			$hmac_sha512 = hash_hmac( /*algo*/'sha512', json_encode( $order_data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), $secret_key, /*raw_output*/true );
 			return base64_encode( $hmac_sha512 );
 		}
 	}

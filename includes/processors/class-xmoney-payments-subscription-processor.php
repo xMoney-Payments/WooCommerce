@@ -95,8 +95,8 @@ class Xmoney_Payments_Subscription_Processor {
 				$logger->warning( '[xMoney] Inline: session token not retrieved for environment ' . ( $is_live ? 'live' : 'stage' ), array( 'source' => 'xmoney-payments' ) );
 			}
 
-			$sdk_url = $is_live ? ( Xmoney_Payments_Helper_Processor::LIVE_URL_JS . '/sdk/0.0.19.alpha.2/xmoney.js' )
-				: ( Xmoney_Payments_Helper_Processor::STAGE_URL_JS . '/sdk/0.0.19.alpha.2/xmoney.js' );
+			$sdk_url = $is_live ? ( Xmoney_Payments_Helper_Processor::LIVE_URL_JS . '/sdk/v1/xmoney.js' )
+				: ( Xmoney_Payments_Helper_Processor::STAGE_URL_JS . '/sdk/v1/xmoney.js' );
 
 			// Enqueue the xMoney SDK script properly.
 			wp_enqueue_script(
@@ -128,10 +128,6 @@ class Xmoney_Payments_Subscription_Processor {
 				'restNonce'  => wp_create_nonce( 'wp_rest' ),
 				'options'    => array(),
 			);
-
-			if ( $session_token ) {
-				$params['sessionToken'] = $session_token;
-			}
 
 			$params['options']['displaySaveCardOption'] = true;
 

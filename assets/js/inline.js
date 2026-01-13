@@ -13,6 +13,20 @@
     let draftOrderCreating = false;
 
     // -------------------------------------------------------------------------
+    // AJAX URL helper - fallback if wc_checkout_params not available
+    // -------------------------------------------------------------------------
+    function getAjaxUrl() {
+        if (typeof wc_checkout_params !== 'undefined' && wc_checkout_params.ajax_url) {
+            return wc_checkout_params.ajax_url;
+        }
+        if (typeof xmoneyConfig !== 'undefined' && xmoneyConfig.ajaxUrl) {
+            return xmoneyConfig.ajaxUrl;
+        }
+        // Last resort fallback
+        return '/wp-admin/admin-ajax.php';
+    }
+
+    // -------------------------------------------------------------------------
     // Helpers
     // -------------------------------------------------------------------------
 
@@ -246,10 +260,9 @@
 
         const formConfig = {
             container: 'xmoney-checkout-container',
-            payload: data.payload,
-            checksum: data.checksum,
+            orderPayload: data.payload,
+            orderChecksum: data.checksum,
             publicKey: data.publicKey,
-            sessionToken: data.sessionToken,
             userId: data.userId,
             options: options,
 
@@ -356,7 +369,7 @@
         });
 
         $.ajax({
-            url: wc_checkout_params.ajax_url,
+            url: getAjaxUrl(),
             type: 'POST',
             data: payload,
             success: function(response) {
@@ -401,7 +414,7 @@
         });
 
         $.ajax({
-            url: wc_checkout_params.ajax_url,
+            url: getAjaxUrl(),
             type: 'POST',
             data: payload,
             success: function (response) {
@@ -473,7 +486,7 @@
             });
             
             $.ajax({
-                url: wc_checkout_params.ajax_url,
+                url: getAjaxUrl(),
                 type: 'POST',
                 data: payload,
                 success: function(response) {
