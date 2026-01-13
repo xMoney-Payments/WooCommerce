@@ -170,6 +170,30 @@ function xmoney_payments_configuration() {
 								<p class="description"><?php echo esc_html__( 'If set to "Yes", logged-in customers can save their cards for future purchases.', 'xmoney-payments' ); ?></p>
 							</td>
 						</tr>
+						<tr class="form-field">
+							<th scope="row">
+								<label for="checkout_theme"><?php echo esc_html__( 'Checkout Form Theme', 'xmoney-payments' ); ?></label>
+							</th>
+							<td>
+								<?php
+								echo wp_kses(
+									xmoney_payments_get_checkout_theme_select(),
+									array(
+										'select' => array(
+											'name'  => true,
+											'id'    => true,
+											'class' => true,
+										),
+										'option' => array(
+											'value'    => true,
+											'selected' => true,
+										),
+									)
+								);
+								?>
+								<p class="description"><?php echo esc_html__( 'Choose the appearance theme for the inline checkout form.', 'xmoney-payments' ); ?></p>
+							</td>
+						</tr>
 						<tr class="form-field" id="contact_email_o">
 							<th scope="row"><label for="contact_email_o"><?php echo esc_html__( 'Contact email(Optional)', 'xmoney-payments' ); ?></span></label></th>
 							<td>

@@ -58,6 +58,7 @@ function xmoney_payments_main_action() {
 				'contact_email_o'     => 'text',
 				'inline_checkout'     => 'text',
 				'enable_saved_cards'  => 'text',
+				'checkout_theme'      => 'text',
 			),
 
 			'refund_payment_transaction' => array(

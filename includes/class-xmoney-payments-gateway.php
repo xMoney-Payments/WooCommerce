@@ -1139,6 +1139,9 @@ function xmoney_payments_init_gateway_class() {
 					// Check if saved cards are enabled in config
 					$saved_cards_enabled = function_exists( 'xmoney_payments_is_saved_cards_enabled' ) && xmoney_payments_is_saved_cards_enabled();
 
+					// Get checkout theme from config
+					$checkout_theme = function_exists( 'xmoney_payments_get_checkout_theme' ) ? xmoney_payments_get_checkout_theme() : 'light';
+
 					// Build response with saved card support
 					$response = array(
 						'orderId'      => $draft_order_id,
@@ -1151,6 +1154,9 @@ function xmoney_payments_init_gateway_class() {
 							'displaySaveCardOption' => $saved_cards_enabled && $user_id ? true : false,
 							'displayCardHolderName' => true,
 							'enableSavedCards'      => $saved_cards_enabled,
+							'appearance'            => array(
+								'theme' => $checkout_theme,
+							),
 						),
 					);
 

@@ -350,3 +350,28 @@ function xmoney_payments_is_saved_cards_enabled() {
 	$val = $wpdb->get_var( "SELECT enable_saved_cards FROM {$table_name} LIMIT 1" );
 	return (int) $val === 1;
 }
+
+/** Get Checkout Theme setting (light/dark) */
+function xmoney_payments_get_checkout_theme_select() {
+	global $wpdb;
+	$table_name = esc_sql( $wpdb->prefix . 'xmoney_payments_configuration' );
+    // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is escaped manually and safe.
+	$row   = $wpdb->get_row( "SELECT checkout_theme FROM {$table_name} LIMIT 1", ARRAY_A );
+	$value = isset( $row['checkout_theme'] ) ? $row['checkout_theme'] : 'light';
+
+	$html  = '<select name="checkout_theme" id="checkout_theme" class="regular-text">';
+	$html .= '<option value="light"' . selected( $value, 'light', false ) . '>' . esc_html__( 'Light', 'xmoney-payments' ) . '</option>';
+	$html .= '<option value="dark"' . selected( $value, 'dark', false ) . '>' . esc_html__( 'Dark', 'xmoney-payments' ) . '</option>';
+	$html .= '</select>';
+
+	return $html;
+}
+
+/** Get the checkout theme value */
+function xmoney_payments_get_checkout_theme() {
+	global $wpdb;
+	$table_name = esc_sql( $wpdb->prefix . 'xmoney_payments_configuration' );
+    // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is escaped manually and safe.
+	$val = $wpdb->get_var( "SELECT checkout_theme FROM {$table_name} LIMIT 1" );
+	return ! empty( $val ) ? $val : 'light';
+}
