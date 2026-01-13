@@ -121,5 +121,13 @@ function xmoney_payments_update_configuration_columns() {
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
 		$wpdb->query( 'ALTER TABLE `' . $wpdb->prefix . "xmoney_payments_configuration` ADD COLUMN checkout_theme VARCHAR(20) NOT NULL DEFAULT 'light'" );
 	}
+
+	// Ensure custom theme variables column exists (stored as JSON)
+	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+	$col = $wpdb->get_results( 'SHOW COLUMNS FROM `' . $wpdb->prefix . "xmoney_payments_configuration` LIKE 'theme_variables'" );
+	if ( empty( $col ) ) {
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
+		$wpdb->query( 'ALTER TABLE `' . $wpdb->prefix . 'xmoney_payments_configuration` ADD COLUMN theme_variables TEXT' );
+	}
 }
 register_activation_hook( XMONEY_PAYMENTS_PLUGIN_DIR, 'xmoney_payments_install' );

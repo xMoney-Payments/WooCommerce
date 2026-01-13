@@ -351,7 +351,7 @@ function xmoney_payments_is_saved_cards_enabled() {
 	return (int) $val === 1;
 }
 
-/** Get Checkout Theme setting (light/dark) */
+/** Get Checkout Theme setting (light/dark/custom) */
 function xmoney_payments_get_checkout_theme_select() {
 	global $wpdb;
 	$table_name = esc_sql( $wpdb->prefix . 'xmoney_payments_configuration' );
@@ -362,6 +362,7 @@ function xmoney_payments_get_checkout_theme_select() {
 	$html  = '<select name="checkout_theme" id="checkout_theme" class="regular-text">';
 	$html .= '<option value="light"' . selected( $value, 'light', false ) . '>' . esc_html__( 'Light', 'xmoney-payments' ) . '</option>';
 	$html .= '<option value="dark"' . selected( $value, 'dark', false ) . '>' . esc_html__( 'Dark', 'xmoney-payments' ) . '</option>';
+	$html .= '<option value="custom"' . selected( $value, 'custom', false ) . '>' . esc_html__( 'Custom', 'xmoney-payments' ) . '</option>';
 	$html .= '</select>';
 
 	return $html;
@@ -374,4 +375,54 @@ function xmoney_payments_get_checkout_theme() {
     // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is escaped manually and safe.
 	$val = $wpdb->get_var( "SELECT checkout_theme FROM {$table_name} LIMIT 1" );
 	return ! empty( $val ) ? $val : 'light';
+}
+
+/** Get default theme variables */
+function xmoney_payments_get_default_theme_variables() {
+	return array(
+		'colorPrimary'         => '#009688',
+		'colorDanger'          => '#e53935',
+		'colorBackground'      => '#f5f5f5',
+		'colorText'            => '#212121',
+		'colorTextSecondary'   => '#757575',
+		'colorBorder'          => '#e0e0e0',
+		'colorBorderFocus'     => '#009688',
+		'colorTextPlaceholder' => '#bdbdbd',
+		'colorBackgroundFocus' => '#ffffff',
+		'borderRadius'         => '4px',
+	);
+}
+
+/** Get theme variables from database */
+function xmoney_payments_get_theme_variables() {
+	global $wpdb;
+	$table_name = esc_sql( $wpdb->prefix . 'xmoney_payments_configuration' );
+    // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is escaped manually and safe.
+	$val = $wpdb->get_var( "SELECT theme_variables FROM {$table_name} LIMIT 1" );
+
+	$defaults = xmoney_payments_get_default_theme_variables();
+
+	if ( ! empty( $val ) ) {
+		$saved = json_decode( $val, true );
+		if ( is_array( $saved ) ) {
+			return array_merge( $defaults, $saved );
+		}
+	}
+
+	return $defaults;
+}
+
+/** Get theme appearance config for SDK */
+function xmoney_payments_get_appearance_config() {
+	$theme = xmoney_payments_get_checkout_theme();
+
+	$appearance = array(
+		'theme' => $theme,
+	);
+
+	if ( 'custom' === $theme ) {
+		$appearance['variables'] = xmoney_payments_get_theme_variables();
+	}
+
+	return $appearance;
 }

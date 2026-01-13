@@ -194,6 +194,88 @@ function xmoney_payments_configuration() {
 								<p class="description"><?php echo esc_html__( 'Choose the appearance theme for the inline checkout form.', 'xmoney-payments' ); ?></p>
 							</td>
 						</tr>
+						<?php
+						$theme_vars     = xmoney_payments_get_theme_variables();
+						$current_theme  = xmoney_payments_get_checkout_theme();
+						$display_custom = 'custom' === $current_theme ? '' : 'display: none;';
+						?>
+						<tr class="form-field xmoney-custom-theme-row" style="<?php echo esc_attr( $display_custom ); ?>">
+							<th scope="row"><?php echo esc_html__( 'Custom Theme Colors', 'xmoney-payments' ); ?></th>
+							<td>
+								<table class="xmoney-theme-variables" style="max-width: 600px;">
+									<tr>
+										<td><label for="theme_colorPrimary"><?php echo esc_html__( 'Primary Color', 'xmoney-payments' ); ?></label></td>
+										<td><input type="color" name="theme_colorPrimary" id="theme_colorPrimary" value="<?php echo esc_attr( $theme_vars['colorPrimary'] ); ?>" /> <input type="text" value="<?php echo esc_attr( $theme_vars['colorPrimary'] ); ?>" class="xmoney-color-text" data-for="theme_colorPrimary" style="width: 80px;" /></td>
+									</tr>
+									<tr>
+										<td><label for="theme_colorDanger"><?php echo esc_html__( 'Danger/Error Color', 'xmoney-payments' ); ?></label></td>
+										<td><input type="color" name="theme_colorDanger" id="theme_colorDanger" value="<?php echo esc_attr( $theme_vars['colorDanger'] ); ?>" /> <input type="text" value="<?php echo esc_attr( $theme_vars['colorDanger'] ); ?>" class="xmoney-color-text" data-for="theme_colorDanger" style="width: 80px;" /></td>
+									</tr>
+									<tr>
+										<td><label for="theme_colorBackground"><?php echo esc_html__( 'Background Color', 'xmoney-payments' ); ?></label></td>
+										<td><input type="color" name="theme_colorBackground" id="theme_colorBackground" value="<?php echo esc_attr( $theme_vars['colorBackground'] ); ?>" /> <input type="text" value="<?php echo esc_attr( $theme_vars['colorBackground'] ); ?>" class="xmoney-color-text" data-for="theme_colorBackground" style="width: 80px;" /></td>
+									</tr>
+									<tr>
+										<td><label for="theme_colorText"><?php echo esc_html__( 'Text Color', 'xmoney-payments' ); ?></label></td>
+										<td><input type="color" name="theme_colorText" id="theme_colorText" value="<?php echo esc_attr( $theme_vars['colorText'] ); ?>" /> <input type="text" value="<?php echo esc_attr( $theme_vars['colorText'] ); ?>" class="xmoney-color-text" data-for="theme_colorText" style="width: 80px;" /></td>
+									</tr>
+									<tr>
+										<td><label for="theme_colorTextSecondary"><?php echo esc_html__( 'Secondary Text Color', 'xmoney-payments' ); ?></label></td>
+										<td><input type="color" name="theme_colorTextSecondary" id="theme_colorTextSecondary" value="<?php echo esc_attr( $theme_vars['colorTextSecondary'] ); ?>" /> <input type="text" value="<?php echo esc_attr( $theme_vars['colorTextSecondary'] ); ?>" class="xmoney-color-text" data-for="theme_colorTextSecondary" style="width: 80px;" /></td>
+									</tr>
+									<tr>
+										<td><label for="theme_colorBorder"><?php echo esc_html__( 'Border Color', 'xmoney-payments' ); ?></label></td>
+										<td><input type="color" name="theme_colorBorder" id="theme_colorBorder" value="<?php echo esc_attr( $theme_vars['colorBorder'] ); ?>" /> <input type="text" value="<?php echo esc_attr( $theme_vars['colorBorder'] ); ?>" class="xmoney-color-text" data-for="theme_colorBorder" style="width: 80px;" /></td>
+									</tr>
+									<tr>
+										<td><label for="theme_colorBorderFocus"><?php echo esc_html__( 'Border Focus Color', 'xmoney-payments' ); ?></label></td>
+										<td><input type="color" name="theme_colorBorderFocus" id="theme_colorBorderFocus" value="<?php echo esc_attr( $theme_vars['colorBorderFocus'] ); ?>" /> <input type="text" value="<?php echo esc_attr( $theme_vars['colorBorderFocus'] ); ?>" class="xmoney-color-text" data-for="theme_colorBorderFocus" style="width: 80px;" /></td>
+									</tr>
+									<tr>
+										<td><label for="theme_colorTextPlaceholder"><?php echo esc_html__( 'Placeholder Text Color', 'xmoney-payments' ); ?></label></td>
+										<td><input type="color" name="theme_colorTextPlaceholder" id="theme_colorTextPlaceholder" value="<?php echo esc_attr( $theme_vars['colorTextPlaceholder'] ); ?>" /> <input type="text" value="<?php echo esc_attr( $theme_vars['colorTextPlaceholder'] ); ?>" class="xmoney-color-text" data-for="theme_colorTextPlaceholder" style="width: 80px;" /></td>
+									</tr>
+									<tr>
+										<td><label for="theme_colorBackgroundFocus"><?php echo esc_html__( 'Background Focus Color', 'xmoney-payments' ); ?></label></td>
+										<td><input type="color" name="theme_colorBackgroundFocus" id="theme_colorBackgroundFocus" value="<?php echo esc_attr( $theme_vars['colorBackgroundFocus'] ); ?>" /> <input type="text" value="<?php echo esc_attr( $theme_vars['colorBackgroundFocus'] ); ?>" class="xmoney-color-text" data-for="theme_colorBackgroundFocus" style="width: 80px;" /></td>
+									</tr>
+									<tr>
+										<td><label for="theme_borderRadius"><?php echo esc_html__( 'Border Radius', 'xmoney-payments' ); ?></label></td>
+										<td><input type="text" name="theme_borderRadius" id="theme_borderRadius" value="<?php echo esc_attr( $theme_vars['borderRadius'] ); ?>" style="width: 80px;" placeholder="4px" /></td>
+									</tr>
+								</table>
+							</td>
+						</tr>
+						<script type="text/javascript">
+						(function() {
+							var themeSelect = document.getElementById('checkout_theme');
+							var customRows = document.querySelectorAll('.xmoney-custom-theme-row');
+
+							function toggleCustomTheme() {
+								var show = themeSelect.value === 'custom';
+								customRows.forEach(function(row) {
+									row.style.display = show ? '' : 'none';
+								});
+							}
+
+							themeSelect.addEventListener('change', toggleCustomTheme);
+
+							// Sync color picker with text input
+							document.querySelectorAll('.xmoney-color-text').forEach(function(input) {
+								var colorInput = document.getElementById(input.dataset.for);
+								if (colorInput) {
+									colorInput.addEventListener('input', function() {
+										input.value = this.value;
+									});
+									input.addEventListener('input', function() {
+										if (/^#[0-9A-Fa-f]{6}$/.test(this.value)) {
+											colorInput.value = this.value;
+										}
+									});
+								}
+							});
+						})();
+						</script>
 						<tr class="form-field" id="contact_email_o">
 							<th scope="row"><label for="contact_email_o"><?php echo esc_html__( 'Contact email(Optional)', 'xmoney-payments' ); ?></span></label></th>
 							<td>

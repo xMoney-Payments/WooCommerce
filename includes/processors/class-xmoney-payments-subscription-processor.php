@@ -132,15 +132,13 @@ class Xmoney_Payments_Subscription_Processor {
 			// Check if saved cards are enabled in config
 			$saved_cards_enabled = function_exists( 'xmoney_payments_is_saved_cards_enabled' ) && xmoney_payments_is_saved_cards_enabled();
 
-			// Get checkout theme from config
-			$checkout_theme = function_exists( 'xmoney_payments_get_checkout_theme' ) ? xmoney_payments_get_checkout_theme() : 'light';
+			// Get appearance config (theme + custom variables if applicable)
+			$appearance = function_exists( 'xmoney_payments_get_appearance_config' ) ? xmoney_payments_get_appearance_config() : array( 'theme' => 'light' );
 
 			$params['options']['displaySaveCardOption'] = $saved_cards_enabled && $user_id ? true : false;
 			$params['options']['displayCardHolderName'] = true;
 			$params['options']['enableSavedCards']      = $saved_cards_enabled;
-			$params['options']['appearance']            = array(
-				'theme' => $checkout_theme,
-			);
+			$params['options']['appearance']            = $appearance;
 
 			if ( $saved_cards_enabled && $session_token && $saved_card ) {
 				$params['userId'] = $saved_card['customer_id'];
