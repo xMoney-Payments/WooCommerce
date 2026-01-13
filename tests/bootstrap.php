@@ -43,7 +43,7 @@ function _manually_load_plugin() {
 		define( 'XMONEY_PAYMENTS_PLUGIN_URL', 'http://example.org/wp-content/plugins/xmoney-payments/' );
 	}
 	if ( ! defined( 'XMONEY_PAYMENTS_VERSION' ) ) {
-		define( 'XMONEY_PAYMENTS_VERSION', '1.0.0' );
+		define( 'XMONEY_PAYMENTS_VERSION', '1.1.0' );
 	}
 
 	// Set installed option so plugin loads properly.

@@ -4,7 +4,7 @@ Tags: payment, gateway, module
 Requires at least: 4.6
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 1.0.0
+Stable tag: 1.1.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -57,6 +57,13 @@ Q: What happens if I cancel the Order manually?
 A:We are working on it. Our API is not ready yet for merchant manual changes. If you need to change the Order status, change it in WooCommerce and then go to our Merchant Dashboard to start a refund.
 
 == Changelog ==
+
+= v1.1.0 =
+
+* Added inline checkout - payment form can now be embedded directly on the checkout page
+* Added REST API endpoint for inline payment confirmation
+* Improved payment completion flow with proper SDK response handling
+* Fixed duplicate WP_DEBUG constant warnings
 
 = v1.0.0 =
 
