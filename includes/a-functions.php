@@ -377,8 +377,8 @@ function xmoney_payments_get_checkout_theme() {
 	return ! empty( $val ) ? $val : 'light';
 }
 
-/** Get default theme variables */
-function xmoney_payments_get_default_theme_variables() {
+/** Get hardcoded fallback theme variables */
+function xmoney_payments_get_hardcoded_theme_variables() {
 	return array(
 		'colorPrimary'         => '#009688',
 		'colorDanger'          => '#e53935',
@@ -391,6 +391,200 @@ function xmoney_payments_get_default_theme_variables() {
 		'colorBackgroundFocus' => '#ffffff',
 		'borderRadius'         => '4px',
 	);
+}
+
+/** Check if a hex color is light (brightness > 128) */
+function xmoney_payments_is_light_color( $hex ) {
+	$hex = ltrim( $hex, '#' );
+
+	if ( strlen( $hex ) === 3 ) {
+		$hex = $hex[0] . $hex[0] . $hex[1] . $hex[1] . $hex[2] . $hex[2];
+	}
+
+	$r = hexdec( substr( $hex, 0, 2 ) );
+	$g = hexdec( substr( $hex, 2, 2 ) );
+	$b = hexdec( substr( $hex, 4, 2 ) );
+
+	// Calculate perceived brightness (human eye is more sensitive to green)
+	$brightness = ( ( $r * 299 ) + ( $g * 587 ) + ( $b * 114 ) ) / 1000;
+
+	return $brightness > 128;
+}
+
+/** Try to get colors from the active WordPress theme */
+function xmoney_payments_get_theme_colors_from_wp() {
+	$colors = array();
+
+	// Collect base/contrast colors to analyze their brightness later
+	$base_color     = null;
+	$contrast_color = null;
+
+	// Try to get colors from theme.json (block themes like Twenty Twenty-Four)
+	if ( function_exists( 'wp_get_global_settings' ) ) {
+		$settings = wp_get_global_settings();
+
+		// Get color palette
+		if ( ! empty( $settings['color']['palette']['theme'] ) ) {
+			$palette = $settings['color']['palette']['theme'];
+
+			foreach ( $palette as $color ) {
+				$slug = strtolower( $color['slug'] ?? '' );
+				$hex  = $color['color'] ?? '';
+
+				if ( empty( $hex ) ) {
+					continue;
+				}
+
+				// Collect base/contrast for brightness analysis
+				if ( 'base' === $slug ) {
+					$base_color = $hex;
+				} elseif ( 'contrast' === $slug ) {
+					$contrast_color = $hex;
+				}
+
+				// Map explicit color slugs
+				if ( in_array( $slug, array( 'primary', 'accent', 'vivid-cyan-blue', 'vivid-purple' ), true ) ) {
+					$colors['colorPrimary']     = $hex;
+					$colors['colorBorderFocus'] = $hex;
+				} elseif ( 'secondary' === $slug && empty( $colors['colorPrimary'] ) ) {
+					$colors['colorPrimary']     = $hex;
+					$colors['colorBorderFocus'] = $hex;
+				} elseif ( in_array( $slug, array( 'background', 'white' ), true ) ) {
+					$colors['colorBackground']      = $hex;
+					$colors['colorBackgroundFocus'] = $hex;
+				} elseif ( in_array( $slug, array( 'foreground', 'black' ), true ) ) {
+					$colors['colorText'] = $hex;
+				} elseif ( in_array( $slug, array( 'vivid-red', 'luminous-vivid-orange' ), true ) ) {
+					$colors['colorDanger'] = $hex;
+				}
+			}
+		}
+
+		// Analyze base/contrast colors by brightness (not by name)
+		// In block themes: base = background, contrast = text (usually)
+		// But we verify by checking which one is actually lighter
+		if ( $base_color && $contrast_color ) {
+			$base_is_light     = xmoney_payments_is_light_color( $base_color );
+			$contrast_is_light = xmoney_payments_is_light_color( $contrast_color );
+
+			// Assign the lighter color as background, darker as text
+			if ( $base_is_light && ! $contrast_is_light ) {
+				// Standard: base is light (background), contrast is dark (text)
+				if ( empty( $colors['colorBackground'] ) ) {
+					$colors['colorBackground']      = $base_color;
+					$colors['colorBackgroundFocus'] = $base_color;
+				}
+				if ( empty( $colors['colorText'] ) ) {
+					$colors['colorText'] = $contrast_color;
+				}
+			} elseif ( ! $base_is_light && $contrast_is_light ) {
+				// Inverted: base is dark, contrast is light - swap them
+				if ( empty( $colors['colorBackground'] ) ) {
+					$colors['colorBackground']      = $contrast_color;
+					$colors['colorBackgroundFocus'] = $contrast_color;
+				}
+				if ( empty( $colors['colorText'] ) ) {
+					$colors['colorText'] = $base_color;
+				}
+			} elseif ( $base_is_light ) {
+				// Both are light - use base as background
+				if ( empty( $colors['colorBackground'] ) ) {
+					$colors['colorBackground']      = $base_color;
+					$colors['colorBackgroundFocus'] = $base_color;
+				}
+			} else {
+				// Both are dark - use contrast as background (it might be slightly lighter)
+				if ( empty( $colors['colorBackground'] ) ) {
+					$colors['colorBackground']      = $contrast_color;
+					$colors['colorBackgroundFocus'] = $contrast_color;
+				}
+			}
+		} elseif ( $base_color && empty( $colors['colorBackground'] ) ) {
+			// Only base exists - check if it's light enough for background
+			if ( xmoney_payments_is_light_color( $base_color ) ) {
+				$colors['colorBackground']      = $base_color;
+				$colors['colorBackgroundFocus'] = $base_color;
+			} else {
+				$colors['colorText'] = $base_color;
+			}
+		} elseif ( $contrast_color && empty( $colors['colorText'] ) ) {
+			// Only contrast exists - check brightness
+			if ( ! xmoney_payments_is_light_color( $contrast_color ) ) {
+				$colors['colorText'] = $contrast_color;
+			} else {
+				$colors['colorBackground']      = $contrast_color;
+				$colors['colorBackgroundFocus'] = $contrast_color;
+			}
+		}
+
+		// Try to get text and background from global styles (these override palette)
+		if ( ! empty( $settings['color']['text'] ) ) {
+			$colors['colorText'] = $settings['color']['text'];
+		}
+		if ( ! empty( $settings['color']['background'] ) ) {
+			$colors['colorBackground'] = $settings['color']['background'];
+		}
+	}
+
+	// Try theme mods (classic themes)
+	$background_color = get_theme_mod( 'background_color' );
+	if ( ! empty( $background_color ) && empty( $colors['colorBackground'] ) ) {
+		$colors['colorBackground'] = '#' . ltrim( $background_color, '#' );
+	}
+
+	// Try customizer accent/link color
+	$accent_color = get_theme_mod( 'accent_color' );
+	if ( ! empty( $accent_color ) && empty( $colors['colorPrimary'] ) ) {
+		$colors['colorPrimary']     = $accent_color;
+		$colors['colorBorderFocus'] = $accent_color;
+	}
+
+	// Try WooCommerce colors if available
+	$wc_primary = get_option( 'woocommerce_colors' );
+	if ( is_array( $wc_primary ) && ! empty( $wc_primary['primary'] ) && empty( $colors['colorPrimary'] ) ) {
+		$colors['colorPrimary']     = $wc_primary['primary'];
+		$colors['colorBorderFocus'] = $wc_primary['primary'];
+	}
+
+	// Generate secondary colors based on primary colors if we have them
+	if ( ! empty( $colors['colorText'] ) && empty( $colors['colorTextSecondary'] ) ) {
+		$colors['colorTextSecondary']   = xmoney_payments_adjust_color_brightness( $colors['colorText'], 40 );
+		$colors['colorTextPlaceholder'] = xmoney_payments_adjust_color_brightness( $colors['colorText'], 60 );
+	}
+
+	if ( ! empty( $colors['colorBackground'] ) && empty( $colors['colorBorder'] ) ) {
+		$colors['colorBorder'] = xmoney_payments_adjust_color_brightness( $colors['colorBackground'], -15 );
+	}
+
+	return $colors;
+}
+
+/** Adjust color brightness (positive = lighter, negative = darker) */
+function xmoney_payments_adjust_color_brightness( $hex, $percent ) {
+	$hex = ltrim( $hex, '#' );
+
+	if ( strlen( $hex ) === 3 ) {
+		$hex = $hex[0] . $hex[0] . $hex[1] . $hex[1] . $hex[2] . $hex[2];
+	}
+
+	$r = hexdec( substr( $hex, 0, 2 ) );
+	$g = hexdec( substr( $hex, 2, 2 ) );
+	$b = hexdec( substr( $hex, 4, 2 ) );
+
+	$r = max( 0, min( 255, $r + ( $r * $percent / 100 ) ) );
+	$g = max( 0, min( 255, $g + ( $g * $percent / 100 ) ) );
+	$b = max( 0, min( 255, $b + ( $b * $percent / 100 ) ) );
+
+	return sprintf( '#%02x%02x%02x', $r, $g, $b );
+}
+
+/** Get default theme variables (from WP theme or hardcoded fallback) */
+function xmoney_payments_get_default_theme_variables() {
+	$hardcoded  = xmoney_payments_get_hardcoded_theme_variables();
+	$from_theme = xmoney_payments_get_theme_colors_from_wp();
+
+	// Merge: theme colors override hardcoded, but only if they exist
+	return array_merge( $hardcoded, array_filter( $from_theme ) );
 }
 
 /** Get theme variables from database */
