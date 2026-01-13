@@ -129,21 +129,15 @@ class Xmoney_Payments_Subscription_Processor {
 				'options'    => array(),
 			);
 
-			$params['options']['displaySaveCardOption'] = true;
+			// Check if saved cards are enabled in config
+			$saved_cards_enabled = function_exists( 'xmoney_payments_is_saved_cards_enabled' ) && xmoney_payments_is_saved_cards_enabled();
 
-			if ( ! $user_id ) {
-				// Decide whether to show save card option for logged-in users; keep false to minimize SDK branches
-				$params['options']['displaySaveCardOption'] = false;
-			}
-
+			$params['options']['displaySaveCardOption'] = $saved_cards_enabled && $user_id ? true : false;
 			$params['options']['displayCardHolderName'] = true;
-			if ( $session_token && $saved_card ) {
-				$params['options']['enableSavedCards'] = true;
-				$params['userId']                      = $saved_card['customer_id'];
+			$params['options']['enableSavedCards']      = $saved_cards_enabled;
 
-				array_merge( array( 'id' => $saved_card['customer_id'] ), $params );
-			} else {
-				$params['options']['enableSavedCards'] = false;
+			if ( $saved_cards_enabled && $session_token && $saved_card ) {
+				$params['userId'] = $saved_card['customer_id'];
 			}
 
 			wp_localize_script( 'xmoney-inline-js', 'xmoneyData', $params );

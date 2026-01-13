@@ -377,20 +377,39 @@ function xmoney_payments_update_from_inline( $order_id, $payment_response ) {
 		return new WP_Error( 'tw_inline_order', 'Order not found' );
 	}
 
-	$status = strtolower( $payment_response['status'] ?? 'complete-ok' );
-	$txid   = $payment_response['id'] ?? ( $payment_response['transactionId'] ?? '' );
+	// SDK may return 'status' or 'orderStatus' - check both
+	$status = '';
+	if ( ! empty( $payment_response['status'] ) ) {
+		$status = strtolower( $payment_response['status'] );
+	} elseif ( ! empty( $payment_response['orderStatus'] ) ) {
+		$status = strtolower( $payment_response['orderStatus'] );
+	} elseif ( ! empty( $payment_response['transactionStatus'] ) ) {
+		$status = strtolower( $payment_response['transactionStatus'] );
+	} else {
+		$status = 'complete-ok'; // Default fallback
+	}
 
-	if ( in_array( $status, array( 'completeok', 'complete', 'success', 'paid', 'complete-ok' ), true ) ) {
+	$txid = $payment_response['id'] ?? ( $payment_response['transactionId'] ?? '' );
+
+	// Log for debugging
+	if ( function_exists( 'wc_get_logger' ) ) {
+		wc_get_logger()->info( sprintf( 'xMoney Inline: Order %d, Status: %s, TxID: %s', $order_id, $status, $txid ), array( 'source' => 'xmoney-payments' ) );
+	}
+
+	// Success statuses
+	if ( in_array( $status, array( 'completeok', 'complete', 'success', 'paid', 'complete-ok', 'complete_ok', 'approved' ), true ) ) {
 		$order->payment_complete( $txid );
 		$order->add_order_note( sprintf( 'xMoney Inline payment successful. TX: %s', $txid ) );
 		return true;
 	}
 
-	if ( in_array( $status, array( 'declined', 'failed', 'error', 'cancelled' ), true ) ) {
+	// Failed statuses
+	if ( in_array( $status, array( 'declined', 'failed', 'error', 'cancelled', 'rejected', 'complete-failed' ), true ) ) {
 		$order->update_status( 'failed', 'xMoney Inline payment failed.' );
 		return true;
 	}
 
-	$order->update_status( 'on-hold', 'xMoney Inline payment pending.' );
+	// Pending/other statuses
+	$order->update_status( 'on-hold', sprintf( 'xMoney Inline payment pending. Status: %s', $status ) );
 	return true;
 }

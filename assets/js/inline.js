@@ -160,6 +160,7 @@
         blockCheckout();
 
         if (typeof window.xmoneyData === 'undefined') {
+            console.error('[xMoney] Missing xmoneyData');
             unblockCheckout();
             showCheckoutError('Unable to complete payment. Missing payment data.');
             return;
@@ -190,13 +191,15 @@
                     xmoneyPaymentCompleted = false;
                     unblockCheckout();
                     const msg = resp && resp.message ? resp.message : 'Payment failed.';
+                    console.error('[xMoney] Payment failed:', msg);
                     showCheckoutError(msg);
                     $('html, body').animate({
                         scrollTop: $('form.checkout').offset().top - 100
                     }, 500);
                 }
             })
-            .catch(function () {
+            .catch(function (err) {
+                console.error('[xMoney] Network error:', err);
                 xmoneyPaymentCompleted = false;
                 unblockCheckout();
                 showCheckoutError('Network error while confirming payment.');
@@ -257,7 +260,7 @@
         
         // Hide SDK's submit button - we'll use Place Order button with submit()
         options.displaySubmitButton = false;
-
+        options.enableBackgroundRefresh = true;
         const formConfig = {
             container: 'xmoney-checkout-container',
             orderPayload: data.payload,
@@ -267,6 +270,7 @@
             options: options,
 
             onError: function (err) {
+                console.error('[xMoney SDK] onError:', err);
                 unblockCheckout();
 
                 let errorMsg = 'Payment initialization error.';
@@ -285,13 +289,35 @@
                     return;
                 }
 
-                if (result && typeof result === 'object' && result.id && result.orderStatus) {
+                // Handle transaction object structure
+                if (result && result.transaction) {
+                    const tx = result.transaction;
+                    const status = tx.transactionStatus || tx.status || tx.orderStatus;
+                    console.log('[xMoney SDK] onSuccess with transaction, status:', status);
+                    if (status && status.toLowerCase().indexOf('complete') !== -1 && status.toLowerCase().indexOf('failed') === -1) {
+                        const normalizedResult = {
+                            id: tx.id || tx.externalOrderId,
+                            orderStatus: status,
+                            transactionStatus: status,
+                            customerId: tx.customerData ? tx.customerData.id : null,
+                            externalOrderId: tx.externalOrderId
+                        };
+                        handlePaymentComplete(normalizedResult);
+                        return;
+                    }
+                }
+
+                if (result && typeof result === 'object' && result.id && (result.orderStatus || result.transactionStatus)) {
+                    console.log('[xMoney SDK] Payment complete via onSuccess');
                     handlePaymentComplete(result);
+                } else {
+                    console.log('[xMoney SDK] onSuccess called but missing id/orderStatus:', result);
                 }
             },
 
             onPaymentComplete: function (result) {
                 if (!result) {
+                    console.log('[xMoney SDK] onPaymentComplete called with no result');
                     return;
                 }
 
@@ -300,8 +326,29 @@
                     return;
                 }
 
-                if (result.id && result.orderStatus) {
+                // Handle transaction object structure
+                if (result.transaction) {
+                    const tx = result.transaction;
+                    const status = tx.transactionStatus || tx.status || tx.orderStatus;
+                    console.log('[xMoney SDK] onPaymentComplete with transaction, status:', status);
+                    if (status && status.toLowerCase().indexOf('complete') !== -1 && status.toLowerCase().indexOf('failed') === -1) {
+                        const normalizedResult = {
+                            id: tx.id || tx.externalOrderId,
+                            orderStatus: status,
+                            transactionStatus: status,
+                            customerId: tx.customerData ? tx.customerData.id : null,
+                            externalOrderId: tx.externalOrderId
+                        };
+                        handlePaymentComplete(normalizedResult);
+                        return;
+                    }
+                }
+
+                if (result.id && (result.orderStatus || result.transactionStatus)) {
+                    console.log('[xMoney SDK] Payment complete via onPaymentComplete');
                     handlePaymentComplete(result);
+                } else {
+                    console.log('[xMoney SDK] onPaymentComplete missing id/orderStatus:', result);
                 }
             }
         };
@@ -323,11 +370,63 @@
             }
 
             const data = event.data;
+            console.log('[xMoney postMessage] Received from', event.origin, ':', data);
+
+            // Handle onPaymentComplete with transaction data
+            if (data.type === 'onPaymentComplete' && data.data) {
+                console.log('[xMoney postMessage] onPaymentComplete event');
+                
+                // Check for transaction object structure
+                if (data.data.transaction) {
+                    const tx = data.data.transaction;
+                    const status = tx.transactionStatus || tx.status || tx.orderStatus;
+                    console.log('[xMoney postMessage] Transaction status:', status);
+                    
+                    if (status && status.toLowerCase().indexOf('complete') !== -1 && status.toLowerCase().indexOf('failed') === -1) {
+                        // Build result object from transaction data
+                        const result = {
+                            id: tx.id || tx.externalOrderId,
+                            orderStatus: status,
+                            transactionStatus: status,
+                            customerId: tx.customerData ? tx.customerData.id : null,
+                            externalOrderId: tx.externalOrderId
+                        };
+                        console.log('[xMoney postMessage] Calling handlePaymentComplete with:', result);
+                        handlePaymentComplete(result);
+                        return;
+                    }
+                }
+                
+                // Fallback to direct data structure
+                if (data.data.id && (data.data.orderStatus || data.data.transactionStatus)) {
+                    handlePaymentComplete(data.data);
+                    return;
+                }
+            }
 
             // SDK "onSuccess"
             if (data.type === 'onSuccess' && data.data) {
-                if (!data.data.needs3dSecureRedirect && data.data.id && data.data.orderStatus) {
-                    handlePaymentComplete(data.data);
+                console.log('[xMoney postMessage] onSuccess event');
+                if (!data.data.needs3dSecureRedirect) {
+                    // Check for transaction object
+                    if (data.data.transaction) {
+                        const tx = data.data.transaction;
+                        const status = tx.transactionStatus || tx.status || tx.orderStatus;
+                        if (status) {
+                            const result = {
+                                id: tx.id || tx.externalOrderId,
+                                orderStatus: status,
+                                transactionStatus: status,
+                                customerId: tx.customerData ? tx.customerData.id : null
+                            };
+                            handlePaymentComplete(result);
+                            return;
+                        }
+                    }
+                    // Fallback
+                    if (data.data.id && (data.data.orderStatus || data.data.transactionStatus)) {
+                        handlePaymentComplete(data.data);
+                    }
                 }
                 return;
             }
@@ -335,7 +434,7 @@
             // Custom / legacy "PAYMENT_COMPLETE" or similar
             if (data.type === 'PAYMENT_COMPLETE' || (data.orderStatus && String(data.orderStatus).indexOf('complete') !== -1)) {
                 const payload = data.result || data;
-                if (payload && payload.id && payload.orderStatus) {
+                if (payload && payload.id && (payload.orderStatus || payload.transactionStatus)) {
                     handlePaymentComplete(payload);
                 }
             }

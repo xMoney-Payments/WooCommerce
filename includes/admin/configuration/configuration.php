@@ -146,6 +146,30 @@ function xmoney_payments_configuration() {
 								<p class="description"><?php echo esc_html__( 'If set to "Yes", the payment form is embedded inline on your checkout.', 'xmoney-payments' ); ?></p>
 							</td>
 						</tr>
+						<tr class="form-field">
+							<th scope="row">
+								<label for="enable_saved_cards"><?php echo esc_html__( 'Enable Saved Cards', 'xmoney-payments' ); ?></label>
+							</th>
+							<td>
+								<?php
+								echo wp_kses(
+									xmoney_payments_get_enable_saved_cards(),
+									array(
+										'select' => array(
+											'name'  => true,
+											'id'    => true,
+											'class' => true,
+										),
+										'option' => array(
+											'value'    => true,
+											'selected' => true,
+										),
+									)
+								);
+								?>
+								<p class="description"><?php echo esc_html__( 'If set to "Yes", logged-in customers can save their cards for future purchases.', 'xmoney-payments' ); ?></p>
+							</td>
+						</tr>
 						<tr class="form-field" id="contact_email_o">
 							<th scope="row"><label for="contact_email_o"><?php echo esc_html__( 'Contact email(Optional)', 'xmoney-payments' ); ?></span></label></th>
 							<td>

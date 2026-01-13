@@ -1136,6 +1136,9 @@ function xmoney_payments_init_gateway_class() {
 					$user_id    = get_current_user_id();
 					$saved_card = $user_id ? get_user_meta( $user_id, '_xmoney_saved_card', true ) : null;
 
+					// Check if saved cards are enabled in config
+					$saved_cards_enabled = function_exists( 'xmoney_payments_is_saved_cards_enabled' ) && xmoney_payments_is_saved_cards_enabled();
+
 					// Build response with saved card support
 					$response = array(
 						'orderId'      => $draft_order_id,
@@ -1145,17 +1148,15 @@ function xmoney_payments_init_gateway_class() {
 						'confirmUrl'   => esc_url_raw( rest_url( 'xmoney/v1/inline/confirm' ) ),
 						'restNonce'    => wp_create_nonce( 'wp_rest' ),
 						'options'      => array(
-							'displaySaveCardOption' => $user_id ? true : false,
-							'displayCardHolderName' => false,
-							'enableSavedCards'      => false,
+							'displaySaveCardOption' => $saved_cards_enabled && $user_id ? true : false,
+							'displayCardHolderName' => true,
+							'enableSavedCards'      => $saved_cards_enabled,
 						),
 					);
 
-					$response['options']['displayCardHolderName'] = true;
-					// Add saved card data if available
-					if ( $session_token && $saved_card && ! empty( $saved_card['customer_id'] ) ) {
-						$response['options']['enableSavedCards'] = true;
-						$response['userId']                      = $saved_card['customer_id'];
+					// Add saved card data if available and enabled
+					if ( $saved_cards_enabled && $saved_card && ! empty( $saved_card['customer_id'] ) ) {
+						$response['userId'] = $saved_card['customer_id'];
 					}
 
 					// Return payment data

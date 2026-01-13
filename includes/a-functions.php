@@ -325,3 +325,28 @@ function xmoney_payments_is_inline_enabled() {
 	$val = $wpdb->get_var( "SELECT inline_checkout FROM {$table_name} LIMIT 1" );
 	return (int) $val === 1;
 }
+
+/** Get Enable Saved Cards setting (Yes/No) */
+function xmoney_payments_get_enable_saved_cards() {
+	global $wpdb;
+	$table_name = esc_sql( $wpdb->prefix . 'xmoney_payments_configuration' );
+    // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is escaped manually and safe.
+	$row   = $wpdb->get_row( "SELECT enable_saved_cards FROM {$table_name} LIMIT 1", ARRAY_A );
+	$value = isset( $row['enable_saved_cards'] ) ? (int) $row['enable_saved_cards'] : 0;
+
+	$html  = '<select name="enable_saved_cards" id="enable_saved_cards" class="regular-text">';
+	$html .= '<option value="1"' . selected( $value, 1, false ) . '>' . esc_html__( 'Yes', 'xmoney-payments' ) . '</option>';
+	$html .= '<option value="0"' . selected( $value, 0, false ) . '>' . esc_html__( 'No', 'xmoney-payments' ) . '</option>';
+	$html .= '</select>';
+
+	return $html;
+}
+
+/** Convenience: check if saved cards are enabled */
+function xmoney_payments_is_saved_cards_enabled() {
+	global $wpdb;
+	$table_name = esc_sql( $wpdb->prefix . 'xmoney_payments_configuration' );
+    // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is escaped manually and safe.
+	$val = $wpdb->get_var( "SELECT enable_saved_cards FROM {$table_name} LIMIT 1" );
+	return (int) $val === 1;
+}

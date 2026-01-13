@@ -57,6 +57,7 @@ function xmoney_payments_main_action() {
 				'suppress_email'      => 'text',
 				'contact_email_o'     => 'text',
 				'inline_checkout'     => 'text',
+				'enable_saved_cards'  => 'text',
 			),
 
 			'refund_payment_transaction' => array(

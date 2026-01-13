@@ -13,18 +13,23 @@ if ( ! defined( 'ABSPATH' ) ) {
 					'methods'             => 'POST',
 					'callback'            => function ( WP_REST_Request $req ) {
 
-						$order_id = (int) $req->get_param( 'order_id' );
-						$result   = (array) $req->get_param( 'result' );
+					$order_id = (int) $req->get_param( 'order_id' );
+					$result   = (array) $req->get_param( 'result' );
 
-						if ( empty( $order_id ) || empty( $result ) ) {
-							return new WP_REST_Response(
-								array(
-									'success' => false,
-									'message' => 'Missing data',
-								),
-								400
-							);
-						}
+					// Log incoming request for debugging
+					if ( function_exists( 'wc_get_logger' ) ) {
+						wc_get_logger()->info( sprintf( 'xMoney Inline confirm: order_id=%d, result=%s', $order_id, wp_json_encode( $result ) ), array( 'source' => 'xmoney-payments' ) );
+					}
+
+					if ( empty( $order_id ) || empty( $result ) ) {
+						return new WP_REST_Response(
+							array(
+								'success' => false,
+								'message' => 'Missing data',
+							),
+							400
+						);
+					}
 
 						// If the SDK already returns decrypted data (no 'result' key), use it directly
 						if ( empty( $result['result'] ) ) {
