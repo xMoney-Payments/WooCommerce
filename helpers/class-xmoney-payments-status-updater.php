@@ -156,7 +156,7 @@ if ( ! class_exists( 'Xmoney_Payments_Status_Updater' ) ) :
 						esc_html__( '[RESPONSE]: Status in-progress for order ID: ', 'xmoney-payments' ) . $order_id
 					);
 					break;
-				case self::$result_statuses['COMPLETE_OK']:
+					case self::$result_statuses['COMPLETE_OK']:
 					/* Mark order as completed. */
 					$xmoney_payments_order->update_status( 'processing', esc_html__( 'xMoney Payments payment finalised successfully', 'xmoney-payments' ) );
 
@@ -174,6 +174,11 @@ if ( ! class_exists( 'Xmoney_Payments_Status_Updater' ) ) :
 						} elseif ( class_exists( 'WC_Subscriptions' ) ) {
 							WC_Subscriptions_Manager::process_subscription_payments_on_order( $xmoney_payments_order );
 						}
+					}
+
+					/* Empty the cart after successful payment. */
+					if ( function_exists( 'WC' ) && WC()->cart ) {
+						WC()->cart->empty_cart();
 					}
 
 					Xmoney_Payments_Logger::xmoney_payments_log( esc_html__( '[RESPONSE]: Status complete-ok for order ID: ', 'xmoney-payments' ) . $order_id );
@@ -269,7 +274,7 @@ if ( ! class_exists( 'Xmoney_Payments_Status_Updater' ) ) :
 					Xmoney_Payments_Logger::xmoney_payments_log( esc_html__( '[RESPONSE]: Status on-hold for order ID: ', 'xmoney-payments' ) . $order_id );
 					break;
 
-				case self::$result_statuses['IN_PROGRESS']:
+					case self::$result_statuses['IN_PROGRESS']:
 					/* Payment still pending at provider – do NOT treat as success. */
 					$xmoney_payments_order->update_status(
 						'on-hold',
@@ -279,7 +284,8 @@ if ( ! class_exists( 'Xmoney_Payments_Status_Updater' ) ) :
 					Xmoney_Payments_Logger::xmoney_payments_log(
 						esc_html__( '[RESPONSE]: Status in-progress for order ID: ', 'xmoney-payments' ) . $order_id
 					);
-					/* falls through */
+					break;
+
 				case self::$result_statuses['COMPLETE_OK']:
 					/* Mark order as completed. */
 					$xmoney_payments_order->update_status( 'processing', esc_html__( 'xMoney Payments payment finalised successfully', 'xmoney-payments' ) );
@@ -377,39 +383,49 @@ function xmoney_payments_update_from_inline( $order_id, $payment_response ) {
 		return new WP_Error( 'tw_inline_order', 'Order not found' );
 	}
 
-	// SDK may return 'status' or 'orderStatus' - check both
 	$status = '';
 	if ( ! empty( $payment_response['status'] ) ) {
 		$status = strtolower( $payment_response['status'] );
-	} elseif ( ! empty( $payment_response['orderStatus'] ) ) {
-		$status = strtolower( $payment_response['orderStatus'] );
 	} elseif ( ! empty( $payment_response['transactionStatus'] ) ) {
 		$status = strtolower( $payment_response['transactionStatus'] );
 	} else {
-		$status = 'complete-ok'; // Default fallback
+		$status = 'complete-ok'; // Default fallback.
 	}
 
-	$txid = $payment_response['id'] ?? ( $payment_response['transactionId'] ?? '' );
+	// Extract transaction ID
+	$txid = '';
+	if ( ! empty( $payment_response['transactionId'] ) ) {
+		$txid = $payment_response['transactionId'];
+	} elseif ( ! empty( $payment_response['id'] ) ) {
+		$txid = $payment_response['id'];
+	}
 
-	// Log for debugging
+	// Log for debugging.
 	if ( function_exists( 'wc_get_logger' ) ) {
 		wc_get_logger()->info( sprintf( 'xMoney Inline: Order %d, Status: %s, TxID: %s', $order_id, $status, $txid ), array( 'source' => 'xmoney-payments' ) );
 	}
 
-	// Success statuses
+	// Success statuses.
 	if ( in_array( $status, array( 'completeok', 'complete', 'success', 'paid', 'complete-ok', 'complete_ok', 'approved' ), true ) ) {
 		$order->payment_complete( $txid );
 		$order->add_order_note( sprintf( 'xMoney Inline payment successful. TX: %s', $txid ) );
+
+		// Also save transaction ID to custom meta for refund fallback.
+		if ( ! empty( $txid ) ) {
+			$order->update_meta_data( '_xmoney_transaction_id', $txid );
+			$order->save();
+		}
+
 		return true;
 	}
 
-	// Failed statuses
+	// Failed statuses.
 	if ( in_array( $status, array( 'declined', 'failed', 'error', 'cancelled', 'rejected', 'complete-failed' ), true ) ) {
 		$order->update_status( 'failed', 'xMoney Inline payment failed.' );
 		return true;
 	}
 
-	// Pending/other statuses
+	// Pending/other statuses.
 	$order->update_status( 'on-hold', sprintf( 'xMoney Inline payment pending. Status: %s', $status ) );
 	return true;
 }

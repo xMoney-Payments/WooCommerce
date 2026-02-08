@@ -30,6 +30,39 @@
     // Helpers
     // -------------------------------------------------------------------------
 
+    /**
+     * Normalize an xMoney SDK transaction object into a flat result for the server.
+     *
+     * The SDK transaction object may contain nested fields. This function extracts
+     * all relevant IDs so the PHP backend can find the correct transaction for refunds.
+     *
+     * @param {object} tx - The transaction object from the SDK (result.transaction).
+     * @returns {object} Normalized result with all available ID fields preserved.
+     */
+    function normalizeTransactionResult(tx) {
+        if (!tx) {
+            return {};
+        }
+
+        const status = tx.transactionStatus || tx.status || tx.orderStatus || '';
+
+        return {
+            // Preserve ALL ID fields so the server can pick the right one
+            id: tx.id,
+            transactionId: tx.transactionId || tx.transactionID || null,
+            orderId: tx.orderId || tx.orderID || null,
+            externalOrderId: tx.externalOrderId,
+            orderStatus: status,
+            transactionStatus: status,
+            customerId: tx.customerData ? tx.customerData.id : (tx.customerId || null),
+            customerData: tx.customerData || null,
+            cardId: tx.cardId || tx.transactionMethodId || null,
+            identifier: tx.customerData ? tx.customerData.identifier : (tx.identifier || null),
+            // Pass the full raw transaction object so the server has everything
+            _rawTransaction: tx
+        };
+    }
+
     function xmoneyIsSelected() {
         return $('#payment_method_xmoney-payments').is(':checked');
     }
@@ -161,6 +194,7 @@
 
         if (typeof window.xmoneyData === 'undefined') {
             console.error('[xMoney] Missing xmoneyData');
+            xmoneyPaymentCompleted = false;
             unblockCheckout();
             showCheckoutError('Unable to complete payment. Missing payment data.');
             return;
@@ -184,6 +218,26 @@
             })
             .then(function (resp) {
                 if (resp && resp.success) {
+                    // Clear WC cart fragments from browser storage so mini-cart
+                    // and cart page don't show stale items after redirect.
+                    try {
+                        if (typeof sessionStorage !== 'undefined') {
+                            for (var i = sessionStorage.length - 1; i >= 0; i--) {
+                                var key = sessionStorage.key(i);
+                                if (key && (key.indexOf('wc_cart') === 0 || key.indexOf('wc_fragments') === 0)) {
+                                    sessionStorage.removeItem(key);
+                                }
+                            }
+                        }
+                    } catch (e) { /* ignore storage errors */ }
+
+                    // Fire-and-forget AJAX call to empty the server-side cart.
+                    // AJAX context has proper WC session access (unlike REST API).
+                    $.post(getAjaxUrl(), {
+                        action: 'xmoney_empty_cart',
+                        nonce: window.xmoneyData.cartNonce || ''
+                    });
+
                     unblockCheckout();
                     safeRedirect(resp.redirect);
                 } else {
@@ -291,22 +345,11 @@
 
                 // Handle transaction object structure
                 if (result && result.transaction) {
-                    const tx = result.transaction;
-                    const status = tx.transactionStatus || tx.status || tx.orderStatus;
-                    if (status && status.toLowerCase().indexOf('complete') !== -1 && status.toLowerCase().indexOf('failed') === -1) {
-                        const normalizedResult = {
-                            id: tx.id || tx.externalOrderId,
-                            orderStatus: status,
-                            transactionStatus: status,
-                            customerId: tx.customerData ? tx.customerData.id : null,
-                            externalOrderId: tx.externalOrderId
-                        };
-                        handlePaymentComplete(normalizedResult);
-                        return;
-                    }
+                    handlePaymentComplete(normalizeTransactionResult(result.transaction));
+                    return;
                 }
 
-                if (result && typeof result === 'object' && result.id && (result.orderStatus || result.transactionStatus)) {
+                if (result && typeof result === 'object' && (result.orderStatus || result.transactionStatus)) {
                     handlePaymentComplete(result);
                 } else {
                     console.log('[xMoney SDK] onSuccess called but missing id/orderStatus:', result);
@@ -326,22 +369,11 @@
 
                 // Handle transaction object structure
                 if (result.transaction) {
-                    const tx = result.transaction;
-                    const status = tx.transactionStatus || tx.status || tx.orderStatus;
-                    if (status && status.toLowerCase().indexOf('complete') !== -1 && status.toLowerCase().indexOf('failed') === -1) {
-                        const normalizedResult = {
-                            id: tx.id || tx.externalOrderId,
-                            orderStatus: status,
-                            transactionStatus: status,
-                            customerId: tx.customerData ? tx.customerData.id : null,
-                            externalOrderId: tx.externalOrderId
-                        };
-                        handlePaymentComplete(normalizedResult);
-                        return;
-                    }
+                    handlePaymentComplete(normalizeTransactionResult(result.transaction));
+                    return;
                 }
 
-                if (result.id && (result.orderStatus || result.transactionStatus)) {
+                if ((result.orderStatus || result.transactionStatus)) {
                     handlePaymentComplete(result);
                 } else {
                     console.log('[xMoney SDK] onPaymentComplete missing id/orderStatus:', result);
@@ -372,21 +404,8 @@
                 
                 // Check for transaction object structure
                 if (data.data.transaction) {
-                    const tx = data.data.transaction;
-                    const status = tx.transactionStatus || tx.status || tx.orderStatus;
-                    
-                    if (status && status.toLowerCase().indexOf('complete') !== -1 && status.toLowerCase().indexOf('failed') === -1) {
-                        // Build result object from transaction data
-                        const result = {
-                            id: tx.id || tx.externalOrderId,
-                            orderStatus: status,
-                            transactionStatus: status,
-                            customerId: tx.customerData ? tx.customerData.id : null,
-                            externalOrderId: tx.externalOrderId
-                        };
-                        handlePaymentComplete(result);
-                        return;
-                    }
+                    handlePaymentComplete(normalizeTransactionResult(data.data.transaction));
+                    return;
                 }
                 
                 // Fallback to direct data structure
@@ -401,18 +420,8 @@
                 if (!data.data.needs3dSecureRedirect) {
                     // Check for transaction object
                     if (data.data.transaction) {
-                        const tx = data.data.transaction;
-                        const status = tx.transactionStatus || tx.status || tx.orderStatus;
-                        if (status) {
-                            const result = {
-                                id: tx.id || tx.externalOrderId,
-                                orderStatus: status,
-                                transactionStatus: status,
-                                customerId: tx.customerData ? tx.customerData.id : null
-                            };
-                            handlePaymentComplete(result);
-                            return;
-                        }
+                        handlePaymentComplete(normalizeTransactionResult(data.data.transaction));
+                        return;
                     }
                     // Fallback
                     if (data.data.id && (data.data.orderStatus || data.data.transactionStatus)) {
@@ -468,10 +477,9 @@
                     // Update stored data
                     window.xmoneyData.payload = response.data.payload;
                     window.xmoneyData.checksum = response.data.checksum;
-                    
                     // Update the SDK iframe with new order data
                     if (window.__xmoneyForm && typeof window.__xmoneyForm.updateOrder === 'function') {
-                        window.__xmoneyForm.updateOrder(response.data.payload, response.data.checksum);
+                        window.__xmoneyForm.updateOrder({ orderPayload: response.data.payload, orderChecksum: response.data.checksum });
                     }
                 }
             },
@@ -555,7 +563,7 @@
                 return true;
             }
             
-            // All required fields filled - update draft order with final billing info, then call SDK submit()
+            // All required fields filled - update draft order with final billing info, then submit
             if (!window.__xmoneyForm || !xmoneyFormInitialized) {
                 showCheckoutError('Payment form is not ready. Please wait a moment and try again.');
                 return false;
@@ -580,7 +588,8 @@
                 type: 'POST',
                 data: payload,
                 success: function(response) {
-                    // Order updated, now call SDK submit()
+                    
+                    // Submit the payment using the existing form (preserves card selection).
                     window.__xmoneyForm.submit();
                 },
                 error: function() {
@@ -598,7 +607,7 @@
     // -------------------------------------------------------------------------
 
     function bindFieldListeners() {
-        const keyFields = '#billing_email, #billing_first_name, #billing_last_name';
+        const keyFields = '#billing_email, #billing_first_name, #billing_last_name, #billing_address_1, #billing_city, #billing_postcode, #billing_country, #billing_phone';
 
         $('body').on('change blur', keyFields, function () {
             if (!xmoneyIsSelected()) {
@@ -607,7 +616,13 @@
 
             clearTimeout(window.xmoneyFieldTimeout);
             window.xmoneyFieldTimeout = setTimeout(function () {
-                createDraftOrderAndInitialize();
+                // If we already have a draft order and SDK initialized, update the order with new billing data
+                if (window.xmoneyData && window.xmoneyData.orderId && xmoneyFormInitialized) {
+                    updateDraftOrderAddress();
+                } else {
+                    // No draft order yet, try to create one
+                    createDraftOrderAndInitialize();
+                }
             }, 500);
         });
     }

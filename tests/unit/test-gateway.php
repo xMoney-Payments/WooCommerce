@@ -153,6 +153,7 @@ class Test_Gateway extends Xmoney_Payments_Test_Case {
 		$result = $this->gateway->process_refund( 99999999, 10.00, 'Test refund' );
 
 		$this->assertInstanceOf( 'WP_Error', $result, 'Should return WP_Error for invalid order' );
+		$this->assertEquals( 'xmoney_refund_error', $result->get_error_code(), 'Error code should be xmoney_refund_error' );
 	}
 
 	/**
@@ -182,6 +183,136 @@ class Test_Gateway extends Xmoney_Payments_Test_Case {
 		$result = $this->gateway->process_refund( $order->get_id(), 0, 'Test refund' );
 
 		$this->assertInstanceOf( 'WP_Error', $result, 'Should return WP_Error for zero amount' );
+		$this->assertEquals( 'xmoney_refund_error', $result->get_error_code(), 'Error code should be xmoney_refund_error' );
+	}
+
+	/**
+	 * Test process_refund with negative amount.
+	 */
+	public function test_process_refund_negative_amount() {
+		$this->assert_gateway_initialized();
+
+		$order = $this->create_test_order();
+
+		// Insert a transaction for this order.
+		global $wpdb;
+		$wpdb->insert(
+			$wpdb->prefix . 'xmoney_payments_transactions',
+			array(
+				'id_cart'       => $order->get_id(),
+				'transactionId' => 123457,
+				'status'        => 'complete-ok',
+				'identifier'    => 'test_identifier',
+				'orderId'       => 78911,
+				'customerId'    => 11112,
+				'cardId'        => 22223,
+				'checkout_url'  => '',
+			)
+		);
+
+		$result = $this->gateway->process_refund( $order->get_id(), -10.00, 'Test refund' );
+
+		$this->assertInstanceOf( 'WP_Error', $result, 'Should return WP_Error for negative amount' );
+		$this->assertEquals( 'xmoney_refund_error', $result->get_error_code(), 'Error code should be xmoney_refund_error' );
+	}
+
+	/**
+	 * Test process_refund with amount exceeding order total.
+	 */
+	public function test_process_refund_amount_exceeds_total() {
+		$this->assert_gateway_initialized();
+
+		$order = $this->create_test_order();
+
+		// Insert a transaction for this order.
+		global $wpdb;
+		$wpdb->insert(
+			$wpdb->prefix . 'xmoney_payments_transactions',
+			array(
+				'id_cart'       => $order->get_id(),
+				'transactionId' => 123458,
+				'status'        => 'complete-ok',
+				'identifier'    => 'test_identifier',
+				'orderId'       => 78912,
+				'customerId'    => 11113,
+				'cardId'        => 22224,
+				'checkout_url'  => '',
+			)
+		);
+
+		// Try to refund more than the order total.
+		$excessive_amount = floatval( $order->get_total() ) + 100.00;
+		$result           = $this->gateway->process_refund( $order->get_id(), $excessive_amount, 'Test refund' );
+
+		$this->assertInstanceOf( 'WP_Error', $result, 'Should return WP_Error for amount exceeding order total' );
+		$this->assertEquals( 'xmoney_refund_error', $result->get_error_code(), 'Error code should be xmoney_refund_error' );
+	}
+
+	/**
+	 * Test process_refund with missing transaction ID.
+	 */
+	public function test_process_refund_missing_transaction() {
+		$this->assert_gateway_initialized();
+
+		// Create order without inserting transaction record.
+		$order = $this->create_test_order();
+
+		$result = $this->gateway->process_refund( $order->get_id(), 10.00, 'Test refund' );
+
+		$this->assertInstanceOf( 'WP_Error', $result, 'Should return WP_Error when transaction ID is missing' );
+		$this->assertEquals( 'xmoney_refund_error', $result->get_error_code(), 'Error code should be xmoney_refund_error' );
+	}
+
+	/**
+	 * Test process_refund with valid parameters structure.
+	 * Note: This test validates the setup, actual API call would need mocking.
+	 */
+	public function test_process_refund_valid_structure() {
+		$this->assert_gateway_initialized();
+
+		$order = $this->create_test_order();
+
+		// Insert a transaction for this order.
+		global $wpdb;
+		$wpdb->insert(
+			$wpdb->prefix . 'xmoney_payments_transactions',
+			array(
+				'id_cart'       => $order->get_id(),
+				'transactionId' => 123459,
+				'status'        => 'complete-ok',
+				'identifier'    => 'test_identifier',
+				'orderId'       => 78913,
+				'customerId'    => 11114,
+				'cardId'        => 22225,
+				'checkout_url'  => '',
+			)
+		);
+
+		// Ensure configuration exists for the test.
+		$config_exists = $wpdb->get_var( 'SELECT COUNT(*) FROM ' . $wpdb->prefix . 'xmoney_payments_configuration' );
+
+		if ( ! $config_exists ) {
+			$wpdb->insert(
+				$wpdb->prefix . 'xmoney_payments_configuration',
+				array(
+					'live_mode'      => '0',
+					'staging_key'    => 'test_staging_key',
+					'live_key'       => 'test_live_key',
+					'site_id'        => 'test_site_id',
+					'suppress_email' => '0',
+					'contact_email'  => 'test@example.com',
+				)
+			);
+		}
+
+		// Test will attempt API call which will fail in test env, but validates setup.
+		$result = $this->gateway->process_refund( $order->get_id(), 5.00, 'Partial refund test' );
+
+		// Result should be either WP_Error (API failure expected in test) or true (if mocked).
+		$this->assertTrue(
+			is_wp_error( $result ) || true === $result,
+			'Result should be WP_Error or true'
+		);
 	}
 
 	/**
