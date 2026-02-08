@@ -378,7 +378,6 @@ function xmoney_payments_init_gateway_class() {
 
 					$request_data  = Xmoney_Payments_Helper_Notify::get_base64_json_request( $order_data );
 					$checksum      = Xmoney_Payments_Helper_Notify::get_base64_checksum( $order_data, $secret_key );
-					// $session_token = Xmoney_Payments_Helper_Processor::get_session_token( $is_live, $secret_key );
 
 					// Return payment data to JavaScript
 					return array(
@@ -976,24 +975,7 @@ function xmoney_payments_init_gateway_class() {
 				$payload  = Xmoney_Payments_Helper_Notify::get_base64_json_request( $order_data );
 				$checksum = Xmoney_Payments_Helper_Notify::get_base64_checksum( $order_data, $secret_key );
 
-				// Get session token if customer is logged in
-				$session_token = null;
-				// $saved_cards   = array();
-				// if ( $customer_id > 0 ) {
-				// 	$token_data = Xmoney_Payments_Helper_Processor::get_session_token( $is_live, $secret_key );
-				// 	if ( ! empty( $token_data ) && isset( $token_data['sessionToken'] ) ) {
-				// 		$session_token = $token_data['sessionToken'];
-				// 		$user_id       = isset( $token_data['userId'] ) ? $token_data['userId'] : null;
 
-				// 		// Get saved cards if session token is available
-				// 		if ( $session_token && $user_id ) {
-				// 			$saved_cards_data = Xmoney_Payments_Helper_Processor::get_saved_cards( $session_token, $user_id, $is_live );
-				// 			if ( ! empty( $saved_cards_data ) ) {
-				// 				$saved_cards = $saved_cards_data;
-				// 			}
-				// 		}
-				// 	}
-				// }
 
 				// Build response
 				$response = array(
@@ -1005,15 +987,6 @@ function xmoney_payments_init_gateway_class() {
 				);
 
 				// Add session token data if available
-				if ( $session_token ) {
-					$response['sessionToken'] = $session_token;
-					if ( ! empty( $token_data['userId'] ) ) {
-						$response['userId'] = $token_data['userId'];
-					}
-					if ( ! empty( $saved_cards ) ) {
-						$response['savedCards'] = $saved_cards;
-					}
-				}
 
 				wp_send_json_success( $response );
 			}
@@ -1374,18 +1347,10 @@ function xmoney_payments_init_gateway_class() {
 						'publicKey'           => $public_key,
 					);
 
-					$request_data  = Xmoney_Payments_Helper_Notify::get_base64_json_request( $order_data );
-					$checksum      = Xmoney_Payments_Helper_Notify::get_base64_checksum( $order_data, $secret_key );
-					$session_token = Xmoney_Payments_Helper_Processor::get_session_token( $is_live, $secret_key );
-
+				$request_data  = Xmoney_Payments_Helper_Notify::get_base64_json_request( $order_data );
+				$checksum      = Xmoney_Payments_Helper_Notify::get_base64_checksum( $order_data, $secret_key );
+				
 					// Check if session token was retrieved successfully
-					if ( empty( $session_token ) ) {
-						// Delete the draft order since we can't proceed
-						wp_delete_post( $draft_order_id, true );
-						WC()->session->set( 'xmoney_draft_order_id', null );
-						wp_send_json_error( array( 'message' => 'Failed to initialize payment session. Please check your xMoney credentials or try again later.' ), 500 );
-						return;
-					}
 
 					// Get saved card for logged-in users
 					$user_id    = get_current_user_id();

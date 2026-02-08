@@ -96,13 +96,7 @@ class Xmoney_Payments_Main_Processor {
 
 			$request = $this->prepare_request_data();
 
-			$session_token = Xmoney_Payments_Helper_Processor::get_session_token( $is_live, $secret_key );
-			if ( ! $session_token && function_exists( 'wc_get_logger' ) ) {
-				$logger = wc_get_logger();
-				// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-				$logger->warning( '[xMoney] Inline: session token not retrieved for environment ' . ( $is_live ? 'live' : 'stage' ), array( 'source' => 'xmoney-payments' ) );
-			}
-
+			
 			$sdk_url = $is_live ? ( Xmoney_Payments_Helper_Processor::LIVE_URL_JS . '/sdk/v1/xmoney.js' )
 				: ( Xmoney_Payments_Helper_Processor::STAGE_URL_JS . '/sdk/v1/xmoney.js' );
 
@@ -148,7 +142,7 @@ class Xmoney_Payments_Main_Processor {
 			$params['options']['enableSavedCards']      = $saved_cards_enabled;
 			$params['options']['appearance']            = $appearance;
 
-			if ( $saved_cards_enabled && $session_token && $saved_card ) {
+			if ( $saved_cards_enabled && $saved_card ) {
 				$params['userId'] = $saved_card['customer_id'];
 			}
 
