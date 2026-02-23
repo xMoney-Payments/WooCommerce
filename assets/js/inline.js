@@ -10,7 +10,7 @@
     let xmoneyFormInitialized = false;
     let xmoneyFormInitializing = false;
 
-    let draftOrderCreating = false;
+    let paymentPreparing = false;
 
     // -------------------------------------------------------------------------
     // AJAX URL helper - fallback if wc_checkout_params not available
@@ -442,7 +442,7 @@
     }
 
     // -------------------------------------------------------------------------
-    // Draft order helpers
+    // Payment data helpers (no WP order created until Place Order)
     // -------------------------------------------------------------------------
 
     function collectCheckoutPayload(base) {
@@ -456,15 +456,14 @@
         return payload;
     }
 
-    function updateDraftOrderAddress() {
-        if (!window.xmoneyData || !window.xmoneyData.orderId) {
+    function refreshPaymentData() {
+        if (!window.xmoneyData) {
             return;
         }
 
         const payload = collectCheckoutPayload({
-            action: 'xmoney_update_draft_order',
-            order_id: window.xmoneyData.orderId,
-            nonce: $('input[name="woocommerce-process-checkout-nonce"]').val()
+            action: 'xmoney_prepare_payment',
+            nonce: typeof xmoneyConfig !== 'undefined' ? xmoneyConfig.nonce : ''
         });
 
         $.ajax({
@@ -472,43 +471,43 @@
             type: 'POST',
             data: payload,
             success: function(response) {
-                // If server returns new payload/checksum, update the SDK iframe
                 if (response && response.success && response.data && response.data.payload && response.data.checksum) {
-                    // Update stored data
                     window.xmoneyData.payload = response.data.payload;
                     window.xmoneyData.checksum = response.data.checksum;
-                    // Update the SDK iframe with new order data
+                    if (response.data.customer) {
+                        window.xmoneyData.customer = response.data.customer;
+                    }
                     if (window.__xmoneyForm && typeof window.__xmoneyForm.updateOrder === 'function') {
                         window.__xmoneyForm.updateOrder({ orderPayload: response.data.payload, orderChecksum: response.data.checksum });
                     }
                 }
             },
-            error: function(xhr, status, error) {
-                // Silently fail - don't disrupt user experience
-                // The order will still have the data from when it was created
+            error: function() {
+                // Silently fail - payment data will be refreshed when order is created
             }
         });
     }
 
-    function createDraftOrderAndInitialize() {
+    function preparePaymentAndInitialize() {
         if (!xmoneyIsSelected()) {
             return;
         }
 
-        if (draftOrderCreating) {
+        if (paymentPreparing) {
             return;
         }
 
-        if (window.xmoneyData && window.xmoneyData.orderId) {
+        // If SDK is already initialized, don't reinitialize
+        if (window.xmoneyData && xmoneyFormInitialized) {
             return;
         }
 
-        draftOrderCreating = true;
+        paymentPreparing = true;
         blockCheckout();
 
         const payload = collectCheckoutPayload({
-            action: 'xmoney_create_draft_order',
-            nonce: $('input[name="woocommerce-process-checkout-nonce"]').val()
+            action: 'xmoney_prepare_payment',
+            nonce: typeof xmoneyConfig !== 'undefined' ? xmoneyConfig.nonce : ''
         });
 
         $.ajax({
@@ -516,7 +515,7 @@
             type: 'POST',
             data: payload,
             success: function (response) {
-                draftOrderCreating = false;
+                paymentPreparing = false;
                 unblockCheckout();
 
                 if (response && response.success && response.data) {
@@ -529,7 +528,7 @@
                 }
             },
             error: function () {
-                draftOrderCreating = false;
+                paymentPreparing = false;
                 unblockCheckout();
             }
         });
@@ -563,7 +562,6 @@
                 return true;
             }
             
-            // All required fields filled - update draft order with final billing info, then submit
             if (!window.__xmoneyForm || !xmoneyFormInitialized) {
                 showCheckoutError('Payment form is not ready. Please wait a moment and try again.');
                 return false;
@@ -574,27 +572,44 @@
                 return false;
             }
             
-            // Update draft order with current billing info before submitting payment
             blockCheckout();
             
-            const payload = collectCheckoutPayload({
-                action: 'xmoney_update_draft_order',
-                order_id: window.xmoneyData.orderId,
+            // Create the WP order now (deferred until the user actually submits payment)
+            const orderPayload = collectCheckoutPayload({
+                action: 'xmoney_create_draft_order',
                 nonce: $('input[name="woocommerce-process-checkout-nonce"]').val()
             });
             
             $.ajax({
                 url: getAjaxUrl(),
                 type: 'POST',
-                data: payload,
+                data: orderPayload,
                 success: function(response) {
-                    
-                    // Submit the payment using the existing form (preserves card selection).
-                    window.__xmoneyForm.submit();
+                    if (response && response.success && response.data) {
+                        // Merge real order data into xmoneyData (orderId, confirmUrl, restNonce, etc.)
+                        window.xmoneyData = Object.assign(window.xmoneyData || {}, response.data);
+                        
+                        // Update SDK with payload containing the real orderId
+                        if (window.__xmoneyForm && typeof window.__xmoneyForm.updateOrder === 'function') {
+                            window.__xmoneyForm.updateOrder({
+                                orderPayload: response.data.payload,
+                                orderChecksum: response.data.checksum
+                            });
+                        }
+                        
+                        // Allow a short delay for updateOrder to take effect, then submit payment
+                        setTimeout(function() {
+                            window.__xmoneyForm.submit();
+                        }, 150);
+                    } else {
+                        unblockCheckout();
+                        var msg = response && response.data && response.data.message ? response.data.message : 'Failed to create order.';
+                        showCheckoutError(msg);
+                    }
                 },
                 error: function() {
                     unblockCheckout();
-                    showCheckoutError('Failed to update order. Please try again.');
+                    showCheckoutError('Failed to create order. Please try again.');
                 }
             });
             
@@ -616,12 +631,12 @@
 
             clearTimeout(window.xmoneyFieldTimeout);
             window.xmoneyFieldTimeout = setTimeout(function () {
-                // If we already have a draft order and SDK initialized, update the order with new billing data
-                if (window.xmoneyData && window.xmoneyData.orderId && xmoneyFormInitialized) {
-                    updateDraftOrderAddress();
+                if (window.xmoneyData && xmoneyFormInitialized) {
+                    // SDK already initialized - refresh payment data with updated billing info
+                    refreshPaymentData();
                 } else {
-                    // No draft order yet, try to create one
-                    createDraftOrderAndInitialize();
+                    // No payment data yet - prepare and initialize from cart
+                    preparePaymentAndInitialize();
                 }
             }, 500);
         });
@@ -630,8 +645,8 @@
     function bindWooEvents() {
         $(document.body).on('updated_checkout payment_method_selected', function () {
             if (xmoneyIsSelected()) {
-                // Always try to create draft order when payment method selected
-                createDraftOrderAndInitialize();
+                // Prepare payment data from cart and initialize SDK (no WP order created)
+                preparePaymentAndInitialize();
 
                 // Try to init iframe
                 setTimeout(function() {

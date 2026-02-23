@@ -831,7 +831,7 @@ function xmoney_payments_init_gateway_class() {
 
 				$sdk_url = $is_live
 					? ( Xmoney_Payments_Helper_Processor::LIVE_URL_JS . '/sdk/v1/xmoney.js' )
-					: ( Xmoney_Payments_Helper_Processor::STAGE_URL_JS . '/sdk/v1/xmoney.js' );
+					: ( Xmoney_Payments_Helper_Processor::STAGE_URL_JS . '/sdk/v1.alpha.0/xmoney.js' );
 
 				// Enqueue the xMoney SDK script
 				wp_enqueue_script(
@@ -863,133 +863,153 @@ function xmoney_payments_init_gateway_class() {
 				);
 			}
 
-			/**
-			 * AJAX handler to prepare payment data without creating order
-			 *
-			 * @return void
-			 */
-			public function ajax_prepare_payment() {
-				// Verify nonce
-				if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['nonce'] ) ), 'xmoney_prepare_payment' ) ) {
-					wp_send_json_error( array( 'message' => 'Invalid nonce' ), 403 );
-				}
-
-				// Check if cart exists
-				if ( ! WC()->cart || WC()->cart->is_empty() ) {
-					wp_send_json_error( array( 'message' => 'Cart is empty' ), 400 );
-				}
-
-				require_once XMONEY_PAYMENTS_PLUGIN_DIR . 'helpers/class-xmoney-payments-helper-processor.php';
-
-				// Get configuration
-				$config = Xmoney_Payments_Helper_Processor::get_configuration();
-				if ( empty( $config ) ) {
-					wp_send_json_error( array( 'message' => 'Configuration not available' ), 500 );
-				}
-
-				$is_live    = ! empty( $config['is_live'] );
-				$public_key = $config['site_id'];
-				$secret_key = $config['secret_key'];
-
-				// Get cart data
-				$cart       = WC()->cart;
-				$cart_total = $cart->get_total( 'raw' );
-
-				// Build order data similar to processor
-				$customer_id        = get_current_user_id();
-				$billing_email      = WC()->customer ? WC()->customer->get_billing_email() : '';
-				$billing_phone      = WC()->customer ? WC()->customer->get_billing_phone() : '';
-				$billing_first_name = WC()->customer ? WC()->customer->get_billing_first_name() : '';
-				$billing_last_name  = WC()->customer ? WC()->customer->get_billing_last_name() : '';
-				$billing_country    = WC()->customer ? WC()->customer->get_billing_country() : '';
-				$billing_city       = WC()->customer ? WC()->customer->get_billing_city() : '';
-				$billing_address    = WC()->customer ? WC()->customer->get_billing_address_1() : '';
-				$billing_postcode   = WC()->customer ? WC()->customer->get_billing_postcode() : '';
-
-				// Generate temporary order ID (will be replaced when actual order is created)
-				$temp_order_id = 'temp_' . time() . '_' . wp_rand( 1000, 9999 );
-
-				// Generate customer identifier similar to processor
-				$site_hash = substr( md5( get_site_url() ), 0, 8 );
-				if ( $customer_id ) {
-					$customer_identifier = sprintf( 'site%s_user_%d', $site_hash, $customer_id );
-				} else {
-					$customer_identifier = sprintf( 'site%s_guest_%s', $site_hash, uniqid() );
-				}
-
-				// Build customer array
-				$customer = array(
-					'identifier' => $customer_identifier,
-					'firstName'  => $billing_first_name,
-					'lastName'   => $billing_last_name,
-					'country'    => $billing_country,
-					'city'       => $billing_city,
-					'address'    => $billing_address,
-					'zipCode'    => $billing_postcode,
-					'phone'      => Xmoney_Payments_Helper_Processor::format_phone( $billing_phone ),
-					'email'      => $billing_email,
-				);
-
-				// Build items array from cart
-				$items = array();
-				foreach ( $cart->get_cart() as $cart_item ) {
-					$product = $cart_item['data'];
-					$items[] = array(
-						'item'      => $product->get_name(),
-						'units'     => $cart_item['quantity'],
-						'unitPrice' => floatval( $cart_item['line_subtotal'] / $cart_item['quantity'] ),
-					);
-				}
-
-				// Build backUrl (temporary - will be replaced when order is created)
-				$back_url = wc_get_checkout_url();
-
-				// Build order array matching processor format
-				// NOTE: Don't include orderId at all for early initialization to avoid validation
-				$order_data = array(
-					'siteId'              => $public_key,
-					'customer'            => $customer,
-					'order'               => array(
-						// orderId intentionally omitted - will be added when order is created
-						'type'     => 'purchase',
-						'amount'   => $cart_total,
-						'currency' => get_woocommerce_currency(),
-						'items'    => $items,
-					),
-					'cardTransactionMode' => 'authAndCapture',
-					'invoiceEmail'        => '',
-					'backUrl'             => $back_url,
-				);
-
-				// Add publicKey for inline checkout
-				$order_data['publicKey'] = $public_key;
-
-				// Check for subscriptions in cart
-				$has_subscription = false;
-				if ( class_exists( 'WC_Subscriptions_Cart' ) ) {
-					$has_subscription = WC_Subscriptions_Cart::cart_contains_subscription();
-				}
-
-				// Build payload and checksum using the same method as processor
-				require_once XMONEY_PAYMENTS_PLUGIN_DIR . 'helpers/class-xmoney-payments-helper-notify.php';
-				$payload  = Xmoney_Payments_Helper_Notify::get_base64_json_request( $order_data );
-				$checksum = Xmoney_Payments_Helper_Notify::get_base64_checksum( $order_data, $secret_key );
-
-
-
-				// Build response
-				$response = array(
-					'publicKey'       => $public_key,
-					'payload'         => $payload,
-					'checksum'        => $checksum,
-					'hasSubscription' => $has_subscription,
-					'tempOrderId'     => $temp_order_id,
-				);
-
-				// Add session token data if available
-
-				wp_send_json_success( $response );
+		/**
+		 * AJAX handler to prepare payment data from cart without creating a WP order.
+		 *
+		 * Returns all data needed to initialize the inline SDK. The actual WP order
+		 * is only created later when the user clicks "Place Order" (via ajax_create_draft_order).
+		 *
+		 * @return void
+		 */
+		public function ajax_prepare_payment() {
+			// Verify nonce.
+			if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['nonce'] ) ), 'xmoney_prepare_payment' ) ) {
+				wp_send_json_error( array( 'message' => 'Invalid nonce' ), 403 );
 			}
+
+			// Check if cart exists.
+			if ( ! WC()->cart || WC()->cart->is_empty() ) {
+				wp_send_json_error( array( 'message' => 'Cart is empty' ), 400 );
+			}
+
+			require_once XMONEY_PAYMENTS_PLUGIN_DIR . 'helpers/class-xmoney-payments-helper-processor.php';
+
+			// Get configuration.
+			$config = Xmoney_Payments_Helper_Processor::get_configuration();
+			if ( empty( $config ) ) {
+				wp_send_json_error( array( 'message' => 'Configuration not available' ), 500 );
+			}
+
+			$is_live    = ! empty( $config['is_live'] );
+			$public_key = $config['site_id'];
+			$secret_key = $config['secret_key'];
+
+			// Get cart data.
+			$cart       = WC()->cart;
+			$cart_total = $cart->get_total( 'raw' );
+
+			// Read billing data from POST (checkout form fields) with WC customer fallback.
+			// phpcs:disable WordPress.Security.NonceVerification.Missing -- Nonce already verified above.
+			$customer_id        = get_current_user_id();
+			$billing_first_name = ! empty( $_POST['billing_first_name'] ) ? sanitize_text_field( wp_unslash( $_POST['billing_first_name'] ) ) : ( WC()->customer ? WC()->customer->get_billing_first_name() : '' );
+			$billing_last_name  = ! empty( $_POST['billing_last_name'] ) ? sanitize_text_field( wp_unslash( $_POST['billing_last_name'] ) ) : ( WC()->customer ? WC()->customer->get_billing_last_name() : '' );
+			$billing_email      = ! empty( $_POST['billing_email'] ) ? sanitize_email( wp_unslash( $_POST['billing_email'] ) ) : ( WC()->customer ? WC()->customer->get_billing_email() : '' );
+			$billing_phone      = ! empty( $_POST['billing_phone'] ) ? sanitize_text_field( wp_unslash( $_POST['billing_phone'] ) ) : ( WC()->customer ? WC()->customer->get_billing_phone() : '' );
+			$billing_country    = ! empty( $_POST['billing_country'] ) ? sanitize_text_field( wp_unslash( $_POST['billing_country'] ) ) : ( WC()->customer ? WC()->customer->get_billing_country() : '' );
+			$billing_city       = ! empty( $_POST['billing_city'] ) ? sanitize_text_field( wp_unslash( $_POST['billing_city'] ) ) : ( WC()->customer ? WC()->customer->get_billing_city() : '' );
+			$billing_address    = ! empty( $_POST['billing_address_1'] ) ? sanitize_text_field( wp_unslash( $_POST['billing_address_1'] ) ) : ( WC()->customer ? WC()->customer->get_billing_address_1() : '' );
+			$billing_postcode   = ! empty( $_POST['billing_postcode'] ) ? sanitize_text_field( wp_unslash( $_POST['billing_postcode'] ) ) : ( WC()->customer ? WC()->customer->get_billing_postcode() : '' );
+			// phpcs:enable WordPress.Security.NonceVerification.Missing
+
+			// Generate customer identifier.
+			$site_hash = substr( md5( get_site_url() ), 0, 8 );
+			if ( $customer_id ) {
+				$customer_identifier = sprintf( 'site%s_user_%d', $site_hash, $customer_id );
+			} else {
+				$customer_identifier = sprintf( 'site%s_guest_%s', $site_hash, uniqid() );
+			}
+
+			// Build customer array.
+			$customer = array(
+				'identifier' => $customer_identifier,
+				'firstName'  => $billing_first_name,
+				'lastName'   => $billing_last_name,
+				'country'    => $billing_country,
+				'city'       => $billing_city,
+				'address'    => $billing_address,
+				'zipCode'    => $billing_postcode,
+				'phone'      => Xmoney_Payments_Helper_Processor::format_phone( $billing_phone ),
+				'email'      => $billing_email,
+			);
+
+			// Build items array from cart.
+			$items = array();
+			foreach ( $cart->get_cart() as $cart_item ) {
+				$product = $cart_item['data'];
+				$items[] = array(
+					'item'      => $product->get_name(),
+					'units'     => $cart_item['quantity'],
+					'unitPrice' => floatval( $cart_item['line_subtotal'] / $cart_item['quantity'] ),
+				);
+			}
+
+			// Use a temporary orderId so the SDK can validate the payload and
+			// initialize the payment form. It will be replaced with the real
+			// WP order ID when the user clicks "Place Order".
+			$temp_order_id = 'tmp_' . substr( md5( WC()->cart->get_cart_hash() . time() ), 0, 12 );
+
+			$order_data = array(
+				'siteId'              => $public_key,
+				'customer'            => $customer,
+				'order'               => array(
+					'orderId'  => $temp_order_id,
+					'type'     => 'purchase',
+					'amount'   => $cart_total,
+					'currency' => get_woocommerce_currency(),
+					'items'    => $items,
+				),
+				'cardTransactionMode' => 'authAndCapture',
+				'invoiceEmail'        => '',
+				'backUrl'             => wc_get_checkout_url(),
+				'publicKey'           => $public_key,
+			);
+
+			// Check for subscriptions in cart.
+			$has_subscription = false;
+			if ( class_exists( 'WC_Subscriptions_Cart' ) ) {
+				$has_subscription = WC_Subscriptions_Cart::cart_contains_subscription();
+			}
+
+			// Build payload and checksum.
+			require_once XMONEY_PAYMENTS_PLUGIN_DIR . 'helpers/class-xmoney-payments-helper-notify.php';
+			$payload  = Xmoney_Payments_Helper_Notify::get_base64_json_request( $order_data );
+			$checksum = Xmoney_Payments_Helper_Notify::get_base64_checksum( $order_data, $secret_key );
+
+			// Get saved card for logged-in users.
+			$user_id    = get_current_user_id();
+			$saved_card = $user_id ? get_user_meta( $user_id, '_xmoney_saved_card', true ) : null;
+
+			// Check if saved cards are enabled in config.
+			$saved_cards_enabled = function_exists( 'xmoney_payments_is_saved_cards_enabled' ) && xmoney_payments_is_saved_cards_enabled();
+
+			// Get appearance config (theme + custom variables if applicable).
+			$appearance = function_exists( 'xmoney_payments_get_appearance_config' ) ? xmoney_payments_get_appearance_config() : array( 'theme' => 'light' );
+
+			// Build response with all data needed for SDK initialization.
+			$response = array(
+				'publicKey'       => $public_key,
+				'payload'         => $payload,
+				'checksum'        => $checksum,
+				'customer'        => $customer,
+				'hasSubscription' => $has_subscription,
+				'confirmUrl'      => esc_url_raw( rest_url( 'xmoney/v1/inline/confirm' ) ),
+				'restNonce'       => wp_create_nonce( 'wp_rest' ),
+				'cartNonce'       => wp_create_nonce( 'xmoney-empty-cart' ),
+				'options'         => array(
+					'displaySaveCardOption' => $saved_cards_enabled && $user_id ? true : false,
+					'displayCardHolderName' => true,
+					'enableSavedCards'      => $saved_cards_enabled,
+					'appearance'            => $appearance,
+				),
+			);
+
+			// Add saved card data if available and enabled.
+			if ( $saved_cards_enabled && $saved_card && ! empty( $saved_card['customer_id'] ) ) {
+				$response['userId'] = $saved_card['customer_id'];
+			}
+
+			wp_send_json_success( $response );
+		}
 
 			/**
 			 * AJAX handler to create WooCommerce order before payment
