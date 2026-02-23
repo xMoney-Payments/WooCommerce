@@ -78,23 +78,26 @@ add_action(
 					$raw_tx = isset( $payment_response['_rawTransaction'] ) ? $payment_response['_rawTransaction'] : array();
 
 					// Extract transaction ID - check all possible sources.
-					// Priority: explicit transactionId > _rawTransaction fields > id (which is xMoney order ID).
+					// The SDK transaction object uses 'id' for the transaction ID.
 					$transaction_id = 0;
-					// 1. Direct transactionId field from the normalized result.
 					if ( ! empty( $payment_response['transactionId'] ) ) {
 						$transaction_id = (int) $payment_response['transactionId'];
 					}
-					// 2. transactionId from the raw transaction object.
 					if ( ! $transaction_id && ! empty( $raw_tx['transactionId'] ) ) {
 						$transaction_id = (int) $raw_tx['transactionId'];
 					}
-					// 3. transactionId on the top-level result (before decryption normalization).
 					if ( ! $transaction_id && ! empty( $result['transactionId'] ) ) {
 						$transaction_id = (int) $result['transactionId'];
 					}
+					// The SDK uses 'id' on the transaction object as the transaction ID.
+					if ( ! $transaction_id && ! empty( $raw_tx['id'] ) ) {
+						$transaction_id = (int) $raw_tx['id'];
+					}
+					if ( ! $transaction_id && ! empty( $payment_response['id'] ) ) {
+						$transaction_id = (int) $payment_response['id'];
+					}
 
 					// Extract xMoney order ID (distinct from WooCommerce order ID).
-					// The SDK 'id' field typically refers to the xMoney order, not the transaction.
 					$xmoney_order_id = 0;
 					if ( ! empty( $payment_response['orderId'] ) ) {
 						$xmoney_order_id = (int) $payment_response['orderId'];
@@ -102,10 +105,6 @@ add_action(
 						$xmoney_order_id = (int) $raw_tx['orderId'];
 					} elseif ( ! empty( $result['orderId'] ) ) {
 						$xmoney_order_id = (int) $result['orderId'];
-					}
-					// 'id' is xMoney order ID if we don't already have one.
-					if ( ! $xmoney_order_id && ! empty( $payment_response['id'] ) ) {
-						$xmoney_order_id = (int) $payment_response['id'];
 					}
 
 					// Extract customer ID from response.

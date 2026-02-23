@@ -245,7 +245,8 @@ class Xmoney_Payments_Transaction_Table extends Xmoney_Payments_List_Table {
 
 		// Sanitize GET values (read-only, no nonce required)
         // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- All GET accesses are for read-only listing controls.
-		$s = isset( $_GET['s'] ) ? sanitize_text_field( wp_unslash( $_GET['s'] ) ) : 'all';
+		$s_raw = isset( $_GET['s'] ) ? sanitize_text_field( wp_unslash( $_GET['s'] ) ) : '';
+		$s     = ( '' === $s_raw ) ? 'all' : $s_raw;
         // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only sort key.
 		$order_by = isset( $_GET['orderby'] ) ? sanitize_text_field( wp_unslash( $_GET['orderby'] ) ) : '';
         // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only sort direction.
@@ -327,7 +328,7 @@ class Xmoney_Payments_Transaction_Table extends Xmoney_Payments_List_Table {
 		}
 
 		// Pagination
-		$current_page = $this->get_pagenum();
+		$current_page = $this->get_xmoney_payments_pagenum();
 		$total_items  = count( $data );
 
 		$this->items = array_slice( $data, ( $current_page - 1 ) * $per_page, $per_page );

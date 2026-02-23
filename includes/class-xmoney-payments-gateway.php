@@ -144,9 +144,9 @@ function xmoney_payments_init_gateway_class() {
 					require XMONEY_PAYMENTS_PLUGIN_DIR . 'lang/en/lang.php';
 				}
 
-				$this->id                 = 'xmoney-payments';
-				$this->icon               = XMONEY_PAYMENTS_PLUGIN_URL . 'logo.png';
-				$this->has_fields         = true;
+			$this->id                 = 'xmoney-payments';
+			$this->icon               = XMONEY_PAYMENTS_PLUGIN_URL . 'assets/images/settings-logo.png';
+			$this->has_fields         = true;
 				$this->method_title       = esc_html__( 'xMoney Payments', 'xmoney-payments' );
 				$this->method_description = esc_html__( 'Have your customers pay with xMoney payment gateway.', 'xmoney-payments' );
 				if ( class_exists( 'WC_Subscriptions' ) ) {
@@ -225,16 +225,29 @@ function xmoney_payments_init_gateway_class() {
 					),
 				);
 
-				add_action( 'woocommerce_update_options_payment_gateways_' . $this->id, array( $this, 'process_admin_options' ) );
-				// Note: AJAX hooks are now registered at file level to ensure they work during AJAX requests
-			}
+			add_action( 'woocommerce_update_options_payment_gateways_' . $this->id, array( $this, 'process_admin_options' ) );
+			// Note: AJAX hooks are now registered at file level to ensure they work during AJAX requests
+		}
 
-			/**
-			 * Check if the Xmoney Payments Gateway is available for use
-			 *
-			 * @return bool
-			 */
-			public function is_available(): bool {
+		/**
+		 * Return the gateway icon for the checkout page.
+		 * Uses a separate logo from the one shown on the WooCommerce settings page.
+		 *
+		 * @return string
+		 */
+		public function get_icon() {
+			$icon_url = XMONEY_PAYMENTS_PLUGIN_URL . 'assets/images/checkout-logo.svg';
+			$icon     = '<img src="' . esc_url( $icon_url ) . '" alt="' . esc_attr( $this->get_title() ) . '" />';
+
+			return apply_filters( 'woocommerce_gateway_icon', $icon, $this->id );
+		}
+
+		/**
+		 * Check if the Xmoney Payments Gateway is available for use
+		 *
+		 * @return bool
+		 */
+		public function is_available(): bool {
 				$xmoney_payments_order = null;
 				$needs_shipping        = false;
 

@@ -29,9 +29,26 @@ if ( ! class_exists( 'Xmoney_Payments_Admin_Menu' ) ) :
 		 * @public
 		 * @return void
 		 */
-		public function __construct() {
-			add_action( 'admin_menu', array( $this, 'admin_menu' ) );
-		}
+	public function __construct() {
+		add_action( 'admin_menu', array( $this, 'admin_menu' ) );
+		add_action( 'admin_head', array( $this, 'admin_menu_icon_css' ) );
+	}
+
+	/**
+	 * Output inline CSS to constrain the admin menu icon size.
+	 *
+	 * @public
+	 * @return void
+	 */
+	public function admin_menu_icon_css() {
+		echo '<style>'
+			. '#adminmenu .toplevel_page_xmoney-payments .wp-menu-image img{'
+			. 'max-width:20px;'
+			. 'max-height:20px;'
+			. 'padding:7px 0 0;'
+			. '}'
+			. '</style>';
+	}
 
 		/**
 		 * Function that will add the menus items, as well the submenus
@@ -49,8 +66,8 @@ if ( ! class_exists( 'Xmoney_Payments_Admin_Menu' ) ) :
 				require XMONEY_PAYMENTS_PLUGIN_DIR . 'lang/en/lang.php';
 			}
 
-			// Add main adminsitrator page
-			add_menu_page( __( 'xMoney Payments', 'xmoney-payments' ), esc_attr__( 'xMoney Payments', 'xmoney-payments' ), 'edit_posts', 'xmoney-payments', 'xmoney_payments_configuration', 'dashicons-editor-paste-text', 1000 );
+		// Add main adminsitrator page
+		add_menu_page( __( 'xMoney Payments', 'xmoney-payments' ), esc_attr__( 'xMoney Payments', 'xmoney-payments' ), 'edit_posts', 'xmoney-payments', 'xmoney_payments_configuration', XMONEY_PAYMENTS_PLUGIN_URL . 'assets/images/admin-menu-icon.png', 1000 );
 
 			// Add submenus
 			add_submenu_page( 'xmoney-payments', esc_attr__( 'Configuration', 'xmoney-payments' ), esc_attr__( 'Configuration', 'xmoney-payments' ), 'edit_posts', 'xmoney-payments', 'xmoney_payments_configuration' );

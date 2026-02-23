@@ -63,7 +63,7 @@ class Test_Gateway extends Xmoney_Payments_Test_Case {
 	public function test_gateway_icon() {
 		$this->assert_gateway_initialized();
 
-		$this->assertStringContainsString( 'logo.png', $this->gateway->icon, 'Gateway should have logo.png icon' );
+		$this->assertStringContainsString( 'assets/images/settings-logo.png', $this->gateway->icon, 'Gateway should have settings-logo.png icon' );
 	}
 
 	/**
