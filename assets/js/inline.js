@@ -47,9 +47,10 @@
         const status = tx.transactionStatus || tx.status || tx.orderStatus || '';
 
         return {
-            // Preserve ALL ID fields so the server can pick the right one
+            // Preserve ALL ID fields so the server can pick the right one.
+            // The SDK uses 'id' on the transaction object as the transaction ID.
             id: tx.id,
-            transactionId: tx.transactionId || tx.transactionID || null,
+            transactionId: tx.transactionId || tx.transactionID || tx.id || null,
             orderId: tx.orderId || tx.orderID || null,
             externalOrderId: tx.externalOrderId,
             orderStatus: status,
@@ -338,6 +339,7 @@
             },
 
             onSuccess: function (result) {
+                console.log('[xMoney SDK] onSuccess called with result:', result);
                 // SDK may call onSuccess for intermediate states (e.g. 3DS)
                 if (result && result.needs3dSecureRedirect) {
                     return;
@@ -357,6 +359,7 @@
             },
 
             onPaymentComplete: function (result) {
+                console.log('[xMoney SDK] onPaymentComplete called with result:', result);
                 if (!result) {
                     console.log('[xMoney SDK] onPaymentComplete called with no result');
                     return;
