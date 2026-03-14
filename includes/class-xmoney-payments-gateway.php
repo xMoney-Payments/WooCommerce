@@ -844,7 +844,7 @@ function xmoney_payments_init_gateway_class() {
 
 				$sdk_url = $is_live
 					? ( Xmoney_Payments_Helper_Processor::LIVE_URL_JS . '/sdk/v1/xmoney.js' )
-					: ( Xmoney_Payments_Helper_Processor::STAGE_URL_JS . '/sdk/v1.alpha.0/xmoney.js' );
+					: ( Xmoney_Payments_Helper_Processor::STAGE_URL_JS . '/sdk/v1/xmoney.js' );
 
 				// Enqueue the xMoney SDK script
 				wp_enqueue_script(
