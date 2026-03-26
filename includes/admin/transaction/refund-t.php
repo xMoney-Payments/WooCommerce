@@ -15,10 +15,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Load languages
-$xmoney_payments_lang     = explode( '-', get_bloginfo( 'language' ) );
-	$xmoney_payments_lang = $xmoney_payments_lang[0];
-if ( file_exists( XMONEY_PAYMENTS_PLUGIN_DIR . 'lang/' . $xmoney_payments_lang . '/lang.php' ) ) {
-	require XMONEY_PAYMENTS_PLUGIN_DIR . 'lang/' . $xmoney_payments_lang . '/lang.php';
+$xmoney_payments_lang_code = explode( '-', get_bloginfo( 'language' ) );
+$xmoney_payments_lang_code = $xmoney_payments_lang_code[0];
+if ( file_exists( XMONEY_PAYMENTS_PLUGIN_DIR . 'lang/' . $xmoney_payments_lang_code . '/lang.php' ) ) {
+	require XMONEY_PAYMENTS_PLUGIN_DIR . 'lang/' . $xmoney_payments_lang_code . '/lang.php';
 } else {
 	require XMONEY_PAYMENTS_PLUGIN_DIR . 'lang/en/lang.php';
 }

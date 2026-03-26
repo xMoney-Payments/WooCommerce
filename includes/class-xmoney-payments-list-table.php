@@ -1106,6 +1106,7 @@ abstract class Xmoney_Payments_List_Table {
 		$host = isset( $_SERVER['HTTP_HOST'] ) ? sanitize_text_field( wp_unslash( $_SERVER['HTTP_HOST'] ) ) : '';
 		$uri  = isset( $_SERVER['REQUEST_URI'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : '';
 
+		$current_url = '';
 		if ( filter_var( $host, FILTER_VALIDATE_DOMAIN, FILTER_FLAG_HOSTNAME ) ) {
 			$current_url = esc_url( set_url_scheme( 'http://' . $host . $uri ) );
 			$current_url = remove_query_arg( 'paged', $current_url );

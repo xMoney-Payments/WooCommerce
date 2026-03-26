@@ -141,20 +141,31 @@ if ( ! class_exists( 'Xmoney_Payments_Helper_Response' ) ) :
 				return false;
 			}
 
-			if ( empty( $xmoney_payments_response['status'] ) && empty( $xmoney_payments_response['transactionStatus'] ) ) {
-				$xmoney_payments_errors[] = esc_html__( '[RESPONSE-ERROR]: Empty status', 'xmoney-payments' );
-			}
+			// Check if Inline Checkout is active and diferentiate API Responses validation
+			if ( function_exists( 'xmoney_payments_is_inline_enabled' ) && xmoney_payments_is_inline_enabled() ) {
+				if ( empty( $xmoney_payments_response['orderStatus'] ) ) {
+					$xmoney_payments_errors[] = esc_html__( '[RESPONSE-ERROR]: Empty status', 'xmoney-payments' );
+				}
 
-			if ( empty( $xmoney_payments_response['identifier'] ) ) {
-				$xmoney_payments_errors[] = esc_html__( '[RESPONSE-ERROR]: Empty identifier', 'xmoney-payments' );
+				if ( empty( $xmoney_payments_response['customerData']['identifier'] ) ) {
+					$xmoney_payments_errors[] = esc_html__( '[RESPONSE-ERROR]: Empty identifier', 'xmoney-payments' );
+				}
+			} else {
+				if ( empty( $xmoney_payments_response['status'] ) && empty( $xmoney_payments_response['transactionStatus'] ) ) {
+					$xmoney_payments_errors[] = esc_html__( '[RESPONSE-ERROR]: Empty status', 'xmoney-payments' );
+				}
+
+				if ( empty( $xmoney_payments_response['identifier'] ) ) {
+					$xmoney_payments_errors[] = esc_html__( '[RESPONSE-ERROR]: Empty identifier', 'xmoney-payments' );
+				}
+
+				if ( empty( $xmoney_payments_response['transactionId'] ) ) {
+					$xmoney_payments_errors[] = esc_html__( '[RESPONSE-ERROR]: Empty transactionId', 'xmoney-payments' );
+				}
 			}
 
 			if ( empty( $xmoney_payments_response['externalOrderId'] ) ) {
 				$xmoney_payments_errors[] = esc_html__( '[RESPONSE-ERROR]: Empty externalOrderId', 'xmoney-payments' );
-			}
-
-			if ( empty( $xmoney_payments_response['transactionId'] ) ) {
-				$xmoney_payments_errors[] = esc_html__( '[RESPONSE-ERROR]: Empty transactionId', 'xmoney-payments' );
 			}
 
 			if ( count( $xmoney_payments_errors ) > 0 ) {
@@ -165,14 +176,27 @@ if ( ! class_exists( 'Xmoney_Payments_Helper_Response' ) ) :
 				return false;
 			} else {
 				$data = array(
-					'id_cart'       => sanitize_text_field( explode( '_', $xmoney_payments_response['externalOrderId'] )[0] ),
-					'status'        => sanitize_text_field( ( empty( $xmoney_payments_response['status'] ) ) ? ( $xmoney_payments_response['transactionStatus'] ) : ( $xmoney_payments_response['status'] ) ),
-					'identifier'    => sanitize_text_field( $xmoney_payments_response['identifier'] ),
-					'orderId'       => (int) $xmoney_payments_response['orderId'],
-					'transactionId' => (int) $xmoney_payments_response['transactionId'],
-					'customerId'    => (int) $xmoney_payments_response['customerId'],
-					'cardId'        => ( ! empty( $xmoney_payments_response['cardId'] ) ) ? ( (int) $xmoney_payments_response['cardId'] ) : ( 0 ),
+					'id_cart'    => sanitize_text_field( explode( '_', $xmoney_payments_response['externalOrderId'] )[0] ),
+					'customerId' => (int) $xmoney_payments_response['customerId'],
+					'cardId'     => ( ! empty( $xmoney_payments_response['cardId'] ) ) ? ( (int) $xmoney_payments_response['cardId'] ) : ( 0 ),
 				);
+
+				// Check if Inline Checkout is active and diferentiate API Responses
+				if ( function_exists( 'xmoney_payments_is_inline_enabled' ) && xmoney_payments_is_inline_enabled() ) {
+					$data['status']        = sanitize_text_field( $xmoney_payments_response['orderStatus'] );
+					$data['orderId']       = (int) $xmoney_payments_response['id'];
+					$data['transactionId'] = (int) $xmoney_payments_response['transactionId'];
+					$data['identifier']    = sanitize_text_field( $xmoney_payments_response['customerData']['identifier'] );
+					$data['customerId']    = (int) $xmoney_payments_response['customerData']['id'];
+					$data['cardId']        = ( ! empty( $xmoney_payments_response['transactionMethodId'] ) ) ? ( (int) $xmoney_payments_response['transactionMethodId'] ) : ( 0 );
+				} else {
+					$data['status']        = sanitize_text_field( ( empty( $xmoney_payments_response['status'] ) ) ? ( $xmoney_payments_response['transactionStatus'] ) : ( $xmoney_payments_response['status'] ) );
+					$data['orderId']       = (int) $xmoney_payments_response['orderId'];
+					$data['transactionId'] = (int) $xmoney_payments_response['transactionId'];
+					$data['identifier']    = sanitize_text_field( $xmoney_payments_response['identifier'] );
+					$data['customerId']    = (int) $xmoney_payments_response['customerId'];
+					$data['cardId']        = ( ! empty( $xmoney_payments_response['cardId'] ) ) ? ( (int) $xmoney_payments_response['cardId'] ) : ( 0 );
+				}
 
 				Xmoney_Payments_Logger::xmoney_payments_log( esc_html__( '[RESPONSE]: Data: ', 'xmoney-payments' ) . json_encode( $data ) );
 
@@ -191,3 +215,25 @@ if ( ! class_exists( 'Xmoney_Payments_Helper_Response' ) ) :
 		}
 	}
 endif; /* End if class_exists. */
+
+/**
+ * Decrypts the Inline Checkout result using existing decrypt routine.
+ * Expects $payload structure similar to hosted notify: ['result' => 'iv,encdata', 'checksum' => '...'].
+ *
+ * @param array $payload
+ */
+function xmoney_payments_decrypt_inline_payload( $payload ) {
+	if ( empty( $payload['result'] ) ) {
+		return new WP_Error( 'tw_inline_decrypt', 'Empty inline result payload' );
+	}
+	// Load keys
+	$conf       = Xmoney_Payments_Helper_Processor::get_configuration();
+	$is_live    = ! empty( $conf['is_live'] );
+	$secret_key = $is_live ? $conf['secret_key'] : $conf['secret_key'];
+	$lang       = Xmoney_Payments_Helper_Processor::get_current_language();
+	$decrypted  = Xmoney_Payments_Helper_Response::xmoney_payments_decrypt_message( $payload['result'], $secret_key, $lang );
+	if ( ! $decrypted ) {
+		return new WP_Error( 'tw_inline_decrypt', 'Unable to decrypt inline result' );
+	}
+	return $decrypted;
+}

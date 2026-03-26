@@ -43,6 +43,27 @@ function xmoney_payments_edit_general_configuration( $request ) {
 	$thankyou_page       = sanitize_text_field( wp_unslash( $request['wp_pages'] ) );
 	$suppress_email      = sanitize_text_field( wp_unslash( $request['suppress_email'] ) );
 	$contact_email_o     = sanitize_email( wp_unslash( $request['contact_email_o'] ) );
+	$inline_checkout     = sanitize_text_field( $request['inline_checkout'] );
+	$enable_saved_cards  = isset( $request['enable_saved_cards'] ) ? sanitize_text_field( $request['enable_saved_cards'] ) : '0';
+	$checkout_theme      = isset( $request['checkout_theme'] ) ? sanitize_text_field( $request['checkout_theme'] ) : 'light';
+
+	// Build theme variables JSON if custom theme is selected
+	$theme_variables = '';
+	if ( 'custom' === $checkout_theme ) {
+		$vars = array(
+			'colorPrimary'         => isset( $request['theme_colorPrimary'] ) ? sanitize_hex_color( $request['theme_colorPrimary'] ) : '#009688',
+			'colorDanger'          => isset( $request['theme_colorDanger'] ) ? sanitize_hex_color( $request['theme_colorDanger'] ) : '#e53935',
+			'colorBackground'      => isset( $request['theme_colorBackground'] ) ? sanitize_hex_color( $request['theme_colorBackground'] ) : '#f5f5f5',
+			'colorText'            => isset( $request['theme_colorText'] ) ? sanitize_hex_color( $request['theme_colorText'] ) : '#212121',
+			'colorTextSecondary'   => isset( $request['theme_colorTextSecondary'] ) ? sanitize_hex_color( $request['theme_colorTextSecondary'] ) : '#757575',
+			'colorBorder'          => isset( $request['theme_colorBorder'] ) ? sanitize_hex_color( $request['theme_colorBorder'] ) : '#e0e0e0',
+			'colorBorderFocus'     => isset( $request['theme_colorBorderFocus'] ) ? sanitize_hex_color( $request['theme_colorBorderFocus'] ) : '#009688',
+			'colorTextPlaceholder' => isset( $request['theme_colorTextPlaceholder'] ) ? sanitize_hex_color( $request['theme_colorTextPlaceholder'] ) : '#bdbdbd',
+			'colorBackgroundFocus' => isset( $request['theme_colorBackgroundFocus'] ) ? sanitize_hex_color( $request['theme_colorBackgroundFocus'] ) : '#ffffff',
+			'borderRadius'         => isset( $request['theme_borderRadius'] ) ? sanitize_text_field( $request['theme_borderRadius'] ) : '4px',
+		);
+		$theme_variables = wp_json_encode( $vars );
+	}
 
 	if ( '' === $contact_email_o ) {
 		$contact_email_o = 0;
@@ -62,14 +83,18 @@ function xmoney_payments_edit_general_configuration( $request ) {
 		$wpdb->update(
 			$table_name,
 			array(
-				'live_mode'      => $live_mode,
-				'staging_id'     => $staging_site_id,
-				'staging_key'    => $staging_private_key,
-				'live_id'        => $live_site_id,
-				'live_key'       => $live_private_key,
-				'thankyou_page'  => $thankyou_page,
-				'suppress_email' => $suppress_email,
-				'contact_email'  => $contact_email_o,
+				'live_mode'          => $live_mode,
+				'staging_id'         => $staging_site_id,
+				'staging_key'        => $staging_private_key,
+				'live_id'            => $live_site_id,
+				'live_key'           => $live_private_key,
+				'thankyou_page'      => $thankyou_page,
+				'suppress_email'     => $suppress_email,
+				'contact_email'      => $contact_email_o,
+				'inline_checkout'    => $inline_checkout,
+				'enable_saved_cards' => $enable_saved_cards,
+				'checkout_theme'     => $checkout_theme,
+				'theme_variables'    => $theme_variables,
 			),
 			array(
 				'id_tw_configuration' => $configuration[0]->id_tw_configuration,
@@ -90,14 +115,18 @@ function xmoney_payments_edit_general_configuration( $request ) {
 		$wpdb->update(
 			$table_name,
 			array(
-				'live_mode'      => $live_mode,
-				'staging_id'     => $staging_site_id,
-				'staging_key'    => $staging_private_key,
-				'live_id'        => $live_site_id,
-				'live_key'       => $live_private_key,
-				'thankyou_page'  => $thankyou_page,
-				'suppress_email' => $suppress_email,
-				'contact_email'  => $contact_email_o,
+				'live_mode'          => $live_mode,
+				'staging_id'         => $staging_site_id,
+				'staging_key'        => $staging_private_key,
+				'live_id'            => $live_site_id,
+				'live_key'           => $live_private_key,
+				'thankyou_page'      => $thankyou_page,
+				'suppress_email'     => $suppress_email,
+				'contact_email'      => $contact_email_o,
+				'inline_checkout'    => $inline_checkout,
+				'enable_saved_cards' => $enable_saved_cards,
+				'checkout_theme'     => $checkout_theme,
+				'theme_variables'    => $theme_variables,
 			),
 			array(
 				'id_tw_configuration' => $wpdb->insert_id,

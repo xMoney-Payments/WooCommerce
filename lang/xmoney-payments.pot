@@ -136,6 +136,16 @@ msgid "Save changes"
 msgstr ""
 
 #: Configuration panel from Administrator
+#: includes/admin/configuration/configuration.php:125
+msgid "Enable xMoney Payments Inline Checkout"
+msgstr ""
+
+#: Configuration panel from Administrator
+#: includes/admin/configuration/configuration.php:129
+msgid "If set to \"Yes\", the payment form is embedded inline on your checkout."
+msgstr ""
+
+#: Configuration panel from Administrator
 #: includes/a-functions.php
 msgid "Yes"
 msgstr ""
@@ -385,6 +395,26 @@ msgstr ""
 msgid "Missing includes/admin/configuration/configuration for plugin."
 msgstr ""
 
+#: Xmoney_Payments_Helper_Processor
+#: helpers/Xmoney_Payments_Helper_Processor.php:39
+msgid "xMoney API request error: "
+msgstr ""
+
+#: Xmoney_Payments_Helper_Processor
+#: helpers/Xmoney_Payments_Helper_Processor.php:56
+msgid "xMoney API returned HTTP %1$d => %2$s"
+msgstr ""
+
+#: Xmoney_Payments_Helper_Processor
+#: helpers/Xmoney_Payments_Helper_Processor.php:72
+msgid "xMoney API invalid JSON: "
+msgstr ""
+
+#: Xmoney_Payments_Helper_Processor
+#: helpers/Xmoney_Payments_Helper_Processor.php:91
+msgid "xMoney API response missing token field: "
+msgstr ""
+
 #: Validation LOG insertor
 #: includes/class-xmoney-payments-server-to-server.php:57
 #: views/payment-confirmation.php:195
@@ -516,6 +546,10 @@ msgstr ""
 #: Subscriptions section
 #: includes/admin/transaction/requests.php:170
 msgid "[RESPONSE-ERROR]: Unexpected HTTP response code: "
+msgstr ""
+
+#: includes/admin/configuration/requests.php:33
+msgid "Security check failed. Please reload the page and try again."
 msgstr ""
 
 #: Wordpress Administrator Order Notice

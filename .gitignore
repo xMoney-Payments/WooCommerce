@@ -3,6 +3,16 @@ node_modules
 .idea
 TODO
 twispay-log.txt
+.phpcs.xml
+
+# Composer
+vendor/
+composer.lock
+
+# PHPUnit
+.phpunit.result.cache
+.phpunit.cache/
+phpunit.xml
 
 # Packages
 *.7z

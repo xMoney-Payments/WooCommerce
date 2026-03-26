@@ -34,19 +34,45 @@ if ( ! class_exists( 'Xmoney_Payments_Logger' ) ) :
 			/* Extract the WooCommerce order. */
 			$xmoney_payments_order = wc_get_order( $data['id_cart'] );
 
+			$table = $wpdb->prefix . 'xmoney_payments_transactions';
+
+			// Use id_cart (WooCommerce order ID) for deduplication to avoid
+			// collisions when multiple transactions arrive with transactionId = 0.
             // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-			$already = $wpdb->get_row( $wpdb->prepare( 'SELECT * FROM ' . $wpdb->prefix . 'xmoney_payments_transactions WHERE transactionId = %s', $data['transactionId'] ) );
+			$already = $wpdb->get_row( $wpdb->prepare( 'SELECT * FROM ' . $table . ' WHERE id_cart = %s', $data['id_cart'] ) );
 			if ( $already ) {
-				/*
-				Update the DB with the transaction data. */
+				$update_fields = array( 'status' => $data['status'] );
+				$update_format = array( '%s' );
+
+				if ( ! empty( $data['transactionId'] ) ) {
+					$update_fields['transactionId'] = (int) $data['transactionId'];
+					$update_format[]                = '%d';
+				}
+				if ( ! empty( $data['orderId'] ) ) {
+					$update_fields['orderId'] = (int) $data['orderId'];
+					$update_format[]          = '%d';
+				}
+				if ( ! empty( $data['identifier'] ) ) {
+					$update_fields['identifier'] = sanitize_text_field( $data['identifier'] );
+					$update_format[]             = '%s';
+				}
+				if ( ! empty( $data['customerId'] ) ) {
+					$update_fields['customerId'] = (int) $data['customerId'];
+					$update_format[]             = '%d';
+				}
+				if ( ! empty( $data['cardId'] ) ) {
+					$update_fields['cardId'] = (int) $data['cardId'];
+					$update_format[]         = '%d';
+				}
+
                 // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-				$wpdb->query( $wpdb->prepare( 'UPDATE ' . $wpdb->prefix . 'xmoney_payments_transactions SET status = %s WHERE transactionId = %d', $data['status'], $data['transactionId'] ) );
+				$wpdb->update( $table, $update_fields, array( 'id_cart' => $data['id_cart'] ), $update_format, array( '%s' ) );
 			} else {
 
 				$checkout_url = ( ( false !== $xmoney_payments_order ) && ( true !== $xmoney_payments_order ) ) ? ( esc_url( wc_get_checkout_url() . 'order-pay/' . explode( '_', $data['id_cart'] )[0] . '/?pay_for_order=true&key=' . $xmoney_payments_order->get_data()['order_key'] ) ) : ( '' );
 
                 // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-				$wpdb->get_results( $wpdb->prepare( 'INSERT INTO `' . $wpdb->prefix . 'xmoney_payments_transactions` (`status`, `id_cart`, `identifier`, `orderId`, `transactionId`, `customerId`, `cardId`, `checkout_url`) VALUES (%s, %s, %s, %d, %d, %d, %d, %s);', $data['status'], $data['id_cart'], $data['identifier'], $data['orderId'], $data['transactionId'], $data['customerId'], $data['cardId'], $checkout_url ) );
+				$wpdb->query( $wpdb->prepare( 'INSERT INTO `' . $table . '` (`status`, `id_cart`, `identifier`, `orderId`, `transactionId`, `customerId`, `cardId`, `checkout_url`) VALUES (%s, %s, %s, %d, %d, %d, %d, %s)', $data['status'], $data['id_cart'], $data['identifier'], $data['orderId'], $data['transactionId'], $data['customerId'], $data['cardId'], $checkout_url ) );
 			}
 		}
 
@@ -69,6 +95,27 @@ if ( ! class_exists( 'Xmoney_Payments_Logger' ) ) :
 				Update the DB with the transaction data. */
                 // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 				$wpdb->query( $wpdb->prepare( 'UPDATE ' . $wpdb->prefix . 'xmoney_payments_transactions SET status = %s WHERE id_cart = %d', $status, $id ) );
+			}
+		}
+
+		/**
+		 * Update a transaction's transactionId in the database.
+		 *
+		 * @param int $id The parent WooCommerce order ID.
+		 * @param int $transaction_id The new transactionId.
+		 * @return void
+		 */
+		public static function xmoney_payments_update_transaction_id( $id, $transaction_id ) {
+			global $wpdb;
+
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			$already = $wpdb->get_row( $wpdb->prepare( 'SELECT * FROM ' . $wpdb->prefix . 'xmoney_payments_transactions WHERE orderId = %d', $id ) );
+
+			if ( $already ) {
+				/*
+				Update the DB with the transaction data. */
+                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+				$wpdb->query( $wpdb->prepare( 'UPDATE ' . $wpdb->prefix . 'xmoney_payments_transactions SET transactionId = %d WHERE orderId = %d', $transaction_id, $id ) );
 			}
 		}
 

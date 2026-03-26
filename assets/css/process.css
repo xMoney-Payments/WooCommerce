@@ -1,33 +1,3 @@
-body {
-	height: 100%;
-	overflow: hidden !important;
-}
-
-.wrapper-loader {
-	background-color: #fff;
-	height: 100%;
-	left: 0;
-	position: absolute;
-	width: 100%;
-	top: 0;
-	z-index: 1000;
-}
-
-.loader {
-	margin: 15% auto 0;
-	border: 14px solid #f3f3f3;
-	border-top: 14px solid #3498db;
-	border-radius: 50%;
-	width: 110px;
-	height: 110px;
-	animation: spin 1.1s linear infinite;
-}
-
-@keyframes spin {
-	0% {
-		transform: rotate(0deg);
-	}
-	100% {
-		transform: rotate(360deg);
-	}
+.payment_box.payment_method_xmoney-payments {
+    padding-left: 0 !important;
 }
