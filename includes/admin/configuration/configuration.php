@@ -124,7 +124,7 @@ function xmoney_payments_configuration() {
 						<tr class="form-field" id="contact_email_o">
 							<th scope="row"><label for="contact_email_o"><?php echo esc_html__( 'Contact email(Optional)', 'xmoney-payments' ); ?></span></label></th>
 							<td>
-								<input name="contact_email_o" type="text" value="<?php echo esc_url( sanitize_email( xmoney_payments_get_contact_email_o() === '0' ? '' : xmoney_payments_get_contact_email_o() ) ); ?>" style="max-width: 400px;" />
+								<input name="contact_email_o" type="text" value="<?php echo esc_attr( sanitize_email( xmoney_payments_get_contact_email_o() === '0' ? '' : xmoney_payments_get_contact_email_o() ) ); ?>" style="max-width: 400px;" />
 								<p class="description"><?php echo esc_html__( 'This email will be used on the payment error page.', 'xmoney-payments' ); ?></p>
 							</td>
 						</tr>
