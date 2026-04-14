@@ -4,7 +4,7 @@ Tags: payment, gateway, module
 Requires at least: 4.6
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 1.0.0
+Stable tag: 1.0.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -57,6 +57,10 @@ Q: What happens if I cancel the Order manually?
 A:We are working on it. Our API is not ready yet for merchant manual changes. If you need to change the Order status, change it in WooCommerce and then go to our Merchant Dashboard to start a refund.
 
 == Changelog ==
+
+= v1.0.1 =
+
+* Fixed a fatal error on the payment confirmation page for non-English locales caused by a variable name collision during language file loading.
 
 = v1.0.0 =
 

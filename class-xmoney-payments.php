@@ -3,7 +3,7 @@
  * Plugin Name: xMoney Payments
  * Plugin URI: https://wordpress.org/plugins/xmoney-payments/
  * Description: Plugin for xMoney Payments payment gateway.
- * Version: 1.0.0
+ * Version: 1.0.1
  * Author: xmoney
  * Author URI: https://www.xmoney.com
  * Text Domain: xmoney-payments
@@ -117,7 +117,7 @@ if ( ! class_exists( 'Xmoney_Payments' ) ) {
 			}
 
 			if ( ! defined( 'XMONEY_PAYMENTS_VERSION' ) ) {
-				define( 'XMONEY_PAYMENTS_VERSION', 1.0 );
+				define( 'XMONEY_PAYMENTS_VERSION', '1.0.1' );
 			}
 		}
 
